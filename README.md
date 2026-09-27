@@ -79,6 +79,10 @@ aif index decisions --check  # verify the decision index without writing
 # Project scaffolding
 aif init --name my-app --shortname myapp --language typescript --org acme
 aif init --interactive
+
+# Config field resolution
+aif config paths.decisions          # resolve a .aiconfig.json field, falling back to its default
+aif config paths.decisions --abs    # print an absolute path (for paths.* keys)
 ```
 
 ### Harness Support
