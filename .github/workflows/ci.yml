@@ -65,6 +65,12 @@ jobs:
       - name: "Check: snapshot freshness (bundles, servers, hooks)"
         run: node bin/aif.js snapshot --check
 
+      - name: "Check: architecture index (key_files staleness + relative links)"
+        run: node bin/aif.js index architecture --check
+
+      - name: "Check: decisions index"
+        run: node bin/aif.js index decisions --check
+
       - name: "Check: version bump — determine base commit"
         id: base
         run: |

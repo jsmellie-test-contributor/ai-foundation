@@ -17,6 +17,7 @@ import {
   collectArchitectureFiles,
   isStaleAgainstGit,
   buildArchitectureIndexForDir,
+  findBrokenLinks,
 } from '../../lib/architecture.js';
 import { runIndex, resolveArchitecturePath } from '../../lib/commands/index.js';
 import { parseArgs } from '../../bin/aif.js';
@@ -167,6 +168,41 @@ describe('architecture index — real git integration', () => {
     const index2 = buildArchitectureIndexForDir(archDir, repoRoot);
     assert.equal(index2.entries[0].stale, true);
   });
+
+  it('findBrokenLinks resolves a link relative to its own file, not the arch root', () => {
+    const archDir = join(repoRoot, 'docs', 'architecture');
+    mkdirSync(join(archDir, 'sub'), { recursive: true });
+    writeFileSync(join(archDir, 'sub', 'target.md'), 'x');
+    writeFileSync(join(archDir, 'sub', 'source.md'), '[ok](target.md)\n[broken](../target.md)\n');
+
+    const errors = findBrokenLinks(archDir);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /sub\/source\.md/);
+    assert.match(errors[0], /\.\.\/target\.md/);
+  });
+
+  it('findBrokenLinks is empty for a link that resolves', () => {
+    const archDir = join(repoRoot, 'docs', 'architecture');
+    mkdirSync(archDir, { recursive: true });
+    writeFileSync(join(archDir, '05_building_blocks.md'), 'x');
+    writeFileSync(
+      join(archDir, '05_01_bundle_resolution.md'),
+      '[Level 1](05_building_blocks.md)\n',
+    );
+
+    assert.deepEqual(findBrokenLinks(archDir), []);
+  });
+
+  it('findBrokenLinks flags a renamed/deleted target', () => {
+    const archDir = join(repoRoot, 'docs', 'architecture');
+    mkdirSync(archDir, { recursive: true });
+    writeFileSync(join(archDir, '01_intro.md'), '[gone](05_deleted.md)\n');
+
+    const errors = findBrokenLinks(archDir);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /01_intro\.md/);
+    assert.match(errors[0], /05_deleted\.md/);
+  });
 });
 
 describe('aif index architecture — CLI wiring', () => {
@@ -268,5 +304,43 @@ describe('aif index architecture — CLI wiring', () => {
     const exitCode = runIndex(parseArgs(['index', 'architecture']), repoRoot);
     assert.equal(exitCode, 1);
     assert.ok(!existsSync(join(repoRoot, 'docs', 'architecture', 'index.json')));
+  });
+
+  it('--check fails when a section file has a broken relative link', () => {
+    const { archDir } = setup();
+    runIndex(parseArgs(['index', 'architecture']), repoRoot);
+
+    writeFileSync(
+      join(archDir, '02_broken_link.md'),
+      sectionContent({ lastVerified: git(repoRoot, 'rev-parse', 'HEAD') }).replace(
+        '> Summary.',
+        '> Summary.\n\n[gone](does_not_exist.md)',
+      ),
+    );
+    commitAll(repoRoot, 'add doc with a broken link');
+
+    const exitCode = runIndex(parseArgs(['index', 'architecture', '--check']), repoRoot);
+    assert.equal(exitCode, 1);
+  });
+
+  it('generation warns, but still succeeds, on a broken relative link', () => {
+    useDocsArchitecture();
+    mkdirSync(join(repoRoot, 'src'), { recursive: true });
+    writeFileSync(join(repoRoot, 'src', 'thing.js'), 'x');
+    const commitA = commitAll(repoRoot, 'add thing.js and .aiconfig.json');
+
+    const archDir = join(repoRoot, 'docs', 'architecture');
+    mkdirSync(archDir, { recursive: true });
+    writeFileSync(
+      join(archDir, '01_intro.md'),
+      sectionContent({ lastVerified: commitA }).replace(
+        '> Summary.',
+        '> Summary.\n\n[gone](does_not_exist.md)',
+      ),
+    );
+    commitAll(repoRoot, 'add architecture doc with a broken link');
+
+    const exitCode = runIndex(parseArgs(['index', 'architecture']), repoRoot);
+    assert.equal(exitCode, 0);
   });
 });

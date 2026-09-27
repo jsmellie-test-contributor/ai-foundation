@@ -5,7 +5,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseFrontmatter, hashContent } from '../../lib/file-utils.js';
+import { parseFrontmatter, hashContent, nonFencedLines } from '../../lib/file-utils.js';
 
 // ── parseFrontmatter ─────────────────────────────────────────────────────────
 
@@ -111,5 +111,58 @@ describe('unit: file-utils/hashContent', () => {
   it('handles Buffer input', () => {
     const hash = hashContent(Buffer.from('hello'));
     assert.equal(hash, hashContent('hello'));
+  });
+});
+
+// ── nonFencedLines ───────────────────────────────────────────────────────────
+
+describe('unit: file-utils/nonFencedLines', () => {
+  it('returns every line with its 1-indexed line number when there is no fence', () => {
+    const result = nonFencedLines('a\nb\nc');
+    assert.deepEqual(result, [
+      { line: 'a', lineNumber: 1 },
+      { line: 'b', lineNumber: 2 },
+      { line: 'c', lineNumber: 3 },
+    ]);
+  });
+
+  it('omits lines inside a fenced code block, and the fence markers themselves', () => {
+    const content = ['before', '```', 'inside', '```', 'after'].join('\n');
+    const result = nonFencedLines(content);
+    assert.deepEqual(
+      result.map((r) => r.line),
+      ['before', 'after'],
+    );
+  });
+
+  it('preserves original line numbers across an omitted fence', () => {
+    const content = ['one', '```', 'two', '```', 'three'].join('\n');
+    const result = nonFencedLines(content);
+    assert.deepEqual(
+      result.map((r) => r.lineNumber),
+      [1, 5],
+    );
+  });
+
+  it('treats an unclosed fence as extending to the end of the content', () => {
+    const content = ['before', '```', 'never closes'].join('\n');
+    const result = nonFencedLines(content);
+    assert.deepEqual(
+      result.map((r) => r.line),
+      ['before'],
+    );
+  });
+
+  it('handles multiple separate fenced blocks', () => {
+    const content = ['a', '```', 'x', '```', 'b', '```', 'y', '```', 'c'].join('\n');
+    const result = nonFencedLines(content);
+    assert.deepEqual(
+      result.map((r) => r.line),
+      ['a', 'b', 'c'],
+    );
+  });
+
+  it('returns a single empty line for empty content, not []', () => {
+    assert.deepEqual(nonFencedLines(''), [{ line: '', lineNumber: 1 }]);
   });
 });

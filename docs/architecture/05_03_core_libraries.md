@@ -2,7 +2,7 @@
 section: '05.03'
 title: 'Core libraries'
 lifecycle: published
-last_verified: 0441de2
+last_verified: 5944c97
 tags: [building-blocks, core-libraries]
 key_files:
   - lib/manifest.js
@@ -51,7 +51,7 @@ the way §5.01's or §5.04's content does.
 | `secrets.js`                                                   | Pure logic behind provider-agnostic secrets resolution for `ai-git`: reads `secrets.run`/`secrets.allow_insecure_dotenv` out of a parsed `.aiconfig.json`, resolves `${VAR}` placeholders, parses `.env`-format text, and builds a re-exec-through-wrapper invocation. Never resolves a secret value itself — that's the wrapper command's job.                                                                                                                                                    | `getSecretsConfig()`, `resolvePlaceholders()`, `parseDotenv()`, `buildWrapperInvocation()`, `isAlreadyWrapped()` |
 | `constants.js` / `component-defs.js`                           | Shared constants (canonical tool names, source directories, CLI command list) and JSDoc-only `AgentDef`/`ServerDef` type shapes — no runtime behavior, just a single owner for both.                                                                                                                                                                                                                                                                                                               | `TOOLS`, `SOURCE_DIRS`, `COMMANDS`                                                                               |
 | `aiconfig.js` / `aiconfig-resolve.js` / `aiconfig-defaults.js` | Resolves a `.aiconfig.json` field to its configured value or documented default, without ever writing a default back to disk. `aiconfig-defaults.js` owns the default table (some entries derive from another field's resolved value, e.g. `paths.decisions` nesting under `paths.knowledge`); `aiconfig-resolve.js` is the pure merge logic against a plain object; `aiconfig.js` is the I/O layer that reads `.aiconfig.json` off disk and also finds a project root by walking up for the file. | `getConfigValue()`, `getConfigPath()`, `findProjectRoot()`, `resolveConfigValue()`                               |
-| `file-utils.js`                                                | Generic file/hash/frontmatter helpers with no harness-specific behavior: YAML frontmatter parsing, recursive file collection, SHA-256 content hashing, writing to a target path.                                                                                                                                                                                                                                                                                                                   | `parseFrontmatter()`, `collectFiles()`, `hashContent()`, `writeToTarget()`                                       |
+| `file-utils.js`                                                | Generic file/hash/frontmatter helpers with no harness-specific behavior: YAML frontmatter parsing, recursive file collection, SHA-256 content hashing, writing to a target path, and line-oriented scanning that skips fenced code blocks.                                                                                                                                                                                                                                                         | `parseFrontmatter()`, `collectFiles()`, `hashContent()`, `writeToTarget()`, `nonFencedLines()`                   |
 
 ## Consumers
 
@@ -69,5 +69,4 @@ JSDoc-only types are referenced (via `@param {import('./component-defs.js').X}`
 comments, never a runtime `import`) only by the three `lib/harnesses/*` files,
 not repo-wide. `file-utils.js` has the widest reach of any block in this
 table: `lib/harnesses/base.js`/`claude.js`/`kiro.js` (§5.02), `snapshot/io.js`
-(this table), and `lib/decisions.js`/`architecture.js` (§5.04) all import from
-it directly.
+(this table), `lib/decisions.js`/`architecture.js` (§5.04), and `lib/commands/validate.js`'s citation checker (§5.05) all import from it directly — `nonFencedLines()` specifically is shared by `architecture.js`'s relative-link extractor and `validate.js`'s citation checker, the one piece of logic those two otherwise-unrelated checks would each have hand-rolled separately.

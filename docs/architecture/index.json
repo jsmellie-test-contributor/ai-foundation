@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T03:11:58.322Z",
+  "generated_at": "2026-09-26T13:19:59.934Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -116,7 +116,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-      "last_verified": "0441de2",
+      "last_verified": "5944c97",
       "stale": false
     },
     {
@@ -136,7 +136,7 @@
         "lib/architecture.js",
         "lib/index-diff.js"
       ],
-      "last_verified": "863273a",
+      "last_verified": "5944c97",
       "stale": false
     },
     {
@@ -161,7 +161,7 @@
         "lib/commands/init.js",
         "lib/commands/config.js"
       ],
-      "last_verified": "a449e7f",
+      "last_verified": "5944c97",
       "stale": false
     },
     {
@@ -188,7 +188,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-      "last_verified": "122137a",
+      "last_verified": "5944c97",
       "stale": false
     },
     {

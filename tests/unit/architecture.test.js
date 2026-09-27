@@ -13,6 +13,7 @@ import {
   buildReverseIndex,
   buildArchitectureIndex,
   diffArchitectureIndex,
+  extractRelativeLinks,
 } from '../../lib/architecture.js';
 
 function wellFormedSection({
@@ -192,6 +193,57 @@ describe('buildArchitectureIndex', () => {
   it('stamps generated_at as an ISO timestamp', () => {
     const index = buildArchitectureIndex([], () => false);
     assert.doesNotThrow(() => new Date(index.generated_at).toISOString());
+  });
+});
+
+describe('extractRelativeLinks', () => {
+  it('extracts a plain inline link', () => {
+    const links = extractRelativeLinks('See [Bundle resolution](05_01_bundle_resolution.md).');
+    assert.deepEqual(links, [{ text: 'Bundle resolution', target: '05_01_bundle_resolution.md' }]);
+  });
+
+  it('skips absolute URLs (URI scheme present)', () => {
+    const links = extractRelativeLinks('[arc42](https://arc42.org/template)');
+    assert.deepEqual(links, []);
+  });
+
+  it('skips mailto: links', () => {
+    const links = extractRelativeLinks('[email](mailto:someone@example.com)');
+    assert.deepEqual(links, []);
+  });
+
+  it('skips pure same-page anchors', () => {
+    const links = extractRelativeLinks('[Motivation](#motivation)');
+    assert.deepEqual(links, []);
+  });
+
+  it('skips repo-root-absolute paths', () => {
+    const links = extractRelativeLinks('[x](/docs/architecture/05_building_blocks.md)');
+    assert.deepEqual(links, []);
+  });
+
+  it('keeps a target with a #fragment attached', () => {
+    const links = extractRelativeLinks('[x](05_building_blocks.md#overview-diagram)');
+    assert.deepEqual(links, [{ text: 'x', target: '05_building_blocks.md#overview-diagram' }]);
+  });
+
+  it('strips a quoted link title from the target', () => {
+    const links = extractRelativeLinks('[x](05_building_blocks.md "Level 1 whitebox")');
+    assert.deepEqual(links, [{ text: 'x', target: '05_building_blocks.md' }]);
+  });
+
+  it('does not scan inside fenced code blocks', () => {
+    const content = ['```', 'See [example](not_real.md).', '```'].join('\n');
+    assert.deepEqual(extractRelativeLinks(content), []);
+  });
+
+  it('finds multiple links across multiple lines', () => {
+    const content = ['[a](a.md)', 'prose', '[b](b.md)'].join('\n');
+    const links = extractRelativeLinks(content);
+    assert.deepEqual(
+      links.map((l) => l.target),
+      ['a.md', 'b.md'],
+    );
   });
 });
 

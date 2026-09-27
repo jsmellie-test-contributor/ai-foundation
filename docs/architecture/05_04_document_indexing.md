@@ -2,7 +2,7 @@
 section: '05.04'
 title: 'Document indexing'
 lifecycle: published
-last_verified: 863273a
+last_verified: 5944c97
 tags: [building-blocks, indexing, decisions, architecture]
 key_files:
   - lib/decisions.js
@@ -67,11 +67,11 @@ the other's fields.
 
 ## Important Interfaces
 
-| Block             | Pure functions                                                                                             | io wrappers                                                                           |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `decisions.js`    | `parseDecisionRecord()`, `buildDecisionIndex()`, `diffDecisionIndex()`                                     | `collectDecisionFiles()`, `buildDecisionIndexForDir()`                                |
-| `architecture.js` | `parseArchitectureSection()`, `buildReverseIndex()`, `buildArchitectureIndex()`, `diffArchitectureIndex()` | `collectArchitectureFiles()`, `isStaleAgainstGit()`, `buildArchitectureIndexForDir()` |
-| `index-diff.js`   | `entriesEqual()`                                                                                           | —                                                                                     |
+| Block             | Pure functions                                                                                                                       | io wrappers                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `decisions.js`    | `parseDecisionRecord()`, `buildDecisionIndex()`, `diffDecisionIndex()`                                                               | `collectDecisionFiles()`, `buildDecisionIndexForDir()`                                                     |
+| `architecture.js` | `parseArchitectureSection()`, `buildReverseIndex()`, `buildArchitectureIndex()`, `diffArchitectureIndex()`, `extractRelativeLinks()` | `collectArchitectureFiles()`, `isStaleAgainstGit()`, `findBrokenLinks()`, `buildArchitectureIndexForDir()` |
+| `index-diff.js`   | `entriesEqual()`                                                                                                                     | —                                                                                                          |
 
 `architecture.js`'s split is slightly wider than `decisions.js`'s: `isStaleAgainstGit()`
 is the one piece of either module that touches git/the filesystem beyond reading the
@@ -82,7 +82,10 @@ testable against synthetic fixtures with no real repo, per
 
 ## Consumers
 
-`lib/commands/index.js` is the sole caller of both `build*IndexForDir()` functions and
-both `diff*Index()` functions — `aif index decisions|architecture` and their `--check`
-mode are the only entry points into either module. Nothing else in this repo imports
-`decisions.js`, `architecture.js`, or `index-diff.js` directly.
+`lib/commands/index.js` is the sole caller of both `build*IndexForDir()` functions,
+both `diff*Index()` functions, and `architecture.js`'s `findBrokenLinks()` — arc42
+sections' own cross-references are relative markdown links between flat sibling
+files, so only `architecture.js` scans for broken ones; `decisions.js` records have
+no equivalent link convention to check. `aif index decisions|architecture` and their
+`--check` mode are the only entry points into either module. Nothing else in this
+repo imports `decisions.js`, `architecture.js`, or `index-diff.js` directly.
