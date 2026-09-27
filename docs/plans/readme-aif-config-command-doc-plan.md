@@ -16,8 +16,8 @@ Add the `aif config <key> [--abs]` subcommand — real, implemented (`lib/comman
 
 ## Components Affected
 
-| Component  | Action | Notes                                                                 |
-| ---------- | ------ | ---------------------------------------------------------------------- |
+| Component   | Action | Notes                                                                |
+| ----------- | ------ | -------------------------------------------------------------------- |
 | `README.md` | Modify | Add `aif config` to the CLI command block and its usage example list |
 
 ## Approach
