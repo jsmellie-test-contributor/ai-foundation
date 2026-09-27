@@ -1,8 +1,8 @@
 # Document `aif config` in README's CLI Section — Plan
 
-> Status: Draft
+> Status: Approved
 > Created: 2026-09-27
-> Approved by: Pending
+> Approved by: Jeremy Smellie
 
 Plan ID (this repo has no numeric Tier-3 ID scheme yet): `readme-aif-config-command-doc-plan`. Reference this filename in commits per `steering/engineering/core.md`: "Every Artifact Must Reference Its Plan ID".
 
