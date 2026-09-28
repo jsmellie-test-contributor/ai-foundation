@@ -36,9 +36,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          # Full history needed to diff against the previous push for the
-          # version-bump check — a shallow checkout can't resolve the base
-          # commit.
+          # Full history needed for the version-bump check: it diffs against
+          # `main`'s previous tip on pushes to main, and against the tip of
+          # whichever branch was forked from otherwise (found via
+          # merge-base against every remote branch) — a shallow checkout
+          # can't resolve either the base commit or the other branches.
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -65,18 +67,22 @@ jobs:
       - name: "Check: snapshot freshness (bundles, servers, hooks)"
         run: node bin/aif.js snapshot --check
 
-      - name: "Check: version bump — determine base commit"
-        id: base
-        run: |
-          before="${{ github.event.before }}"
-          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
-            echo "sha=" >> "$GITHUB_OUTPUT"
-          else
-            echo "sha=$before" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: "Check: version bump"
-        run: node .github/scripts/check-version-bumps.mjs "${{ steps.base.outputs.sha }}"
+        # main only ever moves forward one accepted state at a time, so it
+        # diffs against its own previous tip (github.event.before — empty
+        # or all-zeros on the very first commit, which skips the check).
+        # Every other branch diffs against whichever still-existing branch
+        # it was most recently forked from (see auto-parent mode in the
+        # script), found via merge-base rather than assumed to be main —
+        # this also means a branch's own follow-up pushes (e.g. a typo fix)
+        # compare against that ancestor's tip, not against each other, so
+        # they don't demand a fresh version bump every time.
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            node .github/scripts/check-version-bumps.mjs sha "${{ github.event.before }}"
+          else
+            node .github/scripts/check-version-bumps.mjs auto-parent "${{ github.ref_name }}"
+          fi
 
   test-node-min:
     name: Test (Node 22.x, min)
