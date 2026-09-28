@@ -16,7 +16,7 @@
 
 `tests/unit`, `tests/integration`, and `tests/validation` check that agent/skill/steering _files_ are well-formed — schema conformance, cross-references, bundle resolution. Nothing checks that dispatching a real agent on a real task actually produces the behavior those files describe. A manual validation pass (`docs/plans/process-model-test-plan.md`) proved this gap is real: dispatching Architect on a genuine decision produced an ADR that blew its own 150-350 word budget by 5-6x and included literal code, directly violating an existing Hard rule (`agents/architect.yaml`: "Never write code, pseudocode, or method signatures") — a defect no existing automated check would have caught, because nothing checks agent _output_ against behavioral rules, only file schema.
 
-That same validation pass also showed which parts of the problem need which kind of test. Of its ~6 real findings, 5 were environment/harness gaps (nested subagent dispatch unavailable to a subagent-run agent, GitHub self-approval blocked for a single bot identity, missing `gh` CLI, `ai-git`'s secrets wrapper needing infra this sandbox lacked, CI concurrency-cancellation) — all of them only surfaced because a full real multi-agent pipeline ran against real GitHub infrastructure. The one real _process-model_ defect (the ADR word-budget/no-code violation) needed none of that — it's checkable by handing one agent a plausible input and grading its output, no other agents, no GitHub, no CI involved. Running the full expensive pipeline to surface it was overkill; a cheap, targeted, repeatable check would have caught it just as reliably, on demand, every time.
+That same validation pass also showed the actual defect it found didn't need a full multi-agent pipeline to surface — it's checkable by handing one agent a plausible input and grading its output alone, no other agents, no GitHub, no CI involved. Running the full expensive pipeline to catch it was overkill; a cheap, targeted, repeatable check would have caught it just as reliably, on demand, every time.
 
 ## Goal
 
@@ -46,7 +46,7 @@ Fixtures must not silently drift away from what real agents actually produce ove
 ### Assertions — two kinds
 
 - **Mechanical** (deterministic, `node:test`, same convention as the existing suites): file existence, required frontmatter fields, word counts against a stated budget, regex-based presence/absence checks (e.g., no fenced code block in an ADR body), commit ordering via `git log` (an `Approved` commit must exist before any implementation commit), banned-vocabulary checks.
-- **Judgment-based** (needs an LLM grader, inherently non-deterministic): did the agent correctly refuse to fabricate a fact rather than guess; did it escalate instead of deciding unilaterally; are its options genuinely distinct; did it avoid over-specifying when dispatching a sub-agent itself. Dispatch **Principal-Engineer** as the grader, reusing `skill/review-severity`'s existing severity taxonomy and report template and `skill/code-review`'s dispatch pattern — extended to a new checklist domain (agent behavior), not a new scoring vocabulary. Likely lands as a new skill; exact name and shape left to the implementation plan.
+- **Judgment-based** (needs an LLM grader, inherently non-deterministic): did the agent correctly refuse to fabricate a fact rather than guess; did it escalate instead of deciding unilaterally; are its options genuinely distinct; did it avoid over-specifying when dispatching a sub-agent itself. Grading should reuse `skill/review-severity`'s existing severity taxonomy and report template rather than a new scoring vocabulary. Which agent performs the grading dispatch (and whether that reuses `skill/code-review`'s dispatch pattern) is an implementation decision, not specified here — see Open Questions.
 
 ### Execution model
 
@@ -76,7 +76,7 @@ Ship with at least these four, each directly reproducing a real finding or a rea
 
 ## Open Questions for the Implementation Plan
 
-- Exact skill name/home for the judgment-grading dispatch (extend `skill/code-review`, or a new sibling skill).
+- Which agent performs the judgment-grading dispatch, and exact skill name/home for it (extend `skill/code-review`, a new sibling skill, or something else).
 - Exact fixture directory layout and traceability-record format.
 - Whether `skill/test-execution` (today scoped to product-code test writing/execution) should absorb this, or a new skill is cleaner since the subject (agent behavior, not product code) is genuinely different.
 - How fixtures get built/updated in practice (left open per direct instruction — an implementation decision, not specified here).
