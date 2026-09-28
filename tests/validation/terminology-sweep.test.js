@@ -64,6 +64,7 @@ const EXCLUDED_FILES = new Set([
   // vocabulary they're replacing.
   'docs/process-model.md',
   'docs/plans/process-model-implementation-tracker.md',
+  'docs/plans/process-model-test-plan.md',
 ]);
 
 function listTrackedFiles() {
