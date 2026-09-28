@@ -1,6 +1,6 @@
 ---
 name: 'architecture-authoring'
-version: '0.1.0'
+version: '0.2.0'
 description: 'Defines the arc42 section frontmatter schema and the key_files scope/split rules, so any engineering-domain agent can author or maintain architecture docs consistently, in any project.'
 file_patterns: []
 ---
@@ -59,6 +59,16 @@ There is no maximum length for `key_files`. Past 5 entries, treat every new addi
 
 **Exceptions:** None — the re-evaluation is what's required, not a specific outcome. Deciding not to split after weighing it is a valid result of following this rule.
 
+### Rule: `--check` Is a Final Validation, Not a Mid-Sequence One
+
+When a unit of work touches one or more `key_files` and bumps the affected doc's `last_verified` to match, run `aif index architecture --check` (and regenerate `index.json`) exactly once — as the literal last local step before pushing, after every edit to every `key_files` entry in that unit of work is finished. A pass earlier in the sequence does not carry forward: any further edit to the same `key_files` entry afterward, even in a separate follow-up commit, invalidates the SHA that was just set, since `last_verified` must name a commit that already contains everything it claims to have verified — and no commit can name itself, or a later commit, before that commit exists.
+
+Do not work around this by having tooling auto-rewrite a stale `last_verified` to the current `HEAD`. That would set the field without a human or agent actually re-checking the doc's claims against the file's current state, which defeats the reason the field exists — it is a verification record, not a bookkeeping stamp. The bump is only ever correct when someone has actually looked at both and confirmed they still match.
+
+**Rationale:** A SHA-based `last_verified` is deliberately chosen over a self-reported date because it is objectively checkable against real git history — but that same property means it can never point at a commit that doesn't exist yet. Bumping mid-sequence and then touching the same key_file again in a later commit silently invalidates the bump before it ever reaches `HEAD`, and this has caused avoidable CI failures more than once. The fix belongs in when `--check` is run, not in what it does — automating the rewrite would remove the verification the field is for, not just the timing mistake.
+
+**Exceptions:** None. If a unit of work needs another edit to a key_file after `--check` already passed, treat that as a new touch — re-run `--check` again as the new final step; don't assume the earlier pass still holds.
+
 ---
 
 ## Enforcement
@@ -66,6 +76,7 @@ There is no maximum length for `key_files`. Past 5 entries, treat every new addi
 - **Malformed frontmatter:** Caught during Principal-Engineer review. A section missing a required field, or using a freeform `lifecycle`/`last_verified` value, is a MEDIUM finding.
 - **Out-of-scope key_files entries:** Caught during Principal-Engineer review. A `key_files` entry that's a caller, test, or incidental config file is a LOW finding — remove it.
 - **Unconsidered growth:** Caught during Principal-Engineer review. A `key_files` list that grows past 5 entries with no evidence the split question was weighed (see "key_files Split Trigger — No Hard Cap") is a LOW finding — not "must split," but "must show the trade-off was considered."
+- **Premature `last_verified` bump:** Caught mechanically by CI's `aif index architecture --check` step if missed locally — not a Principal-Engineer review finding, since it's a verifiable git-history fact rather than a judgment call. The fix is always a follow-up commit re-bumping to the real final SHA; never worth reverting other work over.
 
 ---
 
