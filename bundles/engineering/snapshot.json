@@ -1,7 +1,7 @@
 {
   "bundle": "engineering",
   "version": "1.0.0",
-  "computed_at": "2026-09-28T10:04:26.740Z",
+  "computed_at": "2026-09-28T19:43:46.452Z",
   "sources": {
     "agents/architect.yaml": "sha256:32d42617b1a8f10574d0eee8783143fc4c84270f5cdd2f97312153754d2a44a4",
     "agents/engineering-manager.yaml": "sha256:582b64d776834ca1f9cb0f2b6a767045a9cc853140bc4b7c7b6d34f728330604",
@@ -13,7 +13,7 @@
     "steering/global/knowledge-consumption.md": "sha256:f272279117a7813f14679eb66e07de67459fced082de5985643de4bae75ca4b6",
     "steering/global/markdown-authoring.md": "sha256:e5c0f9f6e8a664dfbbc71d54717dbcf20a82f8484d59a5da696ffada2d7b4419",
     "steering/global/standards-loading.md": "sha256:3b4b2fb97be219a0238bbe12e5badd8d3cd65b574d693b945a659a67209b474f",
-    "steering/engineering/architecture-authoring.md": "sha256:ff91c6419277ccfacbd7fb709e6b3c6304ab0bb58552afd3894d546280c1050d",
+    "steering/engineering/architecture-authoring.md": "sha256:40c4b8380a63ba1df5fbb2e055f9abf5edb5477cc341deb089d38a7939fa2a98",
     "steering/engineering/core.md": "sha256:f7c84910449402a9962c57b0002b9cd6937de33c477aa501a37f101e05d421d5",
     "steering/engineering/document-types.md": "sha256:63353bd63f60344fe107c67726b1c193950e55d9875728a0c768fc28922fbf02",
     "steering/engineering/git-workflow-core.md": "sha256:fb44454eb8c415daa73ffc957a38c424b9cb726206af470b0ec6e891f89de222",
