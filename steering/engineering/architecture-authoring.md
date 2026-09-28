@@ -1,6 +1,6 @@
 ---
 name: 'architecture-authoring'
-version: '0.2.0'
+version: '0.2.1'
 description: 'Defines the arc42 section frontmatter schema and the key_files scope/split rules, so any engineering-domain agent can author or maintain architecture docs consistently, in any project.'
 file_patterns: []
 ---
