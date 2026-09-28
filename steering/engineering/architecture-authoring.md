@@ -65,8 +65,6 @@ When a unit of work touches one or more `key_files` and bumps the affected doc's
 
 Do not work around this by having tooling auto-rewrite a stale `last_verified` to the current `HEAD`. That would set the field without a human or agent actually re-checking the doc's claims against the file's current state, which defeats the reason the field exists — it is a verification record, not a bookkeeping stamp. The bump is only ever correct when someone has actually looked at both and confirmed they still match.
 
-**Rationale:** A SHA-based `last_verified` is deliberately chosen over a self-reported date because it is objectively checkable against real git history — but that same property means it can never point at a commit that doesn't exist yet. Bumping mid-sequence and then touching the same key_file again in a later commit silently invalidates the bump before it ever reaches `HEAD`, and this has caused avoidable CI failures more than once. The fix belongs in when `--check` is run, not in what it does — automating the rewrite would remove the verification the field is for, not just the timing mistake.
-
 **Exceptions:** None. If a unit of work needs another edit to a key_file after `--check` already passed, treat that as a new touch — re-run `--check` again as the new final step; don't assume the earlier pass still holds.
 
 ---
