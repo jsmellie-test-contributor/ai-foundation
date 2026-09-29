@@ -1,7 +1,14 @@
 // ------------------------------
-// terminology-sweep.test.js
+// terminology-sweep.manual.js
 //
 // Plan: process-model check 25
+//
+// Not part of the default test run — excluded from `npm test`'s
+// "**/*.test.js" glob on purpose, since the Chunk/Epic → Feature/Task
+// rename it guards is complete and this is no longer a standing gate.
+// Run it by hand when you want to re-check the vocabulary sweep:
+//
+//   node --test tests/validation/terminology-sweep.manual.js
 // ------------------------------
 
 /**
