@@ -93,7 +93,7 @@ index` CLI command...") and §5 (Architecture Overview, `lib/commands/index.js`
 
 ## 6. Prerequisites
 
-- [x] AIF-002 Epic Plan `Status: Approved (rev 6)` (verified — `docs/plans/epics/AIF-002.epic.md` §1)
+- [x] AIF-002 Epic Plan `Status: Approved (rev 6)` (verified — `docs/plans/features/AIF-002/plan.md` §1)
 - [x] AIF-004 ("AI-Engineer/Software-Engineer Boundary") `Status: Approved` (verified — establishes this chunk belongs to Software-Engineer/`javascript`-`node` standards, not AI-Engineer)
 - [ ] AIF-002-002 (`decision-record` Tier A Metadata table finalized) — **Approved**, not just Draft, before this chunk's implementation begins, since this chunk parses against that exact field set/order. This chunk's own planning proceeds against AIF-002-002's current Draft content (Section 8/7 of that plan), since both are being drafted in the same session, but implementation should not start until 002 is Approved (chunks.json dependency).
 - [x] `lib/commands/index.js` (existing `-k`/knowledge-index implementation) read in full, as the direct structural precedent

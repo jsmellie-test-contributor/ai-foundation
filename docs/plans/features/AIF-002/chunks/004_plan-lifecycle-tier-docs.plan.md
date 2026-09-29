@@ -67,7 +67,7 @@ Extend `skills/plan-lifecycle/` to document two decision-record-specific gate va
 
 ## 6. Prerequisites
 
-- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/epics/AIF-002.epic.md`, Status: Approved, Work Log entry 2026-08-14 [Approved])
+- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/features/AIF-002/plan.md`, Status: Approved, Work Log entry 2026-08-14 [Approved])
 - [x] AIF-META-001 Decision Record is `Approved` (verified: `docs/decisions/meta-process/AIF-META-001_decision-record-tiering-and-domain-ownership.decision.md`, Status: Approved)
 - [x] Current `skills/plan-lifecycle/` content read in full (`SKILL.md`, `reference/status-vocabulary.md`, `reference/commit-gate-procedure.md`)
 - [x] No dependency chunks — this chunk has `depends_on: []` in `chunks.json`
