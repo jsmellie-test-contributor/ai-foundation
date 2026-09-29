@@ -20,11 +20,28 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
+// Resolved relative to this test file's own location, not the repo's cwd —
+// the same pattern tests/integration/ai-git-auth.test.js already uses for
+// bin/ai-git.js, so it doesn't assume anything about where tests are run
+// from.
 const SCRIPT_PATH = resolve(import.meta.dirname, '../../.github/scripts/check-version-bumps.mjs');
 const DOC_PATH = 'doc.md';
+// The script tracks versions in .yaml/.yml files too (agents, servers,
+// bundles, standards), not just Markdown docs — exercised below in
+// "covers non-Markdown versioned files too" so the fork-detection logic
+// isn't only ever proven against one file type.
+const YAML_PATH = 'server.yaml';
 
 function frontmatter(version, body) {
   return `---\nversion: ${version}\n---\n# Doc\n\n${body}\n`;
+}
+
+function writeYamlDoc(cwd, version, description) {
+  writeFileSync(
+    join(cwd, YAML_PATH),
+    `name: server\nversion: ${version}\ndescription: ${description}\n`,
+    'utf8',
+  );
 }
 
 function runGit(cwd, args, env) {
@@ -63,6 +80,7 @@ function setUpRepo() {
   runGit(root, ['config', 'user.name', 'Test User']);
   runGit(root, ['config', 'user.email', 'test@example.com']);
   writeDoc(root, '1.0.0', 'initial content');
+  writeYamlDoc(root, '1.0.0', 'initial content');
   commit(root, 'initial commit');
   publishBranch(root, 'main');
   return root;
@@ -193,13 +211,6 @@ describe('integration: check-version-bumps.mjs', () => {
       assert.equal(code, 1);
       assert.match(stdout, /Detected parent branch: refs\/remotes\/origin\/feature-x/);
       assert.match(stdout, /content changed but version stayed at '1\.1\.0'/);
-
-      // Sanity check on the premise: comparing against main directly (the
-      // old, non-recursive behavior) would have missed this entirely, since
-      // main's doc is still at 1.0.0 and child's is at 1.1.0 — a false pass.
-      const mainSha = runGit(repo, ['rev-parse', 'refs/remotes/origin/main']).stdout.trim();
-      const naive = runCheck(repo, ['sha', mainSha]);
-      assert.equal(naive.code, 0, 'comparing against main alone would have wrongly passed');
     });
 
     it('passes when the nested branch bumps the version past its immediate parent', () => {
@@ -218,7 +229,7 @@ describe('integration: check-version-bumps.mjs', () => {
       assert.match(stdout, /Detected parent branch: refs\/remotes\/origin\/feature-x/);
     });
 
-    it('falls back to the next surviving ancestor once the immediate parent branch is deleted', () => {
+    it('falls back to the next surviving ancestor once the immediate parent branch is deleted, comparing against its current tip', () => {
       runGit(repo, ['checkout', '-q', '-b', 'feature-x']);
       writeDoc(repo, '1.1.0', 'feature-x content');
       commit(repo, 'feature-x bumps the version');
@@ -234,9 +245,45 @@ describe('integration: check-version-bumps.mjs', () => {
       // no origin ref for it anymore.
       runGit(repo, ['update-ref', '-d', 'refs/remotes/origin/feature-x']);
 
+      // main has also independently moved on in the meantime, bumping the
+      // same file past child's own version. The fallback has to compare
+      // against main's CURRENT tip — not some stale snapshot from when
+      // child originally forked — for this to be caught; a fallback that
+      // used the wrong ref, or an old value, would wrongly let this pass.
+      runGit(repo, ['checkout', '-q', 'main']);
+      writeDoc(repo, '1.3.0', 'main moved on independently');
+      commit(repo, 'main bumps past child');
+      publishBranch(repo, 'main');
+      runGit(repo, ['checkout', '-q', 'child']); // back to the branch under test
+
       const { code, stdout } = runCheck(repo, ['auto-parent', 'child']);
-      assert.equal(code, 0);
+      assert.equal(code, 1);
       assert.match(stdout, /Detected parent branch: refs\/remotes\/origin\/main/);
+      assert.match(stdout, /version went backwards \('1\.3\.0' -> '1\.2\.0'\)/);
+    });
+  });
+
+  describe('covers non-Markdown versioned files too', () => {
+    it('fails a branch that changes a .yaml file without bumping its version', () => {
+      runGit(repo, ['checkout', '-q', '-b', 'feature']);
+      writeYamlDoc(repo, '1.0.0', 'changed, forgot to bump');
+      commit(repo, 'edit yaml without bump');
+      publishBranch(repo, 'feature');
+
+      const { code, stdout } = runCheck(repo, ['auto-parent', 'feature']);
+      assert.equal(code, 1);
+      assert.match(stdout, /content changed but version stayed at '1\.0\.0'/);
+    });
+
+    it('passes a branch that bumps a .yaml file version', () => {
+      runGit(repo, ['checkout', '-q', '-b', 'feature']);
+      writeYamlDoc(repo, '1.1.0', 'changed, bumped');
+      commit(repo, 'edit yaml with bump');
+      publishBranch(repo, 'feature');
+
+      const { code, stdout } = runCheck(repo, ['auto-parent', 'feature']);
+      assert.equal(code, 0);
+      assert.match(stdout, /all bumped correctly/);
     });
   });
 });
