@@ -143,5 +143,6 @@ Not yet decomposed — produced after this plan is Approved (`skill/feature-plan
 
 ## 11. Work Log
 
-[2026-09-29 00:00] [Engineering Manager] [Draft] [AIF-012] [Initial draft from architecture review (§5.01, 5.02, 5.05, 6) and cloud-session findings; Feature ID chosen as next after AIF-011, the highest ID found under docs/.]
+[2026-09-29 00:00] [Engineering Manager] [Draft] [AIF-012] [Initial draft from architecture review (§5.01, 5.02, 5.05, 6) and cloud-session findings; Feature ID chosen as next after AIF-011 (see the correction entry below).]
 [2026-09-29 00:30] [Engineering Manager] [Revise] [AIF-012] [Per human: project install must be harness-agnostic, include Kiro (untestable here), and be an optional install-CLI flag. Feature ID still open (AIF-005 vs AIF-012, legacy decision-record overlap).]
+[2026-09-29 01:00] [Engineering Manager] [Correction] [AIF-012] [Feature IDs already in use: AIF-001 to AIF-004, the legacy Epics that `docs/process-model.md` replaced with Features, found in `docs/plans/epics/` and `docs/plans/archive/` (`docs/plans/completed/` holds no IDs; `docs/plans/features/` is empty). AIF-005 to AIF-011 are retired decision-record IDs, cited only in those Epics and their chunk plans. The next Feature ID in the series is therefore AIF-005, but the overlap with those retired IDs makes it ambiguous, so AIF-012 stays as a placeholder until the human chooses.]
