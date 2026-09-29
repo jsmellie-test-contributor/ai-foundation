@@ -20,12 +20,7 @@
 
 ## 2. Goal
 
-Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) from its
-first turn, including fresh Claude Code cloud sessions. Today `aif install` writes only to
-the user's home directory, and the cloud `SessionStart` hook runs after the main-thread
-agent is already resolved, so an installed agent can be delegated to but never be the
-primary agent. Fix it with an optional, harness-agnostic project-scope option on
-`aif install`, implemented for Claude Code and Kiro together.
+Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) from its first turn, including fresh Claude Code cloud sessions. Today `aif install` writes only to the user's home directory, and the cloud `SessionStart` hook runs after the main-thread agent is already resolved, so an installed agent can be delegated to but never be the primary agent. Fix it with an optional, harness-agnostic project-scope option on `aif install`, implemented for Claude Code and Kiro together.
 
 > Requirement traceability: N/A
 
@@ -41,15 +36,9 @@ primary agent. Fix it with an optional, harness-agnostic project-scope option on
 
 ### In Scope
 
-- An optional scope option on `aif install` (and `uninstall`/`status`) that any harness
-  adapter can honour: components written under the project (`.claude/`, `.kiro/`) instead
-  of the user's home directory. Global remains the default.
-- Implementation for both Claude Code and Kiro. Kiro's part cannot be tested in this
-  environment; it is built from the adapter contract and existing Kiro path conventions,
-  and flagged as unverified.
-- A per-harness way to declare the primary agent (Claude Code: `agent` in
-  `.claude/settings.json`; Kiro: mechanism unverified, Section 8) without clobbering
-  existing settings such as the `SessionStart` hook.
+- An optional scope option on `aif install` (and `uninstall`/`status`) that any harness adapter can honour: components written under the project (`.claude/`, `.kiro/`) instead of the user's home directory. Global remains the default.
+- Implementation for both Claude Code and Kiro. Kiro's part cannot be tested in this environment; it is built from the adapter contract and existing Kiro path conventions, and flagged as unverified.
+- A per-harness way to declare the primary agent (Claude Code: `agent` in `.claude/settings.json`; Kiro: mechanism unverified, Section 8) without clobbering existing settings such as the `SessionStart` hook.
 - Staleness detection for the committed project-scope copies (`aif status`, and a check CI can run).
 - Updating the affected arc42 sections and README cloud-setup guidance.
 
@@ -66,18 +55,11 @@ primary agent. Fix it with an optional, harness-agnostic project-scope option on
 
 ### User-Facing Behaviour
 
-A project owner runs `aif install -B engineering -H claude --scope project` (flag name is
-a proposal; the same flag works for `-H kiro`), commits the resulting harness directory,
-and sets the primary agent. Every new session in that repo starts with that agent as the
-main thread. Omitting `--scope` keeps today's global install.
+A project owner runs `aif install -B engineering -H claude --scope project` (flag name is a proposal; the same flag works for `-H kiro`), commits the resulting harness directory, and sets the primary agent. Every new session in that repo starts with that agent as the main thread. Omitting `--scope` keeps today's global install.
 
 ### Data Flow
 
-`aif install` → `resolveBundle()` (unchanged) → the selected adapter, given a scope →
-files under the project's harness directory (Claude: `.claude/{agents,rules,skills,standards,scripts}`;
-Kiro: `.kiro/{agents,steering,skills,servers,standards}`) → manifest records the scope →
-`aif status` compares snapshots as it does today. The primary-agent setting is written by
-the adapter into that harness's own settings file.
+`aif install` → `resolveBundle()` (unchanged) → the selected adapter, given a scope → files under the project's harness directory (Claude: `.claude/{agents,rules,skills,standards,scripts}`; Kiro: `.kiro/{agents,steering,skills,servers,standards}`) → manifest records the scope → `aif status` compares snapshots as it does today. The primary-agent setting is written by the adapter into that harness's own settings file.
 
 ### Business Rules
 
@@ -110,15 +92,11 @@ the adapter into that harness's own settings file.
 
 ### Component Relationships
 
-Extends §5.02 (the shared adapter contract gains a scope input and an optional
-primary-agent function; `claude.js` and `kiro.js` both implement them), §5.05 (`install`,
-`uninstall`, `status` gain a scope option), §5.03/§6 (manifest and freshness carry scope).
-`resolver.js` (§5.01) is unaffected.
+Extends §5.02 (the shared adapter contract gains a scope input and an optional primary-agent function; `claude.js` and `kiro.js` both implement them), §5.05 (`install`, `uninstall`, `status` gain a scope option), §5.03/§6 (manifest and freshness carry scope). `resolver.js` (§5.01) is unaffected.
 
 ### Integration Points
 
-- `lib/harnesses/claude.js` / `kiro.js` — `TARGETS`, MCP settings paths, `{{standards_path}}`
-  substitution, and (Claude) `hookScriptPath()` all currently assume the home directory.
+- `lib/harnesses/claude.js` / `kiro.js` — `TARGETS`, MCP settings paths, `{{standards_path}}` substitution, and (Claude) `hookScriptPath()` all currently assume the home directory.
 - `lib/commands/install.js` / `uninstall.js` / `status.js` — flag parsing and manifest use.
 - Project settings files (`.claude/settings.json`, Kiro equivalent) — shared with the existing `SessionStart` hook.
 
@@ -126,10 +104,8 @@ primary-agent function; `claude.js` and `kiro.js` both implement them), §5.05 (
 
 ## 7. Security Considerations
 
-- Settings merge must never overwrite or drop hooks/permissions (a dropped deny rule is a
-  security regression). Covered by the settings-merge Task's tests.
-- Committed `block-command` hook and agent `blocked_commands` must reference a
-  project-relative path (e.g. via `$CLAUDE_PROJECT_DIR`), not an absolute home path.
+- Settings merge must never overwrite or drop hooks/permissions (a dropped deny rule is a security regression). Covered by the settings-merge Task's tests.
+- Committed `block-command` hook and agent `blocked_commands` must reference a project-relative path (e.g. via `$CLAUDE_PROJECT_DIR`), not an absolute home path.
 - Committed files must contain no tokens or resolved secrets (`${VAR}` placeholders only).
 
 ---
