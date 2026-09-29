@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T10:30:11.445Z",
+  "generated_at": "2026-09-29T15:24:26.251Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -15,7 +15,7 @@
         "AGENTS.md",
         "package.json"
       ],
-      "last_verified": "a0b0214",
+      "last_verified": "9bfa8cc",
       "stale": false
     },
     {
