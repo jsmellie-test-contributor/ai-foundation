@@ -41,3 +41,27 @@ The Claude adapter passes `@dag/dag-validate` style entries through unchanged, a
 - Item 3 is largely answered: main-thread agents work and can dispatch subagents.
 - The hook route is confirmed unworkable, which strengthens item 1's case for files present at startup.
 - Item 4c raises a new risk: a committed `agent` setting with a missing agent fails silently.
+
+## Cloud Test 1 — committed project files (branch `cloud-sandbox`, commit e5220cb)
+
+Result: **passed**. The first message was answered as Engineering-Manager, and the session dispatched `principal-engineer` and reported its reply, `PONG`. So committed `.claude/settings.json` (`agent`) plus `.claude/agents/*.md` work in a real cloud session on a fresh clone. The session's tool list was not captured.
+
+## What the cloud docs say (code.claude.com: cloud-environments, settings)
+
+- The Setup script runs as root, before Claude Code launches, on the VM. If it finishes in about five minutes, the filesystem is snapshotted and reused by later sessions (rebuilt when the script or allowed hosts change, or after about seven days). Files it writes, including under `~/.claude/`, carry over; background processes do not. It must exit 0 or the session fails to start.
+- SessionStart hooks run after Claude Code launches, on every session including resumed ones.
+- Repo `.claude/settings.json`, `.claude/agents/` and `.claude/skills/` reach a session that has one repository. A session with several repositories reads only the `enabledPlugins` and `extraKnownMarketplaces` keys from each repo's settings.
+- The docs' "user `~/.claude/agents` — No" row means the user's own machine files, not files written inside the VM.
+- Unstated in the docs: whether the Setup script runs before or after the repo is cloned, and whether the VM has GitHub access at that point. The repo README says before.
+
+## Cloud Test 2 — settings and agent from the Setup script
+
+Question: can the environment Setup script alone make the session start as the primary agent, with no `.claude/` in the repo?
+
+Branch state: `cloud-sandbox` after the "Stage Test 2" commit has no root `.claude/` (Test 1 files moved to `test1/`). Steps:
+
+1. Paste `test2-setup-script.sh` from the branch into the environment's Setup script field (a copy of the environment, or the sandbox's own environment, to avoid touching the main one).
+2. Start a new cloud session on `cloud-sandbox`.
+3. Send: "State which agent you are running as and your first-reply marker. List every tool you can call."
+
+Pass: the reply starts with `SETUP_SCRIPT_AGENT` and the tools match `Agent, Read, Bash` plus defaults the harness always adds. Fail modes to record: default agent (cloud ignores `~/.claude/settings.json` or the agents dir), or session fails to start (script error).
