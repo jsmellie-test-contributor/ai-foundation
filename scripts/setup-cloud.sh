@@ -1,78 +1,27 @@
 #!/usr/bin/env bash
-# Claude Code Cloud environment setup script for ai-foundation.
+# Claude Code Cloud environment "Setup script" for ai-foundation.
 #
-# Paste this file's path (or its contents) into the cloud environment's
-# "Setup script" field. It only installs tooling — its output is cached in
-# the environment's filesystem snapshot and reused across sessions, so it
-# must never touch real secrets (see docs/plans/secrets-resolution-plan.md,
-# "Cloud Testing Setup"). Secrets belong in the environment's "Environment
-# variables" field instead.
+# Paste this file's CONTENTS into the environment's "Setup script" field.
+# It runs as root before Claude Code launches, before the repo is
+# guaranteed to be present, and its result is snapshotted and reused by
+# later sessions — so it provisions the VM only and never touches repo
+# files or real secrets. Repo setup (npm) lives in the SessionStart hook:
+# .claude/settings.json -> scripts/install-deps.sh. Secrets belong in the
+# environment's "Environment variables" field.
 #
-# Idempotent: safe to re-run manually inside a live session if a tool
-# turns out to be missing.
-set -euo pipefail
+# Must exit 0 (a non-zero exit fails session start) and finish in roughly
+# five minutes (otherwise the environment isn't cached). gh, Node 22 and
+# cargo are pre-installed; only bws is missing. Its release binaries live
+# in an unattached GitHub repo (403 via the session proxy), so build it
+# from crates.io, which the default Trusted network level allows.
+set -uo pipefail
 
-# Locate the repo root without relying on ${BASH_SOURCE[0]}: when this
-# script's *contents* (rather than its path) are pasted into the cloud
-# environment's "Setup script" field, it typically runs via `bash -c`,
-# where BASH_SOURCE[0] is unset — dirname would then resolve to "." and
-# cd one level up from an arbitrary cwd instead of to the repo root,
-# leaving later commands (npm ci) running somewhere with no lockfile at
-# all (npm error EUSAGE). Trust cwd first since that's where a checked-out
-# repo normally puts it; fall back to $CLAUDE_PROJECT_DIR otherwise.
-if [ -f package.json ]; then
-  :
-elif [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -f "${CLAUDE_PROJECT_DIR}/package.json" ]; then
-  cd "${CLAUDE_PROJECT_DIR}"
-else
-  echo "ERROR: could not locate repo root (no package.json in \$PWD ($PWD) or \$CLAUDE_PROJECT_DIR)." >&2
-  exit 1
-fi
-
-echo "==> Node: $(node --version 2>/dev/null || echo 'not found')"
-if ! command -v node >/dev/null 2>&1; then
-  echo "ERROR: Node.js 22+ is required and was not found on PATH." >&2
-  exit 1
-fi
-
-echo "==> Installing npm dependencies (npm ci)"
-npm ci
-
-echo "==> Checking for GitHub CLI (gh)"
-if command -v gh >/dev/null 2>&1; then
-  gh --version | head -1
-else
-  echo "gh not found — required by 'ai-git' for GitHub operations (PRs, issues)."
-  echo "Installing via apt..."
-  if command -v apt-get >/dev/null 2>&1; then
-    (type -p wget >/dev/null || (sudo apt-get update && sudo apt-get install -y wget)) \
-      && sudo mkdir -p -m 755 /etc/apt/keyrings \
-      && wget -nv -O /etc/apt/keyrings/githubcli-archive-keyring.gpg https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-      && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-      && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null \
-      && sudo apt-get update \
-      && sudo apt-get install -y gh
-  else
-    echo "WARNING: apt-get not available — install gh manually." >&2
-  fi
-fi
-
-echo "==> Checking for Bitwarden Secrets Manager CLI (bws)"
 if command -v bws >/dev/null 2>&1; then
   bws --version
 else
-  echo "bws not found — required by 'ai-git' when .aiconfig.json's secrets.run is configured."
-  if command -v cargo >/dev/null 2>&1; then
-    echo "Installing via cargo (crates.io is in the default Trusted network allowlist)..."
-    cargo install bws --locked
-  else
-    echo "WARNING: cargo not available — install bws manually (https://bitwarden.com/help/secrets-manager-cli/)." >&2
-  fi
+  echo "==> Installing bws (Bitwarden Secrets Manager CLI) via cargo"
+  cargo install bws --locked \
+    || echo "WARNING: bws install failed — ai-git secrets.run will be unavailable." >&2
 fi
 
-echo "==> Verifying repo (lint, typecheck, validate)"
-npm run lint
-npm run typecheck
-npm run validate
-
-echo "==> Setup complete"
+exit 0
