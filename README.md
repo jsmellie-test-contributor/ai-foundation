@@ -149,8 +149,10 @@ command -v bws >/dev/null || cargo install bws --locked || true
 ```
 
 Repo setup (`npm install`) runs from the SessionStart hook in
-`.claude/settings.json`. Put secrets in the environment's **Environment
-variables**, not the script.
+`.claude/settings.json`. Set `AIF_BUNDLES` (comma-separated, e.g.
+`engineering,generic`) in the environment's **Environment variables** to also
+run `aif install -H claude` for those bundles; unset installs none. Put
+secrets there too, not in the script.
 
 ---
 
