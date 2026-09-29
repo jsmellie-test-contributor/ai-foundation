@@ -12,7 +12,22 @@
 # turns out to be missing.
 set -euo pipefail
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+# Locate the repo root without relying on ${BASH_SOURCE[0]}: when this
+# script's *contents* (rather than its path) are pasted into the cloud
+# environment's "Setup script" field, it typically runs via `bash -c`,
+# where BASH_SOURCE[0] is unset — dirname would then resolve to "." and
+# cd one level up from an arbitrary cwd instead of to the repo root,
+# leaving later commands (npm ci) running somewhere with no lockfile at
+# all (npm error EUSAGE). Trust cwd first since that's where a checked-out
+# repo normally puts it; fall back to $CLAUDE_PROJECT_DIR otherwise.
+if [ -f package.json ]; then
+  :
+elif [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -f "${CLAUDE_PROJECT_DIR}/package.json" ]; then
+  cd "${CLAUDE_PROJECT_DIR}"
+else
+  echo "ERROR: could not locate repo root (no package.json in \$PWD ($PWD) or \$CLAUDE_PROJECT_DIR)." >&2
+  exit 1
+fi
 
 echo "==> Node: $(node --version 2>/dev/null || echo 'not found')"
 if ! command -v node >/dev/null 2>&1; then
