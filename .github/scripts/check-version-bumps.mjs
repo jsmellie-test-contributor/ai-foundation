@@ -7,23 +7,88 @@
  * value. Encodes the "bump frontmatter version on every modified file"
  * convention documented across skills/steering/agents plans.
  *
- * Usage: node check-version-bumps.mjs <baseSha> [headRef]
- * If <baseSha> is empty, the check is skipped (no base to diff against).
+ * Usage:
+ *   node check-version-bumps.mjs sha <baseSha> [headRef]
+ *     Diff explicitly against <baseSha>. If <baseSha> is empty or the
+ *     all-zeros SHA, the check is skipped (no base to diff against) —
+ *     used for pushes to `main`, where <baseSha> is the previous tip of
+ *     `main` (github.event.before, which GitHub sets to all-zeros on the
+ *     very first push to a ref).
+ *
+ *   node check-version-bumps.mjs auto-parent <currentBranch> [headRef]
+ *     Auto-detect the branch <currentBranch> most recently forked from —
+ *     the still-existing remote branch whose merge-base with HEAD is most
+ *     recent — and diff against its current tip. If a branch was cut from
+ *     another feature branch that has since been merged and deleted, the
+ *     next-nearest surviving ancestor (e.g. main) is found automatically,
+ *     since deleted branches are simply absent from the candidate list.
  */
 
 import { execFileSync } from 'node:child_process';
 import { extname } from 'node:path';
 import YAML from 'yaml';
 
-const [baseSha, headRef = 'HEAD'] = process.argv.slice(2);
-
-if (!baseSha) {
-  console.log('No base ref available to diff against — skipping version-bump check.');
-  process.exit(0);
-}
+const [mode, modeArg, headRef = 'HEAD'] = process.argv.slice(2);
 
 function git(args) {
   return execFileSync('git', args, { encoding: 'utf8' });
+}
+
+/**
+ * Finds the still-existing remote branch this one was most recently forked
+ * from: among all other origin branches, the one whose merge-base with HEAD
+ * is the most recent commit. A branch cut from a feature branch has a later
+ * merge-base with that feature branch than with main, since the feature
+ * branch's own fork-from-main point necessarily predates it.
+ *
+ * @param {string} currentBranch
+ * @returns {string|null} e.g. "origin/feature-x", or null if no candidates.
+ */
+function findParentBranchBase(currentBranch) {
+  const refs = git(['for-each-ref', '--format=%(refname)', 'refs/remotes/origin'])
+    .trim()
+    .split('\n')
+    .map((r) => r.trim())
+    .filter(Boolean)
+    .filter((r) => r !== 'refs/remotes/origin/HEAD')
+    .filter((r) => r !== `refs/remotes/origin/${currentBranch}`);
+
+  let best = null;
+  for (const ref of refs) {
+    let mergeBase;
+    try {
+      mergeBase = git(['merge-base', 'HEAD', ref]).trim();
+    } catch {
+      continue; // unrelated history
+    }
+    const date = Number(git(['show', '-s', '--format=%ct', mergeBase]).trim());
+    if (!best || date > best.date) best = { ref, date };
+  }
+  return best ? best.ref : null;
+}
+
+let baseSha;
+
+if (mode === 'auto-parent') {
+  const parentRef = findParentBranchBase(modeArg);
+  if (!parentRef) {
+    console.log(
+      `No other branch found to diff '${modeArg}' against — skipping version-bump check.`,
+    );
+    process.exit(0);
+  }
+  console.log(`Detected parent branch: ${parentRef}`);
+  baseSha = parentRef;
+} else if (mode === 'sha') {
+  const ZERO_SHA = '0000000000000000000000000000000000000000'; // github.event.before on a first push
+  if (!modeArg || modeArg === ZERO_SHA) {
+    console.log('No base ref available to diff against — skipping version-bump check.');
+    process.exit(0);
+  }
+  baseSha = modeArg;
+} else {
+  console.error(`Unknown mode '${mode}' — expected 'sha' or 'auto-parent'.`);
+  process.exit(1);
 }
 
 function extractVersion(path, content) {
