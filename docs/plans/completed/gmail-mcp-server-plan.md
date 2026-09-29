@@ -1,6 +1,6 @@
 # Gmail MCP Server + Generic Bundle — Implementation Plan
 
-> Status: Approved
+> Status: Done
 > Created: 2026-08-21
 > Approved by: Jeremy
 

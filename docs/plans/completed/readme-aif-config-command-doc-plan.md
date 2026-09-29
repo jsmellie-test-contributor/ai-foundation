@@ -1,6 +1,6 @@
 # Document `aif config` in README's CLI Section — Plan
 
-> Status: Approved
+> Status: Done
 > Created: 2026-09-27
 > Approved by: Jeremy Smellie
 

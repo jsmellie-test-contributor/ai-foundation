@@ -13,6 +13,7 @@
     "architecture": "docs/architecture",
     "research": "docs/research",
     "decisions": "docs/decisions",
+    "product": "docs/product",
     "worktrees": "../worktrees/ai-foundation"
   },
   "orchestration": {
