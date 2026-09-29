@@ -1145,12 +1145,25 @@ follow-up commit, `05_03` also gaining the content fix. Commits: `5944c97`
 
 ## Phase 17 — Freeform plan triage (check 34)
 
-- [ ] **Check 34** — Triage `docs/plans/*.md`: Done → `docs/plans/completed/`; real
+- [x] **Check 34** — Triage `docs/plans/*.md`: Done → `docs/plans/completed/`; real
       upcoming work → a Feature; process change → fold in + delete; stale → delete.
-      Commit: `_____`
+      8 finished plans moved to `docs/plans/completed/` (2 flipped `Approved` →
+      `Done` first, after verifying their work is actually shipped).
+      `agent-behavior-testing-prd.md` seeded a new `docs/product/` area
+      (`paths.product` added to `.aiconfig.json`) rather than `completed/`, since
+      it's living reference material, not a finished plan. `agent-consolidation-plan.md`
+      (`Superseded`) and `adr-kit-plan.md` (tied to check 35) left in place per this
+      document's own disposition notes above. `subagent-dispatch-scoping-plan.md` and
+      `youtrack-integration-plan.md` verified 0% implemented but are real proposed
+      future work, not stale — left `Draft` in `docs/plans/` pending a product
+      decision on each, the same way check 35 sits outside this tracker's own
+      completion criteria (see "Deferred, out of sequence" below). Commits: `4ccc6fa`
+      (completed/ moves), `83dca84` (docs/product/ seed).
 
-**Checkpoint 17 (final):** _____ — once this lands, delete this tracker file, then
-open the PR merging this whole integration branch into `main`.
+**Checkpoint 17 (final):** All 34 in-sequence checks done. `npm test` 798/798 (this
+PR's own commits touched no test-bearing code), full validation gate clean. Once
+this PR merges, delete this tracker file in the same commit that opens the PR
+merging this whole integration branch into `main`.
 
 ---
 
