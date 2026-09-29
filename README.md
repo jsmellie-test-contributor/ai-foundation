@@ -139,29 +139,18 @@ Requires Node.js 22+. Install dependencies: `npm install`.
 
 ### Claude Code Cloud
 
-Cloud setup is split in two, matching when each step can run:
+The environment's **Setup script** (set by hand in the environment settings)
+runs before the repo is checked out, so it only provisions the VM. It must
+exit 0 and finish in about five minutes to be cached. Only `bws` is missing
+from the image:
 
-- **Environment Setup script** — set by hand in the cloud environment's
-  settings (not a repo file). It runs as root before Claude Code launches,
-  before the repo is checked out, and its result is snapshotted and reused by
-  later sessions, so it must never reference repo files or real secrets. It
-  must exit 0 (a non-zero exit fails session start) and finish in roughly five
-  minutes (otherwise the environment isn't cached). `gh`, Node 22 and `cargo`
-  are pre-installed; only `bws` is missing:
+```bash
+command -v bws >/dev/null || cargo install bws --locked || true
+```
 
-  ```bash
-  #!/usr/bin/env bash
-  command -v bws >/dev/null 2>&1 || cargo install bws --locked || true
-  exit 0
-  ```
-
-  Put secrets in the environment's **Environment variables** field instead.
-
-- **SessionStart hook** — `.claude/settings.json` runs `scripts/install-deps.sh`
-  (`npm install`) in cloud sessions only, once the repo is checked out.
-
-See `docs/plans/secrets-resolution-plan.md` ("Cloud Testing Setup") for the
-secrets reasoning.
+Repo setup (`npm install`) runs from the SessionStart hook in
+`.claude/settings.json`. Put secrets in the environment's **Environment
+variables**, not the script.
 
 ---
 
