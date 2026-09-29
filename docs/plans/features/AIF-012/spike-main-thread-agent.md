@@ -72,8 +72,14 @@ Result: **passed**. With no `.claude/` in the repo, the Setup script wrote `~/.c
 
 Implications: no new install scope is strictly needed for cloud primary-agent use; the gap is getting the real agent files onto the VM before launch, and setting `agent` in user settings. A user-level `agent` applies to every session in that environment, so use a dedicated environment.
 
-## Cloud Test 3 — real agents from the Setup script (design)
+## Cloud Test 4 — real agents from the Setup script (design)
 
 Question: can the Setup script obtain ai-foundation and run `aif install -B engineering -H claude` itself (no repo checkout needed), then set `agent`?
 
 Script outline: clone `starvoxel/ai-foundation` (GitHub access from the Setup script is unverified; git goes through the GitHub proxy), `npm install`, `node bin/aif.js install -B engineering -H claude`, merge `agent` into `~/.claude/settings.json`, exit 0 regardless of failure. Must finish in about five minutes to be cached. Pass: a new session on `cloud-sandbox` starts as the real Engineering-Manager (its full prompt, and `dag` MCP tools connected). Record where it fails if not: clone denied, install error, or `bws`/token needs.
+
+## Cloud Test 3 — committed project settings without `agent`, plus Setup-script `agent` (staged)
+
+Question: do the two settings sources combine, i.e. does the user-level `agent` (from the Setup script) apply while a committed project `.claude/settings.json` without an `agent` key is also loaded, and are committed project agents found alongside the user-scope one?
+
+Branch state (`cloud-sandbox`): root `.claude/settings.json` sets `env.SANDBOX_MARKER=project-settings-loaded` only; `.claude/agents/principal-engineer.md` is committed; the Setup script is unchanged from Test 2. Prompt and pass criteria are in the branch's `SANDBOX.md`.
