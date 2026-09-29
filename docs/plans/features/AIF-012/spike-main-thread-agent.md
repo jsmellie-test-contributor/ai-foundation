@@ -65,3 +65,15 @@ Branch state: `cloud-sandbox` after the "Stage Test 2" commit has no root `.clau
 3. Send: "State which agent you are running as and your first-reply marker. List every tool you can call."
 
 Pass: the reply starts with `SETUP_SCRIPT_AGENT` and the tools match `Agent, Read, Bash` plus defaults the harness always adds. Fail modes to record: default agent (cloud ignores `~/.claude/settings.json` or the agents dir), or session fails to start (script error).
+
+## Cloud Test 2 result — settings and agent from the Setup script
+
+Result: **passed**. With no `.claude/` in the repo, the Setup script wrote `~/.claude/agents/engineering-manager.md` and merged `{"agent": "engineering-manager"}` into `~/.claude/settings.json`. A new cloud session on `cloud-sandbox` replied starting with `SETUP_SCRIPT_AGENT`, identified as the test Engineering-Manager, and reported only `Agent`, `Read`, `Bash` as its tools (self-reported, so not conclusive on its own; it also said the MCP servers' tools were not in its function list, which fits the narrowed tool set). It listed `engineering-manager` among the agent types it could dispatch. So user-scope settings and agents written by the Setup script are read by the cloud session, and the file cache makes them present at startup.
+
+Implications: no new install scope is strictly needed for cloud primary-agent use; the gap is getting the real agent files onto the VM before launch, and setting `agent` in user settings. A user-level `agent` applies to every session in that environment, so use a dedicated environment.
+
+## Cloud Test 3 — real agents from the Setup script (design)
+
+Question: can the Setup script obtain ai-foundation and run `aif install -B engineering -H claude` itself (no repo checkout needed), then set `agent`?
+
+Script outline: clone `starvoxel/ai-foundation` (GitHub access from the Setup script is unverified; git goes through the GitHub proxy), `npm install`, `node bin/aif.js install -B engineering -H claude`, merge `agent` into `~/.claude/settings.json`, exit 0 regardless of failure. Must finish in about five minutes to be cached. Pass: a new session on `cloud-sandbox` starts as the real Engineering-Manager (its full prompt, and `dag` MCP tools connected). Record where it fails if not: clone denied, install error, or `bws`/token needs.
