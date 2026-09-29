@@ -46,11 +46,13 @@ const TERM_PATTERN = /\b(chunk|epic)\b/i;
 // directories that use "chunk" as their own unrelated batching/streaming
 // vocabulary (Gmail API batch limits, a Node stream's `chunk` event data).
 const EXCLUDED_PREFIXES = [
-  'docs/plans/chunks/',
-  'docs/plans/epics/',
-  'docs/plans/orchestration/',
+  // Legacy Epic-era Features (AIF-001..004), moved into per-Feature folders
+  // and kept as history. New Features must not be added here.
+  'docs/plans/features/AIF-001/',
+  'docs/plans/features/AIF-002/',
+  'docs/plans/features/AIF-003/',
+  'docs/plans/features/AIF-004/',
   'docs/plans/completed/',
-  'docs/plans/archive/',
   'docs/decisions/',
   'servers/gmail/',
   'lib/harnesses/assets/block-command/',

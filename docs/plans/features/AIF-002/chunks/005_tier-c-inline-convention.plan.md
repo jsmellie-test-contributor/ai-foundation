@@ -67,7 +67,7 @@ Add the Tier C inline-recording convention ("Decision: ... **Why:** ...") to bot
 
 ## 6. Prerequisites
 
-- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/epics/AIF-002.epic.md`, Status: Approved, Work Log entry 2026-08-14 [Approved])
+- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/features/AIF-002/plan.md`, Status: Approved, Work Log entry 2026-08-14 [Approved])
 - [x] AIF-META-001 Decision Record is `Approved` (verified:
       `docs/decisions/meta-process/AIF-META-001_decision-record-tiering-and-domain-ownership.decision.md`, Status: Approved, Design section Tier table read in full)
 - [x] Current `skills/chunk-planning/reference/template.md` and `skills/epic-planning/reference/template.md` content read in full

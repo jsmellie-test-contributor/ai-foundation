@@ -82,7 +82,7 @@ Scope `skills/decision-record/` explicitly to Tier A ("Researched") decisions, a
 
 ## 6. Prerequisites
 
-- [x] AIF-002 Epic Plan `Status: Approved` (verified — rev 6, `docs/plans/epics/AIF-002.epic.md` §1)
+- [x] AIF-002 Epic Plan `Status: Approved` (verified — rev 6, `docs/plans/features/AIF-002/plan.md` §1)
 - [x] AIF-META-001 Decision Record `Status: Approved` (verified — provides the Tier/Domain model, Domain ownership table, and ID/storage scheme this chunk implements)
 - [x] Current `skills/decision-record/SKILL.md` and `skills/decision-record/reference/template.md` read and understood
 - [ ] None of this chunk's file changes are blocked on any other Wave 1 chunk landing first (all Wave 1 chunks touch disjoint files except 006, which does not overlap this chunk)

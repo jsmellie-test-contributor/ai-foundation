@@ -60,7 +60,7 @@ Add an explicit `paths.decisions: "docs/decisions"` entry to `.aiconfig.json`'s 
 
 ## 6. Prerequisites
 
-- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/epics/AIF-002.epic.md`, Status: Approved, Work Log entry 2026-08-14 [Approved])
+- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/features/AIF-002/plan.md`, Status: Approved, Work Log entry 2026-08-14 [Approved])
 - [x] Open Question 3 resolved (human, 2026-08-14): "adds flexibility, matches the precedent set for paths.epics/paths.chunks" — confirmed in Epic Plan Section 5 and Work Log
 - [x] Current `.aiconfig.json` read in full (repo root)
 - [x] No dependency chunks — this chunk has `depends_on: []` in `chunks.json`

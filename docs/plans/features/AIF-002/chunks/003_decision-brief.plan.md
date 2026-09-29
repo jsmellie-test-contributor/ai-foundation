@@ -84,7 +84,7 @@ Author a new skill `skills/decision-brief/` — the Tier B ("Structural") Decisi
 
 ## 6. Prerequisites
 
-- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/epics/AIF-002.epic.md`, Status: Approved (rev 6), Work Log entry 2026-08-17 [Approved])
+- [x] AIF-002 Epic Plan is `Approved` (verified: `docs/plans/features/AIF-002/plan.md`, Status: Approved (rev 6), Work Log entry 2026-08-17 [Approved])
 - [x] AIF-META-001 Decision Record is `Approved` (verified:
       `docs/decisions/meta-process/AIF-META-001_decision-record-tiering-and-domain-ownership.decision.md`, Status: Approved)
 - [x] Existing `skills/decision-record/SKILL.md` and `skills/decision-record/reference/template.md` (as revised by chunk 002, AIF-002-002) read in full, as the closest structural precedent for a decision-producing skill
