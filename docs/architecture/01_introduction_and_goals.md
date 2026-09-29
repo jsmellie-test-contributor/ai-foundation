@@ -2,7 +2,7 @@
 section: '01'
 title: 'Introduction and Goals'
 lifecycle: published
-last_verified: 44ed01d
+last_verified: a0b0214
 tags: [overview]
 key_files:
   - README.md

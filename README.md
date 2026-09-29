@@ -139,13 +139,18 @@ Requires Node.js 22+. Install dependencies: `npm install`.
 
 ### Claude Code Cloud
 
-`scripts/setup-cloud.sh` is the environment's **Setup script** — paste its
-path into the cloud environment config. It only installs tooling (`npm ci`,
-`gh`, `bws`) and runs lint/typecheck/validate; its output is cached in the
-environment snapshot and reused across sessions, so it must never touch real
-secrets. Put those in the environment's **Environment variables** field
-instead. See `docs/plans/secrets-resolution-plan.md` ("Cloud Testing Setup")
-for the reasoning.
+The environment's **Setup script** (set by hand in the environment settings)
+runs before the repo is checked out, so it only provisions the VM. It must
+exit 0 and finish in about five minutes to be cached. Only `bws` is missing
+from the image:
+
+```bash
+command -v bws >/dev/null || cargo install bws --locked || true
+```
+
+Repo setup (`npm install`) runs from the SessionStart hook in
+`.claude/settings.json`. Put secrets in the environment's **Environment
+variables**, not the script.
 
 ---
 
