@@ -1,0 +1,21 @@
+{
+  "feature_id": "",
+  "status": "In Progress",
+  "current_wave": 0,
+  "total_waves": 0,
+  "tasks": [
+    {
+      "id": "001",
+      "wave": 0,
+      "status": "Ready",
+      "branch": "",
+      "worktree_path": "",
+      "pr_number": null,
+      "pr_url": null,
+      "iterations": 0,
+      "blocked_reason": null
+    }
+  ],
+  "escalations": [],
+  "log": []
+}

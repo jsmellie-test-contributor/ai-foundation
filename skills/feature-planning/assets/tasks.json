@@ -1,0 +1,10 @@
+{
+  "feature_id": "{ProjectShortName}-{###}",
+  "tasks": [
+    {
+      "id": "001",
+      "title": "{Short descriptive title}",
+      "depends_on": []
+    }
+  ]
+}

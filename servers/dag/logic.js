@@ -1,6 +1,6 @@
 /**
- * DAG MCP server — validates and computes execution waves from epic chunk
- * dependency graphs stored as chunks.json files.
+ * DAG MCP server — validates and computes execution waves from Feature task
+ * dependency graphs stored as tasks.json files.
  *
  * Plan ID: engineering-manager-plan (Phase 1)
  */
@@ -10,82 +10,78 @@ import { readFileSync } from 'node:fs';
 // ── Pure Logic ───────────────────────────────────────────────────────────────
 
 /**
- * Parse and validate the structure of a chunks.json object.
+ * Parse and validate the structure of a tasks.json object.
  * Expected format:
  * {
- *   "epic_id": "PROJECT-001",
- *   "chunks": [
- *     { "id": "001", "title": "Data layer", "depends_on": [], "agents": ["Software-Engineer"] },
+ *   "feature_id": "PROJECT-001",
+ *   "tasks": [
+ *     { "id": "001", "title": "Data layer", "depends_on": [] },
  *     ...
  *   ]
  * }
  *
  * @param {Record<string, any>|null|undefined} data - Parsed JSON content
- * @returns {{ chunks: Array<{ id: string, title: string, depends_on: string[], agents: string[] }>, errors: string[] }}
+ * @returns {{ tasks: Array<{ id: string, title: string, depends_on: string[] }>, errors: string[] }}
  */
-export function parseChunksFile(data) {
+export function parseTasksFile(data) {
   const errors = [];
 
   if (!data || typeof data !== 'object') {
-    return { chunks: [], errors: ['File content is not a valid JSON object'] };
+    return { tasks: [], errors: ['File content is not a valid JSON object'] };
   }
 
-  if (!Array.isArray(data.chunks)) {
-    return { chunks: [], errors: ['Missing or invalid "chunks" array'] };
+  if (!Array.isArray(data.tasks)) {
+    return { tasks: [], errors: ['Missing or invalid "tasks" array'] };
   }
 
-  const chunks = [];
+  const tasks = [];
   const seenIds = new Set();
 
-  for (let i = 0; i < data.chunks.length; i++) {
-    const chunk = data.chunks[i];
-    const prefix = `chunks[${i}]`;
+  for (let i = 0; i < data.tasks.length; i++) {
+    const task = data.tasks[i];
+    const prefix = `tasks[${i}]`;
 
-    if (!chunk || typeof chunk !== 'object') {
+    if (!task || typeof task !== 'object') {
       errors.push(`${prefix}: not an object`);
       continue;
     }
-    if (typeof chunk.id !== 'string' || !chunk.id) {
+    if (typeof task.id !== 'string' || !task.id) {
       errors.push(`${prefix}: missing or invalid "id"`);
       continue;
     }
-    if (seenIds.has(chunk.id)) {
-      errors.push(`${prefix}: duplicate chunk id "${chunk.id}"`);
+    if (seenIds.has(task.id)) {
+      errors.push(`${prefix}: duplicate task id "${task.id}"`);
       continue;
     }
-    seenIds.add(chunk.id);
-    if (typeof chunk.title !== 'string' || !chunk.title) {
-      errors.push(`${prefix} (${chunk.id}): missing or invalid "title"`);
+    seenIds.add(task.id);
+    if (typeof task.title !== 'string' || !task.title) {
+      errors.push(`${prefix} (${task.id}): missing or invalid "title"`);
     }
-    if (!Array.isArray(chunk.depends_on)) {
-      errors.push(`${prefix} (${chunk.id}): "depends_on" must be an array`);
-    }
-    if (!Array.isArray(chunk.agents)) {
-      errors.push(`${prefix} (${chunk.id}): "agents" must be an array`);
+    if (!Array.isArray(task.depends_on)) {
+      errors.push(`${prefix} (${task.id}): "depends_on" must be an array`);
     }
 
-    chunks.push({
-      id: chunk.id,
-      title: chunk.title || '',
-      depends_on: Array.isArray(chunk.depends_on) ? chunk.depends_on : [],
-      agents: Array.isArray(chunk.agents) ? chunk.agents : [],
+    tasks.push({
+      id: task.id,
+      title: task.title || '',
+      depends_on: Array.isArray(task.depends_on) ? task.depends_on : [],
     });
   }
 
-  return { chunks, errors };
+  return { tasks, errors };
 }
 
 /**
- * Build an adjacency list from parsed chunks.
- * @param {Array<{ id: string, depends_on: string[] }>} chunks
+ * Build an adjacency list from parsed tasks.
+ * @param {Array<{ id: string, depends_on: string[] }>} tasks
  * @returns {{ nodes: Set<string>, edges: Map<string, string[]> }}
  */
-export function buildGraph(chunks) {
-  const nodes = new Set(chunks.map((c) => c.id));
+export function buildGraph(tasks) {
+  const nodes = new Set(tasks.map((t) => t.id));
   const edges = new Map();
 
-  for (const chunk of chunks) {
-    edges.set(chunk.id, chunk.depends_on);
+  for (const task of tasks) {
+    edges.set(task.id, task.depends_on);
   }
 
   return { nodes, edges };
@@ -93,7 +89,7 @@ export function buildGraph(chunks) {
 
 /**
  * Validate that a graph is a valid DAG.
- * Checks: no cycles, no references to non-existent chunks.
+ * Checks: no cycles, no references to non-existent tasks.
  *
  * @param {{ nodes: Set<string>, edges: Map<string, string[]> }} graph
  * @returns {{ valid: boolean, errors: string[] }}
@@ -106,7 +102,7 @@ export function validate(graph) {
   for (const [node, deps] of edges) {
     for (const dep of deps) {
       if (!nodes.has(dep)) {
-        errors.push(`Chunk "${node}" depends on "${dep}" which does not exist`);
+        errors.push(`Task "${node}" depends on "${dep}" which does not exist`);
       }
     }
   }
@@ -149,7 +145,7 @@ export function validate(graph) {
 
   if (visited < nodes.size) {
     const cycleNodes = [...nodes].filter((n) => inDegree.get(n) > 0);
-    errors.push(`Cycle detected involving chunks: ${cycleNodes.join(', ')}`);
+    errors.push(`Cycle detected involving tasks: ${cycleNodes.join(', ')}`);
   }
 
   return { valid: errors.length === 0, errors };
@@ -157,10 +153,10 @@ export function validate(graph) {
 
 /**
  * Compute execution waves via topological sort grouped by depth.
- * Each wave contains chunks whose dependencies are all in earlier waves.
+ * Each wave contains tasks whose dependencies are all in earlier waves.
  *
  * @param {{ nodes: Set<string>, edges: Map<string, string[]> }} graph
- * @returns {string[][]} Array of waves, each wave is an array of chunk IDs
+ * @returns {string[][]} Array of waves, each wave is an array of task IDs
  */
 export function computeWaves(graph) {
   const { nodes, edges } = graph;
@@ -215,69 +211,68 @@ export function computeWaves(graph) {
 // ── I/O Layer ────────────────────────────────────────────────────────────────
 
 /**
- * Read and parse a chunks.json file.
- * @param {string} chunksPath - Path to chunks.json
- * @returns {{ chunks: Array<{ id: string, title: string, depends_on: string[], agents: string[] }>, errors: string[] }}
+ * Read and parse a tasks.json file.
+ * @param {string} tasksPath - Path to tasks.json
+ * @returns {{ tasks: Array<{ id: string, title: string, depends_on: string[] }>, errors: string[] }}
  */
-export function readChunksFile(chunksPath) {
+export function readTasksFile(tasksPath) {
   let content;
   try {
-    content = readFileSync(chunksPath, 'utf-8');
+    content = readFileSync(tasksPath, 'utf-8');
   } catch (err) {
-    return { chunks: [], errors: [`Failed to read file: ${err.message}`] };
+    return { tasks: [], errors: [`Failed to read file: ${err.message}`] };
   }
   let data;
   try {
     data = JSON.parse(content);
   } catch (err) {
-    return { chunks: [], errors: [`Invalid JSON: ${err.message}`] };
+    return { tasks: [], errors: [`Invalid JSON: ${err.message}`] };
   }
-  return parseChunksFile(data);
+  return parseTasksFile(data);
 }
 
 /**
- * Tool: dag-validate — validates a chunks.json dependency graph.
- * @param {string} chunksPath - Path to chunks.json
+ * Tool: dag-validate — validates a tasks.json dependency graph.
+ * @param {string} tasksPath - Path to tasks.json
  * @returns {{ valid: boolean, errors: string[] }}
  */
-export function dagValidate(chunksPath) {
-  const { chunks, errors: parseErrors } = readChunksFile(chunksPath);
+export function dagValidate(tasksPath) {
+  const { tasks, errors: parseErrors } = readTasksFile(tasksPath);
   if (parseErrors.length > 0) {
     return { valid: false, errors: parseErrors };
   }
-  if (chunks.length === 0) {
-    return { valid: false, errors: ['No chunks defined in file'] };
+  if (tasks.length === 0) {
+    return { valid: false, errors: ['No tasks defined in file'] };
   }
-  const graph = buildGraph(chunks);
+  const graph = buildGraph(tasks);
   return validate(graph);
 }
 
 /**
- * Tool: dag-compute-waves — computes execution waves from a chunks.json file.
- * @param {string} chunksPath - Path to chunks.json
- * @returns {{ waves: string[][], chunks: Array<{ id: string, title: string, depends_on: string[], agents: string[] }>, errors?: string[] }}
+ * Tool: dag-compute-waves — computes execution waves from a tasks.json file.
+ * @param {string} tasksPath - Path to tasks.json
+ * @returns {{ waves: string[][], tasks: Array<{ id: string, title: string, depends_on: string[] }>, errors?: string[] }}
  */
-export function dagComputeWaves(chunksPath) {
-  const { chunks, errors: parseErrors } = readChunksFile(chunksPath);
+export function dagComputeWaves(tasksPath) {
+  const { tasks, errors: parseErrors } = readTasksFile(tasksPath);
   if (parseErrors.length > 0) {
-    return { waves: [], chunks: [], errors: parseErrors };
+    return { waves: [], tasks: [], errors: parseErrors };
   }
-  if (chunks.length === 0) {
-    return { waves: [], chunks: [] };
+  if (tasks.length === 0) {
+    return { waves: [], tasks: [] };
   }
-  const graph = buildGraph(chunks);
+  const graph = buildGraph(tasks);
   const validation = validate(graph);
   if (!validation.valid) {
-    return { waves: [], chunks, errors: validation.errors };
+    return { waves: [], tasks, errors: validation.errors };
   }
   const waves = computeWaves(graph);
   return {
     waves,
-    chunks: chunks.map((c) => ({
-      id: c.id,
-      title: c.title,
-      depends_on: c.depends_on,
-      agents: c.agents,
+    tasks: tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      depends_on: t.depends_on,
     })),
   };
 }

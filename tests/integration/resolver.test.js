@@ -21,7 +21,7 @@ describe('integration: resolver', () => {
           prompt: 'x',
           tools: ['file-read', '@git/git_status'],
           approved_tools: [],
-          skills: ['skill/decision-record', 'skill/chunk-planning'],
+          skills: ['skill/plan-lifecycle', 'skill/task-orchestration'],
         },
         {
           name: 'beta',
@@ -31,7 +31,7 @@ describe('integration: resolver', () => {
           prompt: 'x',
           tools: ['@git/git_diff'],
           approved_tools: [],
-          skills: ['skill/decision-record'],
+          skills: ['skill/plan-lifecycle'],
         },
         {
           name: 'gamma',
@@ -44,7 +44,7 @@ describe('integration: resolver', () => {
           skills: [],
         },
       ],
-      skills: ['decision-record', 'chunk-planning'],
+      skills: ['plan-lifecycle', 'task-orchestration'],
       steering: { global: ['core.md'], engineering: ['core.md', 'git-workflow.md'] },
       servers: ['git'],
       bundles: [
@@ -59,7 +59,7 @@ describe('integration: resolver', () => {
           version: '1.0.0',
           description: 'Custom',
           agents: ['gamma.yaml'],
-          skills: ['chunk-planning'],
+          skills: ['task-orchestration'],
           steering: ['steering/global/core.md'],
           servers: ['git'],
         },
@@ -97,7 +97,7 @@ describe('integration: resolver', () => {
 
     it('collects skills from discovered agents (deduplicated)', () => {
       const result = resolveBundle('engineering', repo);
-      assert.deepEqual(result.skills.sort(), ['chunk-planning', 'decision-record']);
+      assert.deepEqual(result.skills.sort(), ['plan-lifecycle', 'task-orchestration']);
     });
 
     it('collects global and domain steering, excluding underscore-prefixed files', () => {
@@ -119,7 +119,7 @@ describe('integration: resolver', () => {
     it('resolves a bundle with only explicit lists (no domain)', () => {
       const result = resolveBundle('custom', repo);
       assert.deepEqual(result.agents, ['gamma.yaml']);
-      assert.deepEqual(result.skills, ['chunk-planning']);
+      assert.deepEqual(result.skills, ['task-orchestration']);
       assert.deepEqual(result.steering, ['steering/global/core.md']);
       assert.deepEqual(result.servers, ['git']);
     });

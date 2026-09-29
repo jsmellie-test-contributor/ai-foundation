@@ -1,6 +1,6 @@
 ---
 name: 'bundle-authoring'
-version: '0.1.1'
+version: '0.2.1'
 description: 'Creates a bundle definition that specifies what components to install for a harness.'
 ---
 
@@ -36,12 +36,9 @@ Create `bundles/{name}/bundle.yaml`. Use the schema in `skills/bundle-authoring/
 
 ### Step 3 — Configure domain discovery (if using)
 
-Set `domain: "{name}"`. The resolver will:
-
-1. Find all agents where `agent.domain == bundle.domain`
-2. Collect skills from those agents' `skills` fields
-3. Include `steering/global/**/*.md` + `steering/{domain}/**/*.md`
-4. Resolve servers from agent tools using `@server/tool` references
+Set `domain: "{name}"`. The resolver applies `reference/schema.yaml`'s
+`resolution.domain_discovery` block — see it for the exact algorithm (agents
+by domain, their skills, domain steering, and server refs).
 
 ### Step 4 — Add explicit components (if needed)
 
@@ -63,6 +60,7 @@ Explicit lists are appended after discovery. Duplicates are removed automaticall
 - [ ] Has either `domain` or at least one non-empty list (or both)
 - [ ] `name` is kebab-case, matches directory name
 - [ ] Referenced agents/skills/servers actually exist in the repo
+- [ ] Every citation of another skill, agent, or doc is checked against `steering/engineering/core.md`: "Cite, Don't Restate"
 
 ---
 

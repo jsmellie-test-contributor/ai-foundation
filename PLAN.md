@@ -43,7 +43,7 @@ Tracks what has been done and what is planned for the ai-foundation framework.
 | Bundle directory restructure                                                       | S    | v1.0      | ✅ Done |
 | Knowledge system (project-local reference material for agents)                     | M    | v1.0      | ✅ Done |
 | Standards resolution and installation (domain-mapped, harness-injected)            | M    | v1.0      | ✅ Done |
-| Knowledge-authoring skill                                                          | S    | v1.0      | ✅ Done |
+| Knowledge-authoring skill (retired — re-homed to `document-types.md` + templates)  | S    | v1.0      | ✅ Done |
 | Knowledge index command (`aif index`)                                              | S    | v1.0      | ✅ Done |
 | Standards: additional languages (JavaScript/Node done; TypeScript, Python pending) | M    | v1.0      | 🔲      |
 | Project init command (`aif init`)                                                  | S    | v1.0      | ✅ Done |
@@ -51,11 +51,11 @@ Tracks what has been done and what is planned for the ai-foundation framework.
 | Test execution skill maturity (test types, per-language patterns)                  | M    | v1.0      | 🔲      |
 | Model selection per agent                                                          | S    | v1.0      | 🔲      |
 | Work Log system (persistent activity tracking)                                     | M    | v1.1      | 🔲      |
-| Task/progress tracking (chunk status across Epics)                                 | L    | v1.1      | 🔲      |
+| Task/progress tracking (Task status across Features)                               | L    | v1.1      | 🔲      |
 | CI/CD pipeline (automated tests on push)                                           | S    | v1.1      | 🔲      |
 | Error recovery / resume orchestration                                              | M    | v1.1      | 🔲      |
 | Plan Reviewer agent                                                                | M    | v1.2      | 🔲      |
-| Epic QA agent                                                                      | M    | v1.2      | 🔲      |
+| Feature QA agent                                                                   | M    | v1.2      | 🔲      |
 | Documentation generation (README, changelog, API docs)                             | M    | v1.2      | 🔲      |
 | Security scanning server (dependency audit, secret detection)                      | M    | v1.3      | 🔲      |
 | Standards distribution and sync (push/pull between aif and projects)               | M    | v1.3      | 🔲      |
@@ -85,7 +85,7 @@ Track what happened (Work Log), what's in progress (task tracking), catch regres
 
 ### v1.2 — Quality Gates
 
-Automated plan review, epic-level QA agents, and documentation generation reduce the burden on human reviewers and keep docs current.
+Automated plan review, Feature-level QA agents, and documentation generation reduce the burden on human reviewers and keep docs current.
 
 ### v1.3 — Tooling
 

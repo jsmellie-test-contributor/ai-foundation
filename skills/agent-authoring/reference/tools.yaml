@@ -30,3 +30,18 @@ approval_guidance:
 # `approved_tools` (routine dispatch they're authorized to make unsupervised)
 # but gate specific dispatch targets via an explicit Hard Rule requiring human
 # confirmation for that dispatch regardless of `approved_tools` membership.
+
+# Trifecta-avoidance rule: an agent's `tools` list must never combine a
+# `moderate` (web) tool with a `privileged` (write/shell) tool unless its own
+# Hard rules document the isolation that makes the combination safe. Holding
+# web access and an unscoped write/shell leg at once means untrusted web
+# content can flow straight into an unreviewed write or command — the
+# "lethal trifecta" this repo's own agent roster is deliberately structured
+# to avoid (no agent holds all three of write, shell, and web). An agent
+# that must combine `moderate` and `privileged` documents the isolation
+# directly — e.g. a write leg scoped to one path and no shell at all, the
+# way Engineering Researcher holds `write`+`web_search`+`web_fetch` but
+# never `shell`, and its `write` is scoped to `.md` output under one
+# directory. Combining the tiers with no such documented isolation is an
+# authoring error, caught at `skill/agent-authoring`: "Step 8 — Self-validate"'s
+# checklist.

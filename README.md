@@ -24,7 +24,7 @@ ai-foundation/
 ├── servers/         MCP tool server definitions
 ├── bundles/         Install bundles (per-harness deployment)
 ├── projects/        Per-project overrides and templates
-├── docs/            Plans and decision records
+├── docs/            Plans, ADRs, and arc42 architecture docs
 ├── bin/             CLI entry point (aif)
 ├── lib/             CLI modules
 └── tests/           unit/, integration/, validation/
@@ -36,16 +36,13 @@ For details on component types, field requirements, and loading rules, see [`AGE
 
 ## Agents
 
-| Agent                   | Role                                                                       |
-| ----------------------- | -------------------------------------------------------------------------- |
-| ai-engineer             | Builds and maintains AI infrastructure — agents, skills, steering, servers |
-| architect               | Technical decision-making, produces Decision Records                       |
-| engineering-manager     | Orchestrates parallel chunk plan execution across agents                   |
-| tech-lead               | Planning and decomposition — Epic Plans and Chunk Plans                    |
-| software-engineer       | Implements code from approved Chunk Plans                                  |
-| test-engineer           | Writes and executes tests against plan test cases                          |
-| principal-engineer      | Code review — enforces quality, security, and standards                    |
-| engineering-tech-writer | Documentation — inline docs, READMEs, changelogs                           |
+| Agent                  | Role                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| architect              | Rare, contested, costly-to-reverse decisions — produces ADRs                                         |
+| engineering-manager    | Planning (Feature/Task decomposition) and orchestration across agents                                |
+| software-engineer      | Owns a Task end-to-end: design, implement, test, document — product code and AI-component work alike |
+| engineering-researcher | Web research — decision-ready briefs for Architect, Engineering Manager, or Software Engineer        |
+| principal-engineer     | Code review — enforces quality, security, and standards                                              |
 
 ---
 
@@ -71,10 +68,11 @@ aif snapshot
 aif snapshot --bundle             # every bundle's snapshot (bare flag = all of that kind)
 aif snapshot --bundle engineering # one bundle's snapshot
 
-# Knowledge/decision indexing
-aif index knowledge          # generate knowledge/index.json
-aif index decisions          # generate {paths.decisions}/index.json
-aif index decisions --check  # verify the decision index without writing
+# Decision/architecture indexing
+aif index decisions             # generate {paths.decisions}/index.json
+aif index decisions --check     # verify the decision index without writing
+aif index architecture          # generate docs/architecture/index.json
+aif index architecture --check  # verify the architecture index without writing
 
 # Project scaffolding
 aif init --name my-app --shortname myapp --language typescript --org acme
@@ -122,7 +120,7 @@ Scaffold a new project with `aif init` or create the file manually. Key fields:
 The `ai_identity` field enables agents to commit and push under a separate identity, keeping AI-authored work clearly distinct in git history and PRs.
 The token is read from the named env var at runtime — never stored in the file.
 
-`project_shortname` (max 5 characters) is used in Epic IDs (e.g. `MYAPP-001`)
+`project_shortname` (max 5 characters) is used in Feature IDs (e.g. `MYAPP-001`)
 and worktree paths, keeping them short even when `project_name` is long. It falls back to `project_name` if omitted.
 
 See `AGENTS.md` for the full schema and `projects/_template/` for defaults.

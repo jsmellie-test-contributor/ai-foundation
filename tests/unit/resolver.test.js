@@ -6,15 +6,15 @@ import { parseSkillRef, parseServerToolRef, dedupe } from '../../lib/resolver.js
 describe('unit: resolver', () => {
   describe('parseSkillRef()', () => {
     it('extracts name from skill/ prefixed ref', () => {
-      assert.equal(parseSkillRef('skill/decision-record'), 'decision-record');
+      assert.equal(parseSkillRef('skill/plan-lifecycle'), 'plan-lifecycle');
     });
 
     it('extracts name from skill/ prefix with nested path', () => {
-      assert.equal(parseSkillRef('skill/chunk-planning'), 'chunk-planning');
+      assert.equal(parseSkillRef('skill/task-orchestration'), 'task-orchestration');
     });
 
     it('returns the string as-is when no skill/ prefix', () => {
-      assert.equal(parseSkillRef('decision-record'), 'decision-record');
+      assert.equal(parseSkillRef('plan-lifecycle'), 'plan-lifecycle');
     });
 
     it('returns null for empty string', () => {

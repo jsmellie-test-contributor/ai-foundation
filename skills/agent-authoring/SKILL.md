@@ -1,6 +1,6 @@
 ---
 name: 'agent-authoring'
-version: '0.5.0'
+version: '0.6.0'
 description: 'Creates a well-formed agent definition with proper tool selection and prompt design.'
 ---
 
@@ -74,6 +74,8 @@ The prompt is a direct instruction to the agent. It must include:
 
 Write it as if speaking to the agent. Use imperative mood.
 
+Applies within the prompt itself, not just across documents: `steering/engineering/core.md`: "Cite, Don't Restate".
+
 If the prompt contains a self-contained procedure or rule that is not specific to this agent's identity, check `docs/agent-prompt-extraction-candidates.md` (location per `.aiconfig.json` `paths.knowledge`, default `knowledge/`) — either it already covers this case, or add an entry recording why it wasn't extracted into a skill or steering rule now.
 
 ### Step 6 — Declare skills
@@ -120,7 +122,9 @@ Verify against the checklist:
 - [ ] `approved_tools` is a subset of `tools`
 - [ ] All entries in `skills` reference existing folders in `skills/`
 - [ ] `preload_skills`, if present, is either `["*"]` or a subset of `skills`
-- [ ] Every citation of another skill, agent, or doc is checked against `steering/engineering/core.md`: "Cite, Don't Restate"
+- [ ] Every citation of another skill, agent, or doc is checked against `steering/engineering/core.md`: "Cite, Don't Restate" — cited, not also restated
+- [ ] Purpose/Responsibilities/other narrative sections don't restate an enumerated constraint that Hard rules already states (`steering/engineering/core.md`: "Cite, Don't Restate") — point to Hard rules instead
+- [ ] `tools` combining a `moderate` and a `privileged` entry has the isolation documented in Hard rules (`skills/agent-authoring/reference/tools.yaml`'s trifecta-avoidance rule) — otherwise drop one side or add the documentation
 
 ---
 

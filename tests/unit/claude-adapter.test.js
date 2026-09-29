@@ -167,7 +167,7 @@ describe('unit: claude adapter', () => {
       prompt: 'You are the Architect agent.\n\nYour role is to evaluate options.',
       tools: ['read', 'write', 'web_search', 'shell', 'grep', 'glob'],
       approved_tools: ['read', 'grep', 'glob'],
-      skills: ['skill/decision-record'],
+      skills: ['skill/plan-lifecycle'],
     };
 
     it('produces markdown with YAML frontmatter', () => {

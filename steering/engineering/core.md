@@ -1,6 +1,6 @@
 ---
 name: 'engineering-core'
-version: '0.5.0'
+version: '0.10.0'
 description: 'Core rules that apply to all agents operating in the engineering domain.'
 file_patterns: []
 ---
@@ -15,14 +15,14 @@ file_patterns: []
 
 ## Rules
 
-### Rule: Never Implement Without an Approved Plan
+### Rule: Implementation Follows the Complexity-Tiers Gate
 
-- No code may be written until a Chunk Plan exists and has been approved by a human
-- "Approved" means the human has explicitly confirmed — not just reviewed
-- A plan is not "approved" for implementation purposes until the `Approved` status has been committed to git per `skill/plan-lifecycle`. Verbal/chat confirmation alone does not satisfy this rule. Any other status, including `Deferred`, is not approved and must not be implemented
-- If a plan does not exist, the engineering agent must stop and route to Tech-Lead to create one
+- Every task is gated by `skill/complexity-tiers` before implementation starts. Which gate applies depends on whether the task belongs to an Approved Feature or stands alone
+- Task work decomposed from an Approved Feature Plan (`skill/feature-planning`) satisfies the Feature-level gate via that plan's own `Approved` commit. Whether the Task itself also needs a written plan, and how much ceremony it gets, is `skill/complexity-tiers`'s call at dispatch time — not a second approval requirement layered on top
+- Standalone work with no governing Feature is gated directly by `skill/complexity-tiers`'s tiers: Tier 2 stops for human approval before implementing, Tier 3 stops and hands off rather than being planned and implemented solo
+- "Approved" means the human has explicitly confirmed — not just reviewed. For any artifact this gate requires a plan-lifecycle commit for (a Feature Plan or a Tier 3 plan), that confirmation is not final until the `Approved` status has been committed to git per `skill/plan-lifecycle`. Verbal/chat confirmation alone does not satisfy this rule. Any other status, including `Deferred`, is not approved and must not be implemented
 
-**Rationale:** Implementing before planning leads to scope creep, rework, and code that doesn't fit the larger architecture. The planning gate exists precisely to catch problems before they are expensive. Requiring the approval itself to be a git commit (not just a conversational "yes") makes the gate objectively checkable instead of relying on memory of a conversation.
+**Rationale:** Implementing before planning leads to scope creep, rework, and code that doesn't fit the larger architecture. The planning gate exists precisely to catch problems before they are expensive. Requiring the approval itself to be a git commit (not just a conversational "yes") makes the gate objectively checkable instead of relying on memory of a conversation. Routing the gate through `skill/complexity-tiers` instead of demanding a written plan for every task avoids over-processing a one-line fix as if it carried the same risk as a cross-cutting redesign.
 
 **Exceptions:** Exploratory spikes and proof-of-concept code — but only when explicitly requested by the human, and the spike output must never be treated as production-ready without a proper plan.
 
@@ -36,7 +36,7 @@ file_patterns: []
 
 **Rationale:** Plan IDs provide traceability from code back to intent. Without them, debugging and auditing become significantly harder, especially when multiple plans are running in parallel.
 
-**Exceptions:** Files modified incidentally (e.g. a typo fix not part of any plan) do not require Plan IDs. The threshold is "meaningfully modified as part of planned work."
+**Exceptions:** Files modified incidentally (e.g. a typo fix not part of any plan) do not require Plan IDs. The threshold is "meaningfully modified as part of planned work." This rule only binds when a governing Feature Plan or Tier 3 plan actually exists to cite: standalone Tier 1/2 work gated directly by `skill/complexity-tiers` (see "Implementation Follows the Complexity-Tiers Gate") has no Plan ID to reference, and fabricating one would be worse than omitting it.
 
 ---
 
@@ -54,7 +54,7 @@ file_patterns: []
 
 ### Rule: Raise Discoveries Rather Than Silently Expanding Scope
 
-- If the agent discovers that a task requires work not described in the current plan, it must stop and raise it as an open question on the parent Epic
+- If the agent discovers that a task requires work not described in the current plan, it must stop and raise it as an open question on the parent Feature
 - The agent must not silently implement additional scope, even if the addition seems obviously correct
 - Out-of-scope work discovered during implementation is either deferred or planned explicitly
 
@@ -66,7 +66,7 @@ file_patterns: []
 
 ### Rule: Escalate Technical Approach Uncertainty to Architect
 
-- When a task requires a technical decision that is not covered by existing standards, project standards, or a Decision Record, the agent must route to Architect before proceeding
+- When a task requires a technical decision that is not covered by existing standards, project standards, or an ADR, the agent must route to Architect before proceeding
 - This includes: new libraries or technologies, significant architectural trade-offs, cases where two or more meaningfully different approaches exist
 - The agent must not make architectural decisions unilaterally, even when confident
 
@@ -103,12 +103,12 @@ file_patterns: []
 
 ### Rule: Plans Are Committed Artifacts, Not Chat Output
 
-- Every plan or record requiring human approval (Chunk Plan, Epic Plan, Decision Record, or a Tier 3 `ai-engineering-plan`) must be saved to the repository and committed with `Status: Draft` before being presented for review
+- Every plan or record requiring human approval (Feature Plan, ADR, or a Tier 3 plan) must be saved to the repository and committed with `Status: Draft` before being presented for review
 - Each round of human-requested revision is committed as a new commit (never amended or squashed) before re-presenting, preserving the full Draft → feedback → Draft → ... history
 - Once the human gives an explicit decision, the agent updates the status field (`Approved` or `Deferred`) and commits that change as its own commit, separate from the revision history and from any implementation commit
 - This applies uniformly in framework and project repos — see `skill/plan-lifecycle` for the full procedure, and the repo-type-specific git-workflow steering for branch/direct-commit mechanics
 
-**Rationale:** Ties directly to "Never Implement Without an Approved Plan": makes "approved" objectively checkable via `git log` instead of relying on conversational memory. Centralizing the procedure in `skill/plan-lifecycle` means every planning skill follows the same mechanics without restating them.
+**Rationale:** Ties directly to "Implementation Follows the Complexity-Tiers Gate": makes "approved" objectively checkable via `git log` instead of relying on conversational memory. Centralizing the procedure in `skill/plan-lifecycle` means every planning skill follows the same mechanics without restating them.
 
 **Exceptions:** None. If a repo has no formal plan path configured, fall back to the default documented in `skill/plan-lifecycle` rather than skipping the commit gate.
 
@@ -116,9 +116,8 @@ file_patterns: []
 
 ### Rule: Commit Incrementally During Implementation
 
-- Implementation of an approved plan must be committed in small, logically atomic increments as work progresses — not accumulated into a single commit at the end
-- The recommended checkpoint is one commit per completed plan step (or per completed task in a Chunk Plan's task list), once that step's work is verified
-- Exact mechanics and alternative checkpoint options are defined in the repo-type-specific git-workflow steering (`steering/engineering/git-workflow-framework.md` or `steering/engineering/git-workflow-projects.md`)
+- Follow `steering/engineering/git-workflow-core.md`: "Commit Implementation Incrementally"'s discipline for every implementation, whichever gate in "Implementation Follows the Complexity-Tiers Gate" it went through
+- Which checkpoint counts as "a completed increment" is repo-type-specific — see `git-workflow-framework.md` or `git-workflow-projects.md`'s own Commit Granularity section for the active default. For ungoverned Tier 1/2 work, the increment is the smallest verified unit of the task itself, not a plan step
 
 **Rationale:** Small commits make review, bisection, and recovery from a bad step far cheaper than a single large commit at the end. Batching everything into one commit defeats the purpose of the atomic-commit rules already required by the git-workflow steering.
 
@@ -129,8 +128,10 @@ file_patterns: []
 ### Rule: Cite, Don't Restate
 
 - When a document needs a definition, procedure, or table that another skill, agent, or steering file already owns, cite that source by name — never copy its content inline
+- The same applies within a single document: when one section already owns a definition, procedure, or enumerated list, another section of that same document must not restate it — point to the owning section instead
 - Citing and then also restating the same content is still a violation of this rule; the citation does not excuse the copy
 - Default to citing in every case. Restating instead of citing is not a stylistic choice and needs a concrete reason the citation genuinely cannot serve — "it reads better inline" or "it's more convenient here" are not reasons
+- In an agent's own prompt, Hard rules is the authoritative section for enumerated "never"/"always" constraints. Purpose, Responsibilities, and other narrative sections may describe the same boundary in prose, but must not restate the same itemized list — point to Hard rules ("see Hard rules for...") instead
 - When the citation points at one specific locator inside the source rather than the whole document, name that locator instead of citing it by number: `` `skill/{name}`: "Step Heading Text" `` or `` `steering/{path}.md`: "Rule Heading Text" ``, chaining more than one with `→` (e.g. `"Step A" → "Step B"`). A plain reference to the whole component (`skill/{name}`, `steering/{path}.md`) needs no quoted name.
 - A skill's steps stay numbered (`### Step N — Name`) because they're an ordered procedure — position is meaningful, and the number is part of what's being cited alongside the name. A steering file's rules are headed `### Rule: Name` with **no number at all** — rules are independent, unordered constraints, so a number would carry no real meaning, only a drift risk: a bare `Rule 10` silently keeps "working" even after Rule 10 is reordered, split, or replaced by a completely different rule, because the number still resolves to _something_. Removing the number from the heading removes that failure mode at the source, rather than relying on every citation site remembering to spell out a name a number would otherwise make it easy to skip.
 
@@ -140,7 +141,7 @@ file_patterns: []
 
 ## Enforcement
 
-- **No-plan violations:** The agent stops work and routes to Tech-Lead. No exceptions.
+- **No-plan violations:** The agent stops work. A Feature-level gap routes to Engineering Manager to decompose; a standalone Tier 3 hand-off routes per `skill/complexity-tiers`: "Step 4 — Tier 3 (Complex)". No exceptions.
 - **Plan ID violations:** Caught during Principal-Engineer review. Missing Plan IDs are a MEDIUM finding.
 - **Logging violations:** Caught during Principal-Engineer review. Missing required logs are a HIGH finding.
 - **Scope expansion violations:** Caught during review or human inspection. Silently added scope is removed and planned properly.
@@ -148,7 +149,7 @@ file_patterns: []
 - **Testability violations:** Caught during review. Pure logic buried in I/O code without separation is a LOW finding. Refactoring recommended but not blocking.
 - **Security violations:** Always block approval. See Principal-Engineer review process.
 - **Uncommitted-approval violations:** If an agent begins implementation without a committed `Approved` status on the governing plan, work stops immediately and the approval commit is created before continuing.
-- **Batched-commit violations:** Caught during review. A single large commit covering multiple plan steps is a LOW finding; the agent should have split it.
+- **Batched-commit violations:** See `steering/engineering/git-workflow-core.md`'s own Enforcement section for "Commit Implementation Incrementally" — this repo's home for the incremental-commit rule and its consequence.
 - **Cite-or-state violations:** Caught during Principal-Engineer review. A document that both cites and restates the same content is a MEDIUM finding; the restatement is removed in favor of the citation.
 - **Ordinal-citation violations:** Caught automatically — `aif validate refs` fails the build on a bare-component reference paired with a raw `Step N`/`Rule N` mention (steering headings carry no number at all, so any such mention next to a cited steering file is always wrong), and on a quoted locator name that no longer matches a heading in the cited component. Fix by naming the locator (or updating the citation to the locator's current name) before merging.
 
@@ -158,13 +159,13 @@ file_patterns: []
 
 These rules exist because the most common and expensive engineering failures are:
 
-1. Building the wrong thing (prevented by "Never Implement Without an Approved Plan" and "Raise Discoveries Rather Than Silently Expanding Scope")
+1. Building the wrong thing (prevented by "Implementation Follows the Complexity-Tiers Gate" and "Raise Discoveries Rather Than Silently Expanding Scope")
 2. Building it in an unmaintainable way (prevented by "Logging Requirements Are Never Optional", "Escalate Technical Approach Uncertainty to Architect", "Design for Testability", and "Security Requirements Are Acceptance Criteria")
 3. Losing track of why things were done (prevented by "Every Artifact Must Reference Its Plan ID")
 4. Losing the record of what was actually approved and when (prevented by "Plans Are Committed Artifacts, Not Chat Output" and "Commit Incrementally During Implementation")
 
 When a rule feels like it is slowing things down, that is usually a sign that planning was skipped, not that the rule is wrong.
 
-**Git Workflow Standards:** See `steering/engineering/git-workflow-framework.md` (this repo) and `steering/engineering/git-workflow-projects.md` (project repos).
+**Git Workflow Standards:** See `steering/engineering/git-workflow-core.md` (rules shared by every repo type), plus `steering/engineering/git-workflow-framework.md` (this repo) or `steering/engineering/git-workflow-projects.md` (project repos) for repo-type-specific rules and overrides.
 
-**Plan Lifecycle:** See `skill/plan-lifecycle` for the commit-gate procedure and status vocabulary referenced in Rules 1, 8, and 9.
+**Plan Lifecycle:** See `skill/plan-lifecycle` for the commit-gate procedure and status vocabulary referenced in "Implementation Follows the Complexity-Tiers Gate", "Plans Are Committed Artifacts, Not Chat Output", and "Commit Incrementally During Implementation".

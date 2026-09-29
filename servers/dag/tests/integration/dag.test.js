@@ -15,48 +15,48 @@ import { dagValidate, dagComputeWaves } from '../../logic.js';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
-const VALID_CHUNKS = {
-  epic_id: 'TEST-001',
-  chunks: [
-    { id: '001', title: 'Data models', depends_on: [], agents: ['Software-Engineer'] },
-    { id: '002', title: 'API service', depends_on: [], agents: ['Software-Engineer'] },
-    { id: '003', title: 'Controller', depends_on: ['001', '002'], agents: ['Software-Engineer'] },
-    { id: '004', title: 'Tests', depends_on: ['003'], agents: ['Test-Engineer'] },
+const VALID_TASKS = {
+  feature_id: 'TEST-001',
+  tasks: [
+    { id: '001', title: 'Data models', depends_on: [] },
+    { id: '002', title: 'API service', depends_on: [] },
+    { id: '003', title: 'Controller', depends_on: ['001', '002'] },
+    { id: '004', title: 'Tests', depends_on: ['003'] },
   ],
 };
 
-const CYCLIC_CHUNKS = {
-  epic_id: 'TEST-CYCLIC',
-  chunks: [
-    { id: '001', title: 'First', depends_on: ['002'], agents: ['Software-Engineer'] },
-    { id: '002', title: 'Second', depends_on: ['001'], agents: ['Software-Engineer'] },
+const CYCLIC_TASKS = {
+  feature_id: 'TEST-CYCLIC',
+  tasks: [
+    { id: '001', title: 'First', depends_on: ['002'] },
+    { id: '002', title: 'Second', depends_on: ['001'] },
   ],
 };
 
-const MISSING_REF_CHUNKS = {
-  epic_id: 'TEST-MISSING',
-  chunks: [
-    { id: '001', title: 'First', depends_on: [], agents: ['Software-Engineer'] },
-    { id: '002', title: 'Second', depends_on: ['999'], agents: ['Software-Engineer'] },
+const MISSING_REF_TASKS = {
+  feature_id: 'TEST-MISSING',
+  tasks: [
+    { id: '001', title: 'First', depends_on: [] },
+    { id: '002', title: 'Second', depends_on: ['999'] },
   ],
 };
 
-const EMPTY_CHUNKS = {
-  epic_id: 'TEST-EMPTY',
-  chunks: [],
+const EMPTY_TASKS = {
+  feature_id: 'TEST-EMPTY',
+  tasks: [],
 };
 
 const INVALID_SCHEMA = {
-  epic_id: 'TEST-BAD',
-  chunks: [
-    { id: '001', depends_on: [], agents: [] },
-    { title: 'No ID', depends_on: [], agents: [] },
+  feature_id: 'TEST-BAD',
+  tasks: [
+    { id: '001', depends_on: [] },
+    { title: 'No ID', depends_on: [] },
   ],
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function writeTempChunks(data, filename = 'chunks.json') {
+function writeTempTasks(data, filename = 'tasks.json') {
   const dir = join(tmpdir(), 'dag-test-' + Date.now() + '-' + Math.random().toString(36).slice(2));
   mkdirSync(dir, { recursive: true });
   const path = join(dir, filename);
@@ -67,8 +67,8 @@ function writeTempChunks(data, filename = 'chunks.json') {
 // ── dag-validate ─────────────────────────────────────────────────────────────
 
 describe('integration: dag/dag-validate', () => {
-  it('validates a well-formed chunks file as valid', () => {
-    const { path, dir } = writeTempChunks(VALID_CHUNKS);
+  it('validates a well-formed tasks file as valid', () => {
+    const { path, dir } = writeTempTasks(VALID_TASKS);
     try {
       const result = dagValidate(path);
       assert.equal(result.valid, true);
@@ -78,8 +78,8 @@ describe('integration: dag/dag-validate', () => {
     }
   });
 
-  it('detects cycles in chunk dependencies', () => {
-    const { path, dir } = writeTempChunks(CYCLIC_CHUNKS);
+  it('detects cycles in task dependencies', () => {
+    const { path, dir } = writeTempTasks(CYCLIC_TASKS);
     try {
       const result = dagValidate(path);
       assert.equal(result.valid, false);
@@ -90,7 +90,7 @@ describe('integration: dag/dag-validate', () => {
   });
 
   it('detects missing dependency references', () => {
-    const { path, dir } = writeTempChunks(MISSING_REF_CHUNKS);
+    const { path, dir } = writeTempTasks(MISSING_REF_TASKS);
     try {
       const result = dagValidate(path);
       assert.equal(result.valid, false);
@@ -100,19 +100,19 @@ describe('integration: dag/dag-validate', () => {
     }
   });
 
-  it('returns invalid when chunks array is empty', () => {
-    const { path, dir } = writeTempChunks(EMPTY_CHUNKS);
+  it('returns invalid when tasks array is empty', () => {
+    const { path, dir } = writeTempTasks(EMPTY_TASKS);
     try {
       const result = dagValidate(path);
       assert.equal(result.valid, false);
-      assert.ok(result.errors[0].includes('No chunks defined'));
+      assert.ok(result.errors[0].includes('No tasks defined'));
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
-  it('returns schema errors for malformed chunks', () => {
-    const { path, dir } = writeTempChunks(INVALID_SCHEMA);
+  it('returns schema errors for malformed tasks', () => {
+    const { path, dir } = writeTempTasks(INVALID_SCHEMA);
     try {
       const result = dagValidate(path);
       assert.equal(result.valid, false);
@@ -150,8 +150,8 @@ describe('integration: dag/dag-validate', () => {
 // ── dag-compute-waves ────────────────────────────────────────────────────────
 
 describe('integration: dag/dag-compute-waves', () => {
-  it('computes correct waves for a valid chunks file', () => {
-    const { path, dir } = writeTempChunks(VALID_CHUNKS);
+  it('computes correct waves for a valid tasks file', () => {
+    const { path, dir } = writeTempTasks(VALID_TASKS);
     try {
       const result = dagComputeWaves(path);
       assert.equal(result.waves.length, 3);
@@ -163,33 +163,32 @@ describe('integration: dag/dag-compute-waves', () => {
     }
   });
 
-  it('returns chunk metadata alongside waves', () => {
-    const { path, dir } = writeTempChunks(VALID_CHUNKS);
+  it('returns task metadata alongside waves', () => {
+    const { path, dir } = writeTempTasks(VALID_TASKS);
     try {
       const result = dagComputeWaves(path);
-      assert.equal(result.chunks.length, 4);
-      assert.equal(result.chunks[0].id, '001');
-      assert.equal(result.chunks[0].title, 'Data models');
-      assert.deepEqual(result.chunks[2].depends_on, ['001', '002']);
-      assert.deepEqual(result.chunks[3].agents, ['Test-Engineer']);
+      assert.equal(result.tasks.length, 4);
+      assert.equal(result.tasks[0].id, '001');
+      assert.equal(result.tasks[0].title, 'Data models');
+      assert.deepEqual(result.tasks[2].depends_on, ['001', '002']);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
-  it('returns empty waves for an empty chunks file', () => {
-    const { path, dir } = writeTempChunks(EMPTY_CHUNKS);
+  it('returns empty waves for an empty tasks file', () => {
+    const { path, dir } = writeTempTasks(EMPTY_TASKS);
     try {
       const result = dagComputeWaves(path);
       assert.deepEqual(result.waves, []);
-      assert.deepEqual(result.chunks, []);
+      assert.deepEqual(result.tasks, []);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
   it('returns errors when DAG is invalid', () => {
-    const { path, dir } = writeTempChunks(CYCLIC_CHUNKS);
+    const { path, dir } = writeTempTasks(CYCLIC_TASKS);
     try {
       const result = dagComputeWaves(path);
       assert.deepEqual(result.waves, []);

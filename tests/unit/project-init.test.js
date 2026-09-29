@@ -146,21 +146,21 @@ describe('unit: project-init/applyProjectName', () => {
 
 describe('unit: project-init/applyProjectConfig ProjectShortName substitution', () => {
   it('replaces {ProjectShortName} with projectShortname when provided', () => {
-    const result = applyProjectConfig('Epic: {ProjectShortName}-001', {
+    const result = applyProjectConfig('Feature: {ProjectShortName}-001', {
       projectName: 'my-app',
       projectShortname: 'myapp',
     });
-    assert.equal(result, 'Epic: myapp-001');
+    assert.equal(result, 'Feature: myapp-001');
   });
 
   it('falls back to projectName when projectShortname is not provided', () => {
-    const result = applyProjectConfig('Epic: {ProjectShortName}-001', { projectName: 'my-app' });
-    assert.equal(result, 'Epic: my-app-001');
+    const result = applyProjectConfig('Feature: {ProjectShortName}-001', { projectName: 'my-app' });
+    assert.equal(result, 'Feature: my-app-001');
   });
 
   it('leaves placeholder unresolved when neither value is provided', () => {
-    const result = applyProjectConfig('Epic: {ProjectShortName}-001', {});
-    assert.equal(result, 'Epic: {ProjectShortName}-001');
+    const result = applyProjectConfig('Feature: {ProjectShortName}-001', {});
+    assert.equal(result, 'Feature: {ProjectShortName}-001');
   });
 });
 

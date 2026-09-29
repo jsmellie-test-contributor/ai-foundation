@@ -24,13 +24,13 @@ server.registerTool(
   'dag-validate',
   {
     description:
-      'Validates that a chunks.json file forms a valid DAG (acyclic, no missing refs, correct schema).',
+      'Validates that a tasks.json file forms a valid DAG (acyclic, no missing refs, correct schema).',
     inputSchema: {
-      chunks_path: z.string().describe('Path to the chunks.json file'),
+      tasks_path: z.string().describe('Path to the tasks.json file'),
     },
   },
-  async ({ chunks_path }) => {
-    const result = dagValidate(chunks_path);
+  async ({ tasks_path }) => {
+    const result = dagValidate(tasks_path);
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };
@@ -41,13 +41,13 @@ server.registerTool(
   'dag-compute-waves',
   {
     description:
-      'Computes execution waves from a chunks.json dependency graph via topological sort.',
+      'Computes execution waves from a tasks.json dependency graph via topological sort.',
     inputSchema: {
-      chunks_path: z.string().describe('Path to the chunks.json file'),
+      tasks_path: z.string().describe('Path to the tasks.json file'),
     },
   },
-  async ({ chunks_path }) => {
-    const result = dagComputeWaves(chunks_path);
+  async ({ tasks_path }) => {
+    const result = dagComputeWaves(tasks_path);
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };

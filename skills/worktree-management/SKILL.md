@@ -1,20 +1,20 @@
 ---
 name: 'worktree-management'
-version: '0.1.1'
+version: '0.2.0'
 description: 'Manages git worktree lifecycle for parallel agent isolation — creation, setup, and teardown.'
 ---
 
 ## Purpose
 
-Provides the Engineering Manager with a structured procedure for creating, configuring, and cleaning up git worktrees. Each dispatched chunk gets its own worktree so that parallel agents work in isolated directories without branch conflicts.
+Provides the Engineering Manager with a structured procedure for creating, configuring, and cleaning up git worktrees. Each dispatched Task gets its own worktree so that parallel agents work in isolated directories without branch conflicts.
 
 ---
 
 ## Inputs
 
 - **`.aiconfig.json`** — for `paths.worktrees`, `project_shortname` (falls back to `project_name`), and `ai_identity`
-- **Epic ID** — parent epic for directory grouping
-- **Chunk ID** — identifies the specific chunk
+- **Feature ID** — parent Feature for directory grouping
+- **Task ID** — identifies the specific Task
 - **Branch name** — the branch to create/checkout in the worktree (e.g. `MYAPP-001/001-add-user-service`)
 - **Short description** — used in the directory name
 
@@ -28,14 +28,14 @@ Provides the Engineering Manager with a structured procedure for creating, confi
 2. Read `paths.worktrees` — default: `../worktrees/{project_shortname}` (relative to repo root; `project_shortname` falls back to `project_name` if unset)
 3. Construct the worktree directory:
    ```
-   {worktrees_base}/{epic-id}/{chunk-id}-{short-description}
+   {worktrees_base}/{feature-id}/{task-id}-{short-description}
    ```
 4. If `{project_shortname}` appears in the configured path as a literal placeholder, substitute with the actual `project_shortname` value from `.aiconfig.json` (or `project_name` if unset)
 
 Example resolution:
 
 - Config: `paths.worktrees: "../worktrees/myapp"`
-- Epic: `MYAPP-001`, Chunk: `001`, Description: `add-user-service`
+- Feature: `MYAPP-001`, Task: `001`, Description: `add-user-service`
 - Result: `../worktrees/myapp/MYAPP-001/001-add-user-service`
 
 ### Step 2 — Create Worktree
@@ -87,11 +87,11 @@ Called after the human confirms the PR is merged:
    ai-git branch -d <branch-name>
    ```
    Use `-d` (not `-D`) so git refuses if the branch is not fully merged.
-5. Clean up empty parent directories (e.g. if all chunks in an epic are torn down, remove the empty epic directory)
+5. Clean up empty parent directories (e.g. if all Tasks in a Feature are torn down, remove the empty Feature directory)
 
 ### Step 5 — Validate Existing Worktrees (Startup Check)
 
-On orchestration startup (before dispatching any new chunks):
+On orchestration startup (before dispatching any new Tasks):
 
 1. Run `ai-git worktree list` to see all active worktrees
 2. Cross-reference with the orchestration state file:
@@ -111,10 +111,10 @@ On orchestration startup (before dispatching any new chunks):
 
 ## Edge Cases
 
-- **Path already exists but is not a worktree** — refuse to overwrite. Log error and mark chunk as Blocked with reason "Worktree path conflict: directory exists but is not a git worktree."
+- **Path already exists but is not a worktree** — refuse to overwrite. Log error and mark Task as `Blocked` with reason "Worktree path conflict: directory exists but is not a git worktree."
 - **Worktree creation fails (branch already checked out elsewhere)** — git prevents two worktrees from having the same branch checked out. If this happens, find and remove the stale worktree first.
 - **Windows path length** — if the constructed path exceeds 240 characters, log a warning. Consider shortening the description segment or using a flatter structure.
-- **Disk space** — if `npm install` or equivalent fails due to disk space, mark chunk as Blocked with reason "Disk space insufficient for worktree setup."
+- **Disk space** — if `npm install` or equivalent fails due to disk space, mark Task as `Blocked` with reason "Disk space insufficient for worktree setup."
 - **Worktree lock files** — if `.git/worktrees/<name>/locked` exists from a crashed process, run `ai-git worktree unlock <path>` before attempting removal.
 - **Human deletes worktree directory manually** — `ai-git worktree prune` in Step 5 handles this gracefully.
 - **Resume after crash** — Step 2 handles the case where the worktree already exists. The orchestrator can re-dispatch to an existing worktree without recreating it.

@@ -19,7 +19,11 @@ tools: # Required. From tools.yaml canonical list.
 approved_tools: # Required. Subset of tools, runs without confirmation.
   - 'read'
 skills: # Optional. References to skills/{name}/ folders.
-  - 'skill/decision-record'
+  - 'skill/plan-lifecycle'
+preload_skills: # Optional. Subset of skills (or ["*"]) to preload; see Step 7.
+  - 'skill/plan-lifecycle'
+blocked_commands: # Optional. Shell command glob patterns this agent may not run directly.
+  - 'git *'
 ```
 
 ## Prompt guidelines

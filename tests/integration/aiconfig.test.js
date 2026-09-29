@@ -52,13 +52,13 @@ describe('integration: aiconfig', () => {
     it('loads .aiconfig.json and resolves a configured field', () => {
       writeFileSync(
         join(projectRoot, '.aiconfig.json'),
-        JSON.stringify({ paths: { chunks: 'custom/chunks' } }),
+        JSON.stringify({ paths: { features: 'custom/features' } }),
       );
-      assert.equal(getConfigValue(projectRoot, 'paths.chunks'), 'custom/chunks');
+      assert.equal(getConfigValue(projectRoot, 'paths.features'), 'custom/features');
     });
 
     it('falls back to the default when .aiconfig.json is absent', () => {
-      assert.equal(getConfigValue(projectRoot, 'paths.epics'), 'plans/epics');
+      assert.equal(getConfigValue(projectRoot, 'paths.features'), 'plans/features');
     });
   });
 

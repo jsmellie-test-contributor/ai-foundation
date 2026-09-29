@@ -1,16 +1,16 @@
 name: "dag"
-version: "0.2.0"
+version: "0.3.0"
 protocol: "mcp"
 transport: "stdio"
 description: "DAG operations for dependency graph validation and wave computation."
 tools:
   - name: "dag-validate"
-    description: "Validates that a chunks.json file forms a valid DAG (acyclic, no missing refs, correct schema)."
+    description: "Validates that a tasks.json file forms a valid DAG (acyclic, no missing refs, correct schema)."
     inputs:
-      - "chunks_path (string): Path to the chunks.json file"
+      - "tasks_path (string): Path to the tasks.json file"
     outputs: "JSON object: { valid: boolean, errors: string[] }. Errors include schema violations, cycle descriptions, and missing dependency references."
   - name: "dag-compute-waves"
-    description: "Computes execution waves from a chunks.json dependency graph via topological sort."
+    description: "Computes execution waves from a tasks.json dependency graph via topological sort."
     inputs:
-      - "chunks_path (string): Path to the chunks.json file"
-    outputs: "JSON object: { waves: string[][], chunks: { id: string, title: string, depends_on: string[], agents: string[] }[] }. Each wave is an array of chunk IDs that can execute in parallel."
+      - "tasks_path (string): Path to the tasks.json file"
+    outputs: "JSON object: { waves: string[][], tasks: { id: string, title: string, depends_on: string[] }[] }. Each wave is an array of task IDs that can execute in parallel."

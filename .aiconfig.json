@@ -8,7 +8,13 @@
   },
   "paths": {
     "plans": "docs/plans",
-    "knowledge": "docs"
+    "knowledge": "docs",
+    "features": "docs/plans/features",
+    "architecture": "docs/architecture",
+    "research": "docs/research",
+    "decisions": "docs/decisions",
+    "product": "docs/product",
+    "worktrees": "../worktrees/ai-foundation"
   },
   "orchestration": {
     "max_concurrent": 10

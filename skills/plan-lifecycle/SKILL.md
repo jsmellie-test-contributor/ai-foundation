@@ -1,12 +1,12 @@
 ---
 name: 'plan-lifecycle'
-version: '0.1.1'
+version: '0.3.0'
 description: 'Shared commit-gate procedure and status vocabulary for any artifact requiring human approval before dependent work begins.'
 ---
 
 ## Purpose
 
-Defines, in one place, how a human-approval-gated artifact (Chunk Plan, Epic Plan, Decision Record, or a Tier 3 `ai-engineering-plan`) moves from first draft to a state that other work is allowed to depend on. Other planning skills reference this skill instead of restating the procedure.
+Defines, in one place, how a human-approval-gated artifact (Feature Plan, ADR, or a Tier 3 plan) moves from first draft to a state that other work is allowed to depend on. Other planning skills reference this skill instead of restating the procedure.
 
 Use this skill whenever a skill produces an artifact with a `Status` field that a human must approve before implementation, decomposition, or any other dependent work may proceed.
 
@@ -15,7 +15,7 @@ Use this skill whenever a skill produces an artifact with a `Status` field that 
 ## Inputs
 
 - **Artifact file path** — where the plan/record lives (per the producing skill's `Outputs` section and the project's `.aiconfig.json` `paths.*` configuration)
-- **Artifact type** — Chunk Plan, Epic Plan, Decision Record, or Tier 3 plan (determines which status values from `reference/status-vocabulary.md` are valid). For Decision Records specifically, the artifact's `Tier` field (assigned by `skill/decision-triage`) determines which gate variant applies — see "Decision Record Tier Variants" below.
+- **Artifact type** — Feature Plan, ADR, or Tier 3 plan (determines which status values from `reference/status-vocabulary.md` are valid).
 - **Current lifecycle stage** — first draft, a revision round, or a final human decision
 
 ---
@@ -39,7 +39,7 @@ If the human requests changes, edit the artifact and commit again as a new commi
 Once the human gives an explicit decision, update the `Status` field and commit that change as its own commit, separate from any implementation:
 
 - **Approved** — the human explicitly confirmed. This is the only status that satisfies an "approved plan" gate elsewhere in steering. Update the approver field (e.g. `Approved by: {name}`) in the same commit.
-  If the artifact type is a Decision Record, `Superseded` (from `reference/status-vocabulary.md`) is a state the record moves to later, not a decision made at this step.
+  If the artifact type is an ADR, `Superseded` (from `reference/status-vocabulary.md`) is a state the record moves to later, not a decision made at this step.
 - **Deferred** — the human explicitly chose to postpone. This is not an approval; see Edge Cases.
 
 Verbal or chat-only confirmation never satisfies the gate — only the committed `Approved` status does.
@@ -50,21 +50,9 @@ When the work the artifact describes is finished (implementation merged, decisio
 
 ---
 
-### Decision Record Tier Variants
-
-_(AIF-002-004)_ AIF-META-001 (Decision ID) introduced three rigor Tiers for Decision Records — A (Researched), B (Structural), C (Embedded). This skill does not redefine what those Tiers mean; see AIF-META-001's Design section Tier table (`docs/decisions/meta-process/AIF-META-001_decision-record-tiering-and-domain-ownership.decision.md`) for the source of truth. What follows is how the commit-gate procedure above differs once a Tier has already been assigned (by `skill/decision-triage`):
-
-- **Tier A** — no change. A Tier A Decision Record follows Steps 1-5 above exactly as already documented, the same as a Chunk Plan or Epic Plan.
-- **Tier B** — abbreviated gate: Draft (Step 1) → present for review (Step 2) → one round of human confirmation → Approved (Step 4), with no expected multi-round revision cycle. This does not remove Step 3 (revision) — if the human requests a change, follow Step 3 exactly as for Tier A. "Abbreviated" describes the _expected_ number of rounds, not a relaxation of the approval requirement itself: Step 4's committed `Approved` status is still mandatory before dependent work may proceed.
-- **Tier C** — not a gate at all. A Tier C decision is never presented to this skill as a standalone artifact — it has no `Status` field of its own. It is recorded inline in the governing plan (per `skill/chunk-planning`/`skill/epic-planning`) and is fully covered by that plan's own Draft → Approved cycle; consult the governing plan's status, not a separate one.
-
-Tier A and Tier B Decision Records must also update `{paths.decisions}/index.json` as part of producing or updating the record — see `skill/decision-record`/`skill/decision-brief` for that step's own procedure. This skill's commit-gate applies in addition to, not instead of, that requirement; `plan-lifecycle` does not own or duplicate the index-update step itself.
-
----
-
 ## Outputs
 
-- A committed artifact whose `Status` field accurately reflects `Draft`, `Approved`, `Done`, `Deferred`, or (Decision Records only) `Superseded` at all times — see `reference/status-vocabulary.md`.
+- A committed artifact whose `Status` field accurately reflects `Draft`, `Approved`, `Done`, `Deferred`, or (ADRs only) `Superseded` at all times — see `reference/status-vocabulary.md`.
 - A git history that shows the full Draft → revision → revision → Approved (or Deferred) progression as separate commits.
 
 ---
@@ -74,6 +62,5 @@ Tier A and Tier B Decision Records must also update `{paths.decisions}/index.jso
 - **Human says "just do it" / approves verbally in chat only** — still requires the committed `Approved` status update before implementation starts. Do the commit first, then proceed.
 - **Human wants to defer rather than approve or reject** — set `Status: Deferred` and commit. A `Deferred` artifact is not approved; nothing may treat it as satisfying an approval gate. It can later be revisited (moved back to `Draft`) or approved directly from `Deferred`.
 - **Checking whether a specific piece of dependent work may proceed** — check only for `Status: Approved` on the governing artifact. Do not add special-case handling for `Deferred`, `Draft`, or any other non-`Approved` value — the absence of `Approved` is sufficient by itself to block dependent work.
-- **Repo has no `paths.plans` (or equivalent) configured in `.aiconfig.json`** — fall back to `docs/plans/` for Tier 3 plans; Chunk/Epic Plans and Decision Records use their own skills' documented path defaults.
+- **Repo has no `paths.plans` (or equivalent) configured in `.aiconfig.json`** — fall back to `docs/plans/` for Tier 3 plans; Feature Plans use `skill/feature-planning`'s documented path defaults, ADRs use Architect's documented `write` scope (`{paths.decisions}/`).
 - **Framework repo (direct commits to main)** — the commit gate still applies. There is no branch/PR step, but the Draft and Approved commits must still exist as separate, real commits on `main` before implementation commits follow.
-- **Decision Record with Tier B** — the abbreviated gate applies (see Decision Record Tier Variants above): commit Draft, present for one round of human confirmation, commit Approved. A multi-round revision cycle is not expected but is not prohibited if the human requests changes — if it happens, follow Steps 2-3 exactly as for Tier A.

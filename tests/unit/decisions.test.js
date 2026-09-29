@@ -2,15 +2,15 @@
 // decisions.test.js
 //
 // Author: Starvoxel AI Agent - 2026-08-19
-// Plan: AIF-002-014, AIF-003-001
+// Plan: AIF-002-014, AIF-003-001, docs/process-model.md check 30
 //
 // Copyright (c) StarVoxel. All rights reserved.
 // ------------------------------
 
 /**
- * Unit tests for decision-record metadata parsing, index building, and
- * diffing (lib/decisions.js). All fixtures are synthetic in-memory strings —
- * no real disk I/O, per this chunk's testability requirement.
+ * Unit tests for ADR (MADR) metadata parsing, index building, and diffing
+ * (lib/decisions.js). All fixtures are synthetic in-memory strings — no real
+ * disk I/O, keeping the parsing logic testable without disk fixtures.
  */
 
 import { describe, it } from 'node:test';
@@ -19,504 +19,385 @@ import assert from 'node:assert/strict';
 import { parseDecisionRecord, buildDecisionIndex, diffDecisionIndex } from '../../lib/decisions.js';
 
 function wellFormedRecord({
-  id = 'AIF-ARCH-001',
-  tier = 'A',
-  domain = 'architecture',
-  status = 'Approved',
-  references = '—',
-  supersedes = '—',
-  tags = '—',
+  status = 'accepted',
+  date = '2026-09-25',
+  decisionMakers = '[Jeremy]',
+  supersedes = '[]',
+  tags = '[]',
+  affects = '[]',
   title = 'A Well-Formed Decision',
 } = {}) {
-  return `# Decision Record: ${title}
-
-## Metadata
-
-| Field | Value |
-|---|---|
-| Decision ID | ${id} |
-| Project | ai-foundation |
-| Tier | ${tier} |
-| Domain | ${domain} |
-| Status | ${status} |
-| Author (Agent) | Architect |
-| Approved By | Jeremy |
-| Created | 2026-08-19 |
-| Referenced By | — |
-| References | ${references} |
-| Supersedes | ${supersedes} |
-| Tags | ${tags} |
-
+  return `---
+status: ${status}
+date: ${date}
+decision-makers: ${decisionMakers}
+tags: ${tags}
+links:
+  supersedes: ${supersedes}
+affects: ${affects}
 ---
 
-## Problem Statement
+# ${title}
+
+## Context and Problem Statement
 
 Test fixture.
-`;
-}
-
-// Legacy pre-Tier×Domain record (mirrors AIF-ARCH-001/002/003, which were
-// deliberately migrated without Tier/Domain fields — chunk AIF-002-009,
-// "light-touch"). Human-approved fix, no formal Plan ID, per chat approval
-// 2026-08-24.
-function legacyRecordMissingTierAndDomain({
-  id = 'AIF-ARCH-001',
-  status = 'Approved',
-  title = 'A Legacy Decision',
-} = {}) {
-  return `# Decision Record: ${title}
-
-## Metadata
-
-| Field | Value |
-|---|---|
-| Decision ID | ${id} |
-| Project | ai-foundation |
-| Status | ${status} |
-| Author (Agent) | Architect |
-| Approved By | Jeremy |
-| Created | 2020-01-01 |
-| Referenced By | — |
-| References | — |
-| Tags | — |
-
----
-
-## Problem Statement
-
-Test fixture. This decision predates the AIF-META-001 Tier x Domain model.
 `;
 }
 
 // ── parseDecisionRecord ──────────────────────────────────────────────────
 
 describe('unit: decisions/parseDecisionRecord', () => {
-  it('extracts all fields from a well-formed Metadata table (DEC-T01)', () => {
-    const content = wellFormedRecord({
-      references: 'AIF-ARCH-002',
-      tags: 'orchestration, dispatch',
-    });
-    const result = parseDecisionRecord(content, 'AIF-ARCH-001.decision.md');
+  it('extracts all fields from a well-formed MADR record (DEC-T01)', () => {
+    const content = wellFormedRecord({ tags: '[orchestration, dispatch]' });
+    const result = parseDecisionRecord(content, '0001-well-formed.md');
 
     assert.ok(result.record, 'expected a record, got error: ' + result.error);
-    assert.equal(result.record.id, 'AIF-ARCH-001');
-    assert.equal(result.record.tier, 'A');
-    assert.equal(result.record.domain, 'architecture');
+    assert.equal(result.record.id, '0001');
     assert.equal(result.record.title, 'A Well-Formed Decision');
-    assert.equal(result.record.status, 'Approved');
-    assert.equal(result.record.path, 'AIF-ARCH-001.decision.md');
-    assert.deepEqual(result.record.references, ['AIF-ARCH-002']);
+    assert.equal(result.record.status, 'accepted');
+    assert.equal(result.record.date, '2026-09-25');
+    assert.equal(result.record.path, '0001-well-formed.md');
+    assert.deepEqual(result.record.decisionMakers, ['Jeremy']);
     assert.deepEqual(result.record.tags, ['orchestration', 'dispatch']);
   });
 
-  it('returns { error } when Decision ID is missing (DEC-T02)', () => {
-    const content = wellFormedRecord().replace('| Decision ID | AIF-ARCH-001 |\n', '');
-    const result = parseDecisionRecord(content, 'bad.decision.md');
+  it('returns { error } when the filename has no zero-padded number prefix (DEC-T02)', () => {
+    const content = wellFormedRecord();
+    const result = parseDecisionRecord(content, 'no-number-prefix.md');
 
     assert.ok(result.error);
     assert.ok(!result.record);
-    assert.match(result.error, /Decision ID/);
+    assert.match(result.error, /zero-padded number/);
   });
 
-  it('returns { error } when the Metadata table is malformed (DEC-T03)', () => {
-    const content = `# Decision Record: Broken Table
+  it('returns { error } when frontmatter is missing entirely (DEC-T03)', () => {
+    const content = `# Broken Record\n\nNo frontmatter at all.\n`;
+    const result = parseDecisionRecord(content, '0002-broken.md');
 
-## Metadata
+    assert.ok(result.error);
+    assert.ok(!result.record);
+    assert.match(result.error, /frontmatter/);
+  });
 
-This is not a table at all.
-
+  it('returns { error } when required field "status" is missing (DEC-T04)', () => {
+    const content = `---
+date: 2026-09-25
+decision-makers: [Jeremy]
+tags: []
+links:
+  supersedes: []
+affects: []
 ---
 
-## Problem Statement
+# Missing Status
+
+## Context and Problem Statement
 
 Test fixture.
 `;
-    const result = parseDecisionRecord(content, 'broken.decision.md');
+    const result = parseDecisionRecord(content, '0003-missing-status.md');
 
     assert.ok(result.error);
-    assert.ok(!result.record);
+    assert.match(result.error, /status/);
   });
 
-  it('treats References: — and empty References both as an empty array (DEC-T04)', () => {
-    const withDash = parseDecisionRecord(wellFormedRecord({ references: '—' }), 'a.decision.md');
-    const withEmpty = parseDecisionRecord(wellFormedRecord({ references: '' }), 'b.decision.md');
+  it('returns { error } when the "# {title}" heading is missing (DEC-T05)', () => {
+    const content = `---
+status: accepted
+date: 2026-09-25
+decision-makers: []
+tags: []
+links:
+  supersedes: []
+affects: []
+---
 
-    assert.deepEqual(withDash.record.references, []);
-    assert.deepEqual(withEmpty.record.references, []);
+## Context and Problem Statement
+
+No H1 title at all.
+`;
+    const result = parseDecisionRecord(content, '0004-no-title.md');
+
+    assert.ok(result.error);
+    assert.match(result.error, /title/);
   });
 
-  it('parses a legacy record missing Tier/Domain successfully with null values (DEC-T11)', () => {
-    const content = legacyRecordMissingTierAndDomain();
-    const result = parseDecisionRecord(content, 'AIF-ARCH-001.decision.md');
+  it('treats an absent decision-makers/tags/affects as empty arrays, not an error (DEC-T06)', () => {
+    const content = `---
+status: accepted
+date: 2026-09-25
+links:
+  supersedes: []
+---
+
+# Minimal Record
+
+## Context and Problem Statement
+
+Test fixture.
+`;
+    const result = parseDecisionRecord(content, '0005-minimal.md');
 
     assert.ok(result.record, 'expected a record, got error: ' + result.error);
-    assert.equal(result.record.id, 'AIF-ARCH-001');
-    assert.equal(result.record.tier, null);
-    assert.equal(result.record.domain, null);
-    assert.equal(result.record.status, 'Approved');
-  });
-
-  it('parses Tags: —/empty as [] and a real value splits/trims correctly (DEC-T05)', () => {
-    const withDash = parseDecisionRecord(wellFormedRecord({ tags: '—' }), 'a.decision.md');
-    const withEmpty = parseDecisionRecord(wellFormedRecord({ tags: '' }), 'b.decision.md');
-    const withValues = parseDecisionRecord(
-      wellFormedRecord({ tags: 'orchestration, dispatch' }),
-      'c.decision.md',
-    );
-
-    assert.deepEqual(withDash.record.tags, []);
-    assert.deepEqual(withEmpty.record.tags, []);
-    assert.deepEqual(withValues.record.tags, ['orchestration', 'dispatch']);
-  });
-
-  it('parses cleanly with Supersedes absent from the Metadata table entirely (001-T01)', () => {
-    const content = wellFormedRecord().replace('| Supersedes | — |\n', '');
-    const result = parseDecisionRecord(content, 'AIF-ARCH-001.decision.md');
-
-    assert.ok(result.record, 'expected a record, got error: ' + result.error);
+    assert.deepEqual(result.record.decisionMakers, []);
+    assert.deepEqual(result.record.tags, []);
+    assert.deepEqual(result.record.affects, []);
     assert.deepEqual(result.record.supersedes, []);
   });
 
-  it('parses Supersedes: — as an empty array (001-T02)', () => {
-    const result = parseDecisionRecord(wellFormedRecord({ supersedes: '—' }), 'a.decision.md');
-    assert.deepEqual(result.record.supersedes, []);
-  });
-
-  it('parses a single Supersedes ID (001-T03)', () => {
+  it('parses a populated links.supersedes as bare-number strings (DEC-T07)', () => {
     const result = parseDecisionRecord(
-      wellFormedRecord({ supersedes: 'AIF-ARCH-004' }),
-      'a.decision.md',
+      wellFormedRecord({ supersedes: '["0002"]' }),
+      '0003-supersedes.md',
     );
-    assert.deepEqual(result.record.supersedes, ['AIF-ARCH-004']);
+    assert.deepEqual(result.record.supersedes, ['0002']);
   });
 
-  it('parses multiple Supersedes IDs with irregular spacing, split and trimmed (001-T04)', () => {
+  it('parses multiple links.supersedes entries in order (DEC-T08)', () => {
     const result = parseDecisionRecord(
-      wellFormedRecord({ supersedes: 'AIF-ARCH-004,AIF-ARCH-005 ,  AIF-ARCH-006' }),
-      'a.decision.md',
+      wellFormedRecord({ supersedes: '["0002", "0003"]' }),
+      '0004-supersedes-multi.md',
     );
-    assert.deepEqual(result.record.supersedes, ['AIF-ARCH-004', 'AIF-ARCH-005', 'AIF-ARCH-006']);
+    assert.deepEqual(result.record.supersedes, ['0002', '0003']);
   });
 
-  it('parses a legacy record with no Tier/Domain and no Supersedes (001-T10)', () => {
-    const content = legacyRecordMissingTierAndDomain();
-    const result = parseDecisionRecord(content, 'AIF-ARCH-001.decision.md');
-
-    assert.ok(result.record, 'expected a record, got error: ' + result.error);
-    assert.deepEqual(result.record.supersedes, []);
+  it('parses a populated affects list of file globs (DEC-T09)', () => {
+    const result = parseDecisionRecord(
+      wellFormedRecord({ affects: '[lib/foo.js, "lib/bar/**"]' }),
+      '0006-affects.md',
+    );
+    assert.deepEqual(result.record.affects, ['lib/foo.js', 'lib/bar/**']);
   });
 });
 
 // ── buildDecisionIndex ───────────────────────────────────────────────────
 
 describe('unit: decisions/buildDecisionIndex', () => {
-  it('computes referenced_by correctly by inversion across 3+ records (DEC-T06)', () => {
-    const records = [
-      {
-        id: 'A',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'A',
-        status: 'Approved',
-        path: 'a.decision.md',
-        references: ['B'],
-        tags: [],
-      },
-      {
-        id: 'B',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'B',
-        status: 'Approved',
-        path: 'b.decision.md',
-        references: ['C'],
-        tags: [],
-      },
-      {
-        id: 'C',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'C',
-        status: 'Approved',
-        path: 'c.decision.md',
-        references: ['B'],
-        tags: [],
-      },
-    ];
-
-    const index = buildDecisionIndex(records);
-    const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
-
-    assert.deepEqual(byId.A.referenced_by, []);
-    assert.deepEqual(byId.B.referenced_by.sort(), ['A', 'C']);
-    assert.deepEqual(byId.C.referenced_by, ['B']);
-  });
-
-  it('produces null tier/domain index entries for legacy records, inversion still works (DEC-T12)', () => {
-    const records = [
-      {
-        id: 'AIF-ARCH-001',
-        tier: null,
-        domain: null,
-        title: 'Legacy A',
-        status: 'Approved',
-        path: 'a.decision.md',
-        references: [],
-        tags: [],
-      },
-      {
-        id: 'AIF-ARCH-002',
-        tier: null,
-        domain: null,
-        title: 'Legacy B',
-        status: 'Approved',
-        path: 'b.decision.md',
-        references: ['AIF-ARCH-001'],
-        tags: [],
-      },
-    ];
-
-    const index = buildDecisionIndex(records);
-    const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
-
-    assert.equal(byId['AIF-ARCH-001'].tier, null);
-    assert.equal(byId['AIF-ARCH-001'].domain, null);
-    assert.deepEqual(byId['AIF-ARCH-001'].referenced_by, ['AIF-ARCH-002']);
-  });
-
-  it('returns a valid empty index for an empty record list (DEC-T07)', () => {
+  it('returns a valid empty index for an empty record list (DEC-T10)', () => {
     const index = buildDecisionIndex([]);
     assert.deepEqual(index.entries, []);
     assert.ok(index.generated_at);
   });
 
-  it('inverts supersedes into superseded_by: B supersedes A (001-T05)', () => {
+  it('carries id/title/status/date/decisionMakers/tags/affects straight through (DEC-T11)', () => {
     const records = [
       {
-        id: 'A',
-        tier: 'A',
-        domain: 'architecture',
+        id: '0001',
         title: 'A',
-        status: 'Approved',
-        path: 'a.decision.md',
-        references: [],
+        status: 'accepted',
+        date: '2026-09-25',
+        path: '0001-a.md',
+        decisionMakers: ['Jeremy'],
+        tags: ['tag'],
         supersedes: [],
-        tags: [],
-      },
-      {
-        id: 'B',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'B',
-        status: 'Approved',
-        path: 'b.decision.md',
-        references: [],
-        supersedes: ['A'],
-        tags: [],
+        affects: ['lib/a.js'],
       },
     ];
 
     const index = buildDecisionIndex(records);
-    const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
+    const [entry] = index.entries;
 
-    assert.deepEqual(byId.A.superseded_by, ['B']);
-    assert.deepEqual(byId.B.supersedes, ['A']);
-    assert.deepEqual(byId.B.superseded_by, []);
+    assert.equal(entry.id, '0001');
+    assert.equal(entry.title, 'A');
+    assert.equal(entry.status, 'accepted');
+    assert.equal(entry.date, '2026-09-25');
+    assert.deepEqual(entry.decision_makers, ['Jeremy']);
+    assert.deepEqual(entry.tags, ['tag']);
+    assert.deepEqual(entry.affects, ['lib/a.js']);
   });
 
-  it('does not throw on a dangling Supersedes ID and contributes no superseded_by (001-T06)', () => {
+  it('inverts supersedes into superseded_by: 0002 supersedes 0001 (DEC-T12)', () => {
     const records = [
       {
-        id: 'C',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'C',
-        status: 'Approved',
-        path: 'c.decision.md',
-        references: [],
-        supersedes: ['AIF-ARCH-999'],
+        id: '0001',
+        title: 'A',
+        status: 'accepted',
+        date: null,
+        path: '0001-a.md',
+        decisionMakers: [],
         tags: [],
+        supersedes: [],
+        affects: [],
+      },
+      {
+        id: '0002',
+        title: 'B',
+        status: 'accepted',
+        date: null,
+        path: '0002-b.md',
+        decisionMakers: [],
+        tags: [],
+        supersedes: ['0001'],
+        affects: [],
       },
     ];
 
     const index = buildDecisionIndex(records);
     const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
 
-    assert.deepEqual(byId.C.supersedes, ['AIF-ARCH-999']);
+    assert.deepEqual(byId['0001'].superseded_by, ['0002']);
+    assert.deepEqual(byId['0002'].supersedes, ['0001']);
+    assert.deepEqual(byId['0002'].superseded_by, []);
+  });
+
+  it('does not throw on a dangling supersedes ID and contributes no superseded_by (DEC-T13)', () => {
+    const records = [
+      {
+        id: '0003',
+        title: 'C',
+        status: 'accepted',
+        date: null,
+        path: '0003-c.md',
+        decisionMakers: [],
+        tags: [],
+        supersedes: ['0099'],
+        affects: [],
+      },
+    ];
+
+    const index = buildDecisionIndex(records);
+    const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
+
+    assert.deepEqual(byId['0003'].supersedes, ['0099']);
     for (const entry of index.entries) {
       assert.deepEqual(entry.superseded_by, []);
     }
   });
 
-  it('accumulates superseded_by from two records superseding the same predecessor (001-T07)', () => {
+  it('accumulates superseded_by from two records superseding the same predecessor (DEC-T14)', () => {
     const records = [
       {
-        id: 'A',
-        tier: 'A',
-        domain: 'architecture',
+        id: '0001',
         title: 'A',
-        status: 'Approved',
-        path: 'a.decision.md',
-        references: [],
+        status: 'accepted',
+        date: null,
+        path: '0001-a.md',
+        decisionMakers: [],
+        tags: [],
         supersedes: [],
-        tags: [],
+        affects: [],
       },
       {
-        id: 'B',
-        tier: 'A',
-        domain: 'architecture',
+        id: '0002',
         title: 'B',
-        status: 'Approved',
-        path: 'b.decision.md',
-        references: [],
-        supersedes: ['A'],
+        status: 'accepted',
+        date: null,
+        path: '0002-b.md',
+        decisionMakers: [],
         tags: [],
+        supersedes: ['0001'],
+        affects: [],
       },
       {
-        id: 'C',
-        tier: 'A',
-        domain: 'architecture',
+        id: '0003',
         title: 'C',
-        status: 'Approved',
-        path: 'c.decision.md',
-        references: [],
-        supersedes: ['A'],
+        status: 'accepted',
+        date: null,
+        path: '0003-c.md',
+        decisionMakers: [],
         tags: [],
+        supersedes: ['0001'],
+        affects: [],
       },
     ];
 
     const index = buildDecisionIndex(records);
     const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
 
-    assert.deepEqual(byId.A.superseded_by.sort(), ['B', 'C']);
+    assert.deepEqual(byId['0001'].superseded_by.sort(), ['0002', '0003']);
   });
 
-  it('excludes self-reference when a record names itself in Supersedes (001-T08)', () => {
+  it('excludes self-reference when a record names itself in supersedes (DEC-T15)', () => {
     const records = [
       {
-        id: 'A',
-        tier: 'A',
-        domain: 'architecture',
+        id: '0001',
         title: 'A',
-        status: 'Approved',
-        path: 'a.decision.md',
-        references: [],
-        supersedes: ['A'],
+        status: 'accepted',
+        date: null,
+        path: '0001-a.md',
+        decisionMakers: [],
         tags: [],
+        supersedes: ['0001'],
+        affects: [],
       },
     ];
 
     const index = buildDecisionIndex(records);
     const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
 
-    assert.deepEqual(byId.A.superseded_by, []);
-    assert.deepEqual(byId.A.supersedes, ['A']);
-  });
-
-  it('computes references/referenced_by correctly alongside supersedes/superseded_by (001-T09)', () => {
-    const records = [
-      {
-        id: 'A',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'A',
-        status: 'Approved',
-        path: 'a.decision.md',
-        references: ['B'],
-        supersedes: [],
-        tags: [],
-      },
-      {
-        id: 'B',
-        tier: 'A',
-        domain: 'architecture',
-        title: 'B',
-        status: 'Approved',
-        path: 'b.decision.md',
-        references: [],
-        supersedes: ['A'],
-        tags: [],
-      },
-    ];
-
-    const index = buildDecisionIndex(records);
-    const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
-
-    assert.deepEqual(byId.B.referenced_by, ['A']);
-    assert.deepEqual(byId.A.referenced_by, []);
-    assert.deepEqual(byId.A.superseded_by, ['B']);
-    assert.deepEqual(byId.B.supersedes, ['A']);
+    assert.deepEqual(byId['0001'].superseded_by, []);
+    assert.deepEqual(byId['0001'].supersedes, ['0001']);
   });
 });
 
 // ── diffDecisionIndex ────────────────────────────────────────────────────
 
 const baseEntry = {
-  id: 'A',
-  tier: 'A',
-  domain: 'architecture',
+  id: '0001',
   title: 'A',
-  status: 'Approved',
-  path: 'a.decision.md',
+  status: 'accepted',
+  date: '2026-09-25',
+  path: '0001-a.md',
+  decision_makers: ['Jeremy'],
+  tags: [],
   supersedes: [],
   superseded_by: [],
-  references: [],
-  referenced_by: [],
-  tags: [],
+  affects: [],
 };
 
 describe('unit: decisions/diffDecisionIndex', () => {
-  it('returns stale: false when entries match, ignoring generated_at (DEC-T08)', () => {
-    const computed = { generated_at: '2026-08-19T00:00:00.000Z', entries: [{ ...baseEntry }] };
+  it('returns stale: false when entries match, ignoring generated_at (DEC-T16)', () => {
+    const computed = { generated_at: '2026-09-25T00:00:00.000Z', entries: [{ ...baseEntry }] };
     const existing = { generated_at: '2020-01-01T00:00:00.000Z', entries: [{ ...baseEntry }] };
 
     const diff = diffDecisionIndex(computed, existing);
     assert.equal(diff.stale, false);
   });
 
-  it('returns stale: true with a non-empty summary when an entry changed (DEC-T09)', () => {
-    const computed = { generated_at: 'now', entries: [{ ...baseEntry, status: 'Deferred' }] };
+  it('returns stale: true with a non-empty summary when an entry changed (DEC-T17)', () => {
+    const computed = { generated_at: 'now', entries: [{ ...baseEntry, status: 'deprecated' }] };
     const existing = { generated_at: 'then', entries: [{ ...baseEntry }] };
 
     const diff = diffDecisionIndex(computed, existing);
     assert.equal(diff.stale, true);
     assert.ok(diff.summary.length > 0);
-    assert.match(diff.summary, /A/);
+    assert.match(diff.summary, /0001/);
   });
 
-  it('returns stale: true with a non-empty summary when an entry is added', () => {
+  it('returns stale: true with a non-empty summary when an entry is added (DEC-T18)', () => {
     const computed = {
       generated_at: 'now',
-      entries: [{ ...baseEntry }, { ...baseEntry, id: 'B' }],
+      entries: [{ ...baseEntry }, { ...baseEntry, id: '0002' }],
     };
     const existing = { generated_at: 'then', entries: [{ ...baseEntry }] };
 
     const diff = diffDecisionIndex(computed, existing);
     assert.equal(diff.stale, true);
-    assert.match(diff.summary, /B/);
+    assert.match(diff.summary, /0002/);
   });
 
-  it('returns stale: true with a non-empty summary when an entry is removed', () => {
+  it('returns stale: true with a non-empty summary when an entry is removed (DEC-T19)', () => {
     const computed = { generated_at: 'now', entries: [] };
     const existing = { generated_at: 'then', entries: [{ ...baseEntry }] };
 
     const diff = diffDecisionIndex(computed, existing);
     assert.equal(diff.stale, true);
-    assert.match(diff.summary, /A/);
+    assert.match(diff.summary, /0001/);
   });
 
-  it('returns stale: true against existing: null (DEC-T10)', () => {
+  it('returns stale: true against existing: null (DEC-T20)', () => {
     const computed = { generated_at: 'now', entries: [{ ...baseEntry }] };
     const diff = diffDecisionIndex(computed, null);
     assert.equal(diff.stale, true);
   });
 
-  it('reports a supersede-only change as stale (001-T11)', () => {
-    const computed = { generated_at: 'now', entries: [{ ...baseEntry, supersedes: ['Z'] }] };
+  it('reports a supersede-only change as stale (DEC-T21)', () => {
+    const computed = { generated_at: 'now', entries: [{ ...baseEntry, supersedes: ['0099'] }] };
     const existing = { generated_at: 'then', entries: [{ ...baseEntry }] };
 
     const diff = diffDecisionIndex(computed, existing);
     assert.equal(diff.stale, true);
-    assert.match(diff.summary, /A/);
+    assert.match(diff.summary, /0001/);
   });
 });

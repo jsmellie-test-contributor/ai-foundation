@@ -1,6 +1,6 @@
 ---
 name: 'server-authoring'
-version: '0.2.1'
+version: '0.2.2'
 description: 'Creates a server definition with tool documentation, implementation, and tests.'
 ---
 
@@ -151,6 +151,7 @@ Use `node:test` with `describe/it` structure. Group tests under descriptive pref
 - [ ] Input types are specified: `string`, `number`, `boolean`, `array`, `object`
 - [ ] Optional inputs are marked `[optional]`
 - [ ] No literal secrets in `headers` — `${ENV_VAR_NAME}` placeholders only
+- [ ] Every citation of another skill, agent, or doc is checked against `steering/engineering/core.md`: "Cite, Don't Restate"
 
 For `hosted: "self"` (default) additionally:
 

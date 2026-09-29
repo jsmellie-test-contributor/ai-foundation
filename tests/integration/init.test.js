@@ -66,14 +66,15 @@ describe('integration: init command', () => {
   it('creates knowledge directory structure', async () => {
     await quiet(() => runInit({ args: { name: 'test' }, positional: [] }));
     assert.ok(existsSync(join(workDir, 'test', 'knowledge', 'decisions', '.gitkeep')));
+    assert.ok(existsSync(join(workDir, 'test', 'knowledge', 'architecture', '.gitkeep')));
+    assert.ok(existsSync(join(workDir, 'test', 'knowledge', 'research', '.gitkeep')));
     assert.ok(existsSync(join(workDir, 'test', 'knowledge', 'example.md')));
+    assert.ok(!existsSync(join(workDir, 'test', 'knowledge', 'product')));
   });
 
   it('creates plans directory structure', async () => {
     await quiet(() => runInit({ args: { name: 'test' }, positional: [] }));
-    assert.ok(existsSync(join(workDir, 'test', 'plans', 'epics', '.gitkeep')));
-    assert.ok(existsSync(join(workDir, 'test', 'plans', 'chunks', '.gitkeep')));
-    assert.ok(existsSync(join(workDir, 'test', 'plans', 'orchestration', '.gitkeep')));
+    assert.ok(existsSync(join(workDir, 'test', 'plans', 'features', '.gitkeep')));
   });
 
   it('creates project-standards.md with project name substituted', async () => {

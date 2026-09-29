@@ -1,14 +1,13 @@
 ---
 name: 'agent-prompt-extraction-candidates'
-type: 'reference'
 tags: ['agent-authoring', 'prompt-design', 'skills']
-scope: 'ai-engineer'
+scope: 'software-engineer'
 description: "Prompt content that reads like a reusable rule/procedure but currently lives in only one agent's prompt — tracked so it can be promoted to a skill or steering rule if a second agent needs the same behavior."
 ---
 
 ## Purpose
 
-Some content in an agent's prompt is genuinely agent-specific (identity, scope boundaries, judgment calls unique to that role). Other content is a self-contained procedure or rule that simply hasn't been extracted into a skill or steering file yet — usually because only one agent currently needs it, and extracting on day one would add an indirection layer with no reuse benefit (see `skill/skill-authoring` Edge Cases: "unclear whether to use a script or prose step" — the same "don't abstract prematurely" principle applies to skill extraction).
+Some content in an agent's prompt is genuinely agent-specific (identity, scope boundaries, judgment calls unique to that role). Other content is a self-contained procedure or rule that simply hasn't been extracted into a skill or steering file yet — usually because only one agent currently needs it, and extracting on day one would add an indirection layer with no reuse benefit (see `skill/skill-authoring` Edge Cases: "Unclear whether to use a script or prose step" — the same "don't abstract prematurely" principle applies to skill extraction).
 
 This file is the record of that second category: things that _look_ extractable but aren't extracted _yet_, why, and the condition that should trigger extraction.
 It exists so the decision not to extract is a tracked, revisitable choice — not a silent one that gets rediscovered from scratch each time.
@@ -27,35 +26,18 @@ Checked and updated per `skill/agent-authoring` Step 5 whenever a prompt is writ
 
 ## Current candidates
 
-### Architect — Decision Record drafting constraint
+### Architect — ADR drafting constraint
 
-**Where:** `agents/architect.yaml` Hard Rules — "Never set a Decision Record's Status to 'Approved' or fill in 'Approved By'. Only a human may approve. Always set Status to 'Draft' and Approved By to 'Pending'."
+**Where:** `agents/architect.yaml` Hard Rules — "Never set an ADR's Status to 'Approved' or fill in 'Approved By'. Only a human may approve. Always set Status to 'Draft' and Approved By to 'Pending'."
 
-**Why not extracted:** This is a specific instance of the general commit-gate principle already centralized in `skill/plan-lifecycle` (only a human-committed `Approved` status satisfies the gate). Architect is currently the only agent that _drafts_ Decision Records, so the instruction to leave Status/Approved-By unfilled has no second consumer yet.
+**Why not extracted:** This is a specific instance of the general commit-gate principle already centralized in `skill/plan-lifecycle` (only a human-committed `Approved` status satisfies the gate). Architect is currently the only agent that _drafts_ ADRs, so the instruction to leave Status/Approved-By unfilled has no second consumer yet.
 
-**Extraction trigger:** A second agent is introduced that also drafts human-approval-gated artifacts directly (not via an existing planning skill like `epic-planning`/`chunk-planning`, which already encode this via `skill/plan-lifecycle`). If that happens, promote this instruction into `skill/plan-lifecycle` itself as an explicit "drafting agents never self-approve" step, rather than repeating it per agent.
+**Extraction trigger:** A second agent is introduced that also drafts human-approval-gated artifacts directly (not via an existing planning skill like `skill/feature-planning`, which already encodes this via `skill/plan-lifecycle`). If that happens, promote this instruction into `skill/plan-lifecycle` itself as an explicit "drafting agents never self-approve" step, rather than repeating it per agent.
 
-### Engineering-Tech-Writer — CHANGELOG entry format
+### Engineering-Manager — Task branch naming convention
 
-**Where:** `agents/engineering-tech-writer.yaml` prompt — the `## [{date}] {Plan ID} — {Title}` / `### Added / Changed / Fixed / Security` format block.
+**Where:** `agents/engineering-manager.yaml` Hard Rules — branch naming `{feature-id}/{task-id}-{short-description}`.
 
-**Why not extracted:** Engineering-Tech-Writer is currently the only documentation-producing agent in the framework. The format is a small, fixed template with no procedural steps around it, so a full skill folder would be disproportionate for one consumer.
+**Why not extracted:** Currently only Engineering-Manager creates Task branches; the convention is already partially covered by `skill/worktree-management` (which creates the worktree onto a branch this rule names), so extraction now would split one convention across two thin fragments for a single consumer.
 
-**Extraction trigger:** A second documentation-focused agent is introduced (e.g.
-a product-docs or release-notes agent) that needs the same or a closely related changelog format. At that point, promote to a lightweight skill (or an `assets/changelog-template.md` under a new `skill/tech-writing` if more structure accumulates) rather than each agent hand-rolling its own format.
-
-### Engineering-Manager — chunk branch naming convention
-
-**Where:** `agents/engineering-manager.yaml` Hard Rules — branch naming `{epic-id}/{chunk-id}-{short-description}`.
-
-**Why not extracted:** Currently only Engineering-Manager creates chunk branches; the convention is already partially covered by `skill/worktree-management` (which creates the worktree onto a branch this rule names), so extraction now would split one convention across two thin fragments for a single consumer.
-
-**Extraction trigger:** A second agent gains the ability to create chunk branches directly (e.g. a future agent that manages conflict resolution or partial re-dispatch independently). At that point, move the naming convention itself into `skill/worktree-management` so branch-naming and worktree-creation stay defined in one place.
-
-### Test-Engineer — per-method test coverage rule
-
-**Where:** `agents/test-engineer.yaml` Hard Rules — "Every public method must have at least one happy-path and one failure/edge-case test."
-
-**Why not extracted:** This reads less like an agent-identity trait and more like a testing standard — but it's currently written as a hard rule specific to Test-Engineer rather than living in `standards/` or `steering/engineering/core.md`. It hasn't been promoted because Test-Engineer is the only agent that writes tests, so there's no second consumer forcing the question of where the canonical version should live.
-
-**Extraction trigger:** Either (a) a second agent is introduced that writes tests (e.g. a specialized test-migration or test-refactoring agent), or (b) the rule needs to vary by language/stack, in which case it belongs in `standards/` rather than a skill. Revisit at that point rather than promoting speculatively now.
+**Extraction trigger:** A second agent gains the ability to create Task branches directly (e.g. a future agent that manages conflict resolution or partial re-dispatch independently). At that point, move the naming convention itself into `skill/worktree-management` so branch-naming and worktree-creation stay defined in one place.

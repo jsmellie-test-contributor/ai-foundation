@@ -1,18 +1,18 @@
 ---
 name: 'example'
-type: 'reference'
 tags: ['example']
 scope: 'all'
-description: 'Example knowledge file — delete this and replace with real project knowledge.'
+description: 'Example knowledge file — delete this and replace with real project reference material.'
 ---
 
 ## Example
 
-This is a placeholder. Replace it with actual project knowledge:
+This is a placeholder for **external reference material** — content describing a system
+outside this codebase (a third-party API's actual behavior, a vendor's constraints, prior
+art from outside the project). This project's own architecture, decisions, and business
+rules each have their own home instead — see
+`steering/engineering/document-types.md` in ai-foundation for the full routing rule and
+the frontmatter shape shown above.
 
-- API schemas
-- Architecture documentation
-- Business rules
-- Reference material
-
-See `docs/knowledge-file-format.md` in ai-foundation for the full format spec.
+Delete this placeholder once real project knowledge exists, or replace it with an actual
+external-reference entry.

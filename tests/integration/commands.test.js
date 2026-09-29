@@ -22,7 +22,7 @@ describe('integration: list command', () => {
           approved_tools: [],
         },
       ],
-      skills: ['decision-record'],
+      skills: ['plan-lifecycle'],
       servers: ['git'],
       bundles: [
         {
@@ -74,15 +74,15 @@ describe('integration: list command', () => {
   it('lists skills', () => {
     // Add frontmatter to the SKILL.md so description is found
     writeFileSync(
-      join(repo, 'skills', 'decision-record', 'SKILL.md'),
-      '---\nname: "decision-record"\nversion: "0.1.0"\ndescription: "Produces a Decision Record."\n---\n# DR\n',
+      join(repo, 'skills', 'plan-lifecycle', 'SKILL.md'),
+      '---\nname: "plan-lifecycle"\nversion: "0.1.0"\ndescription: "Governs the Draft-to-Approved commit gate."\n---\n# PL\n',
       'utf8',
     );
     const { code, output } = captureOutput(() =>
       runList({ args: {}, positional: ['skills'] }, repo),
     );
     assert.equal(code, 0);
-    assert.ok(output.includes('decision-record'));
+    assert.ok(output.includes('plan-lifecycle'));
   });
 
   it('lists servers', () => {

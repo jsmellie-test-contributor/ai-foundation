@@ -51,19 +51,26 @@ describe('unit: aiconfig', () => {
         assert.equal(resolveConfigValue(config, 'paths.decisions', FAKE_ROOT), 'archive/decisions');
       });
 
-      it('paths.epics/chunks/orchestration all nest under the resolved paths.plans', () => {
+      it('paths.features nests under the resolved paths.plans', () => {
         const config = { paths: { plans: 'docs/plans' } };
-        assert.equal(resolveConfigValue(config, 'paths.epics', FAKE_ROOT), 'docs/plans/epics');
-        assert.equal(resolveConfigValue(config, 'paths.chunks', FAKE_ROOT), 'docs/plans/chunks');
         assert.equal(
-          resolveConfigValue(config, 'paths.orchestration', FAKE_ROOT),
-          'docs/plans/orchestration',
+          resolveConfigValue(config, 'paths.features', FAKE_ROOT),
+          'docs/plans/features',
         );
       });
 
-      it('an explicit paths.epics overrides its nested default entirely', () => {
-        const config = { paths: { plans: 'docs/plans', epics: 'roadmap/epics' } };
-        assert.equal(resolveConfigValue(config, 'paths.epics', FAKE_ROOT), 'roadmap/epics');
+      it('an explicit paths.features overrides its nested default entirely', () => {
+        const config = { paths: { plans: 'docs/plans', features: 'roadmap/features' } };
+        assert.equal(resolveConfigValue(config, 'paths.features', FAKE_ROOT), 'roadmap/features');
+      });
+
+      it('paths.architecture and paths.research nest under the resolved paths.knowledge', () => {
+        const config = { paths: { knowledge: 'notes' } };
+        assert.equal(
+          resolveConfigValue(config, 'paths.architecture', FAKE_ROOT),
+          'notes/architecture',
+        );
+        assert.equal(resolveConfigValue(config, 'paths.research', FAKE_ROOT), 'notes/research');
       });
 
       it('project_shortname defaults to the resolved project_name', () => {

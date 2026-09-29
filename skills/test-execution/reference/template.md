@@ -1,14 +1,14 @@
-# Test Results: {Chunk Plan ID}
+# Test Results: {Plan ID}
 
 ## Metadata
 
-| Field      | Value                               |
-| ---------- | ----------------------------------- |
-| Run By     | Test-Engineer                       |
-| Date       | {YYYY-MM-DD HH:mm}                  |
-| Chunk Plan | {Plan ID}                           |
-| Outcome    | Pass / Fail / Blocked               |
-| Results    | {n} passed, {n} failed, {n} blocked |
+| Field   | Value                               |
+| ------- | ----------------------------------- |
+| Run By  | {Agent Name}                        |
+| Date    | {YYYY-MM-DD HH:mm}                  |
+| Plan    | {Plan ID}                           |
+| Outcome | Pass / Fail / Blocked               |
+| Results | {n} passed, {n} failed, {n} blocked |
 
 ---
 
@@ -28,7 +28,7 @@
 
 **Failure**: {What the test asserted vs. what actually happened}
 **Likely cause**: {Code bug / test bug / plan ambiguity}
-**Recommended action**: {Return to Software-Engineer / raise on Epic / clarify plan}
+**Recommended action**: {Return to Software-Engineer / raise on Feature / clarify plan}
 
 ### [{Test ID}] {Test Name} — BLOCKED
 

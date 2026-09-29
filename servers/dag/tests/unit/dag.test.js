@@ -7,130 +7,122 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseChunksFile, buildGraph, validate, computeWaves } from '../../logic.js';
+import { parseTasksFile, buildGraph, validate, computeWaves } from '../../logic.js';
 
-// ── parseChunksFile ──────────────────────────────────────────────────────────
+// ── parseTasksFile ───────────────────────────────────────────────────────────
 
-describe('unit: dag/parseChunksFile', () => {
-  it('parses a valid chunks object', () => {
+describe('unit: dag/parseTasksFile', () => {
+  it('parses a valid tasks object', () => {
     const data = {
-      epic_id: 'TEST-001',
-      chunks: [
-        { id: '001', title: 'Data layer', depends_on: [], agents: ['Software-Engineer'] },
-        { id: '002', title: 'API routes', depends_on: ['001'], agents: ['Software-Engineer'] },
+      feature_id: 'TEST-001',
+      tasks: [
+        { id: '001', title: 'Data layer', depends_on: [] },
+        { id: '002', title: 'API routes', depends_on: ['001'] },
       ],
     };
-    const { chunks, errors } = parseChunksFile(data);
-    assert.equal(chunks.length, 2);
+    const { tasks, errors } = parseTasksFile(data);
+    assert.equal(tasks.length, 2);
     assert.deepEqual(errors, []);
   });
 
-  it('extracts chunk fields correctly', () => {
+  it('extracts task fields correctly', () => {
     const data = {
-      chunks: [
+      tasks: [
         {
           id: '003',
           title: 'Integration',
           depends_on: ['001', '002'],
-          agents: ['Software-Engineer', 'Test-Engineer'],
         },
       ],
     };
-    const { chunks } = parseChunksFile(data);
-    assert.equal(chunks[0].id, '003');
-    assert.equal(chunks[0].title, 'Integration');
-    assert.deepEqual(chunks[0].depends_on, ['001', '002']);
-    assert.deepEqual(chunks[0].agents, ['Software-Engineer', 'Test-Engineer']);
+    const { tasks } = parseTasksFile(data);
+    assert.equal(tasks[0].id, '003');
+    assert.equal(tasks[0].title, 'Integration');
+    assert.deepEqual(tasks[0].depends_on, ['001', '002']);
   });
 
   it('returns error for null input', () => {
-    const { chunks, errors } = parseChunksFile(null);
-    assert.equal(chunks.length, 0);
+    const { tasks, errors } = parseTasksFile(null);
+    assert.equal(tasks.length, 0);
     assert.ok(errors[0].includes('not a valid JSON object'));
   });
 
   it('returns error for non-object input', () => {
-    const { chunks, errors } = parseChunksFile('string');
-    assert.equal(chunks.length, 0);
+    const { tasks, errors } = parseTasksFile('string');
+    assert.equal(tasks.length, 0);
     assert.ok(errors[0].includes('not a valid JSON object'));
   });
 
-  it('returns error when chunks array is missing', () => {
-    const { chunks, errors } = parseChunksFile({ epic_id: 'TEST' });
-    assert.equal(chunks.length, 0);
-    assert.ok(errors[0].includes('Missing or invalid "chunks" array'));
+  it('returns error when tasks array is missing', () => {
+    const { tasks, errors } = parseTasksFile({ feature_id: 'TEST' });
+    assert.equal(tasks.length, 0);
+    assert.ok(errors[0].includes('Missing or invalid "tasks" array'));
   });
 
-  it('returns error for chunk without id', () => {
-    const data = { chunks: [{ title: 'No ID', depends_on: [], agents: [] }] };
-    const { errors } = parseChunksFile(data);
+  it('returns error for task without id', () => {
+    const data = { tasks: [{ title: 'No ID', depends_on: [] }] };
+    const { errors } = parseTasksFile(data);
     assert.ok(errors.some((e) => e.includes('missing or invalid "id"')));
   });
 
-  it('returns error for chunk without title', () => {
-    const data = { chunks: [{ id: '001', depends_on: [], agents: [] }] };
-    const { errors } = parseChunksFile(data);
+  it('returns error for task without title', () => {
+    const data = { tasks: [{ id: '001', depends_on: [] }] };
+    const { errors } = parseTasksFile(data);
     assert.ok(errors.some((e) => e.includes('missing or invalid "title"')));
   });
 
   it('returns error when depends_on is not an array', () => {
-    const data = { chunks: [{ id: '001', title: 'Test', depends_on: 'bad', agents: [] }] };
-    const { errors } = parseChunksFile(data);
+    const data = { tasks: [{ id: '001', title: 'Test', depends_on: 'bad' }] };
+    const { errors } = parseTasksFile(data);
     assert.ok(errors.some((e) => e.includes('"depends_on" must be an array')));
   });
 
-  it('returns error when agents is not an array', () => {
-    const data = { chunks: [{ id: '001', title: 'Test', depends_on: [], agents: 'bad' }] };
-    const { errors } = parseChunksFile(data);
-    assert.ok(errors.some((e) => e.includes('"agents" must be an array')));
-  });
-
-  it('still collects valid chunks when some are invalid', () => {
+  it('still collects valid tasks when some are invalid', () => {
     const data = {
-      chunks: [
-        { id: '001', title: 'Good', depends_on: [], agents: [] },
+      tasks: [
+        { id: '001', title: 'Good', depends_on: [] },
         'not an object',
-        { id: '002', title: 'Also good', depends_on: [], agents: [] },
+        { id: '002', title: 'Also good', depends_on: [] },
       ],
     };
-    const { chunks, errors } = parseChunksFile(data);
-    assert.equal(chunks.length, 2);
+    const { tasks, errors } = parseTasksFile(data);
+    assert.equal(tasks.length, 2);
     assert.equal(errors.length, 1);
   });
 
-  it('detects duplicate chunk IDs', () => {
+  it('detects duplicate task IDs', () => {
     const data = {
-      chunks: [
-        { id: '001', title: 'First', depends_on: [], agents: [] },
-        { id: '001', title: 'Duplicate', depends_on: [], agents: [] },
+      tasks: [
+        { id: '001', title: 'First', depends_on: [] },
+        { id: '001', title: 'Duplicate', depends_on: [] },
       ],
     };
-    const { chunks, errors } = parseChunksFile(data);
-    assert.equal(chunks.length, 1);
-    assert.ok(errors.some((e) => e.includes('duplicate chunk id "001"')));
+    const { tasks, errors } = parseTasksFile(data);
+    assert.equal(tasks.length, 1);
+    assert.ok(errors.some((e) => e.includes('duplicate task id "001"')));
   });
 });
 
 // ── buildGraph ───────────────────────────────────────────────────────────────
 
 describe('unit: dag/buildGraph', () => {
-  it('creates nodes from chunk IDs', () => {
-    const chunks = [
+  it('creates nodes from task IDs', () => {
+    const tasks = [
       { id: '001', depends_on: [] },
       { id: '002', depends_on: ['001'] },
     ];
-    const graph = buildGraph(chunks);
+    const graph = buildGraph(tasks);
     assert.equal(graph.nodes.size, 2);
     assert.ok(graph.nodes.has('001'));
     assert.ok(graph.nodes.has('002'));
   });
 
   it('creates edges from dependencies', () => {
-    const chunks = [
+    const tasks = [
       { id: '001', depends_on: [] },
       { id: '002', depends_on: ['001'] },
     ];
-    const graph = buildGraph(chunks);
+    const graph = buildGraph(tasks);
     assert.deepEqual(graph.edges.get('001'), []);
     assert.deepEqual(graph.edges.get('002'), ['001']);
   });
@@ -150,7 +142,7 @@ describe('unit: dag/validate', () => {
     assert.deepEqual(result.errors, []);
   });
 
-  it('returns valid for all-independent chunks', () => {
+  it('returns valid for all-independent tasks', () => {
     const graph = buildGraph([
       { id: '001', depends_on: [] },
       { id: '002', depends_on: [] },
@@ -220,7 +212,7 @@ describe('unit: dag/validate', () => {
 // ── computeWaves ─────────────────────────────────────────────────────────────
 
 describe('unit: dag/computeWaves', () => {
-  it('puts all independent chunks in wave 1', () => {
+  it('puts all independent tasks in wave 1', () => {
     const graph = buildGraph([
       { id: '001', depends_on: [] },
       { id: '002', depends_on: [] },
@@ -287,7 +279,7 @@ describe('unit: dag/computeWaves', () => {
     assert.deepEqual(waves[0], ['001', '002', '003']);
   });
 
-  it('handles a single-chunk graph', () => {
+  it('handles a single-task graph', () => {
     const graph = buildGraph([{ id: '001', depends_on: [] }]);
     const waves = computeWaves(graph);
     assert.equal(waves.length, 1);

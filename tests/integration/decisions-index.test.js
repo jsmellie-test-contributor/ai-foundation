@@ -2,15 +2,14 @@
 // decisions-index.test.js
 //
 // Author: Starvoxel AI Agent - 2026-08-19
-// Plan: AIF-002-014
+// Plan: AIF-002-014, docs/process-model.md check 30
 //
 // Copyright (c) StarVoxel. All rights reserved.
 // ------------------------------
 
 /**
  * Integration tests for `aif index decisions` decision-index
- * generation/validation (filesystem operations), mirroring
- * tests/integration/knowledge-index.test.js's structure.
+ * generation/validation (filesystem operations).
  */
 
 import { describe, it, beforeEach, afterEach } from 'node:test';
@@ -22,65 +21,22 @@ import { tmpdir } from 'node:os';
 import { runIndex, resolveDecisionsPath } from '../../lib/commands/index.js';
 import { parseArgs } from '../../bin/aif.js';
 
-function decisionFixture({
-  id,
-  tier = 'A',
-  domain = 'architecture',
-  status = 'Approved',
-  references = '—',
-  title,
-}) {
-  return `# Decision Record: ${title}
-
-## Metadata
-
-| Field | Value |
-|---|---|
-| Decision ID | ${id} |
-| Project | ai-foundation |
-| Tier | ${tier} |
-| Domain | ${domain} |
-| Status | ${status} |
-| Author (Agent) | Architect |
-| Approved By | Jeremy |
-| Created | 2026-08-19 |
-| Referenced By | — |
-| References | ${references} |
-| Tags | — |
-
+function decisionFixture({ status = 'accepted', supersedes = '[]', title }) {
+  return `---
+status: ${status}
+date: 2026-09-25
+decision-makers: [Jeremy]
+tags: []
+links:
+  supersedes: ${supersedes}
+affects: []
 ---
 
-## Problem Statement
+# ${title}
+
+## Context and Problem Statement
 
 Test fixture.
-`;
-}
-
-// Legacy pre-Tier×Domain fixture (mirrors AIF-ARCH-001/002/003, migrated
-// without Tier/Domain fields — chunk AIF-002-009, "light-touch"). Human-
-// approved fix, no formal Plan ID, per chat approval 2026-08-24.
-function legacyDecisionFixture({ id, status = 'Approved', references = '—', title }) {
-  return `# Decision Record: ${title}
-
-## Metadata
-
-| Field | Value |
-|---|---|
-| Decision ID | ${id} |
-| Project | ai-foundation |
-| Status | ${status} |
-| Author (Agent) | Architect |
-| Approved By | Jeremy |
-| Created | 2020-01-01 |
-| Referenced By | — |
-| References | ${references} |
-| Tags | — |
-
----
-
-## Problem Statement
-
-Test fixture. This decision predates the AIF-META-001 Tier x Domain model.
 `;
 }
 
@@ -119,13 +75,13 @@ describe('integration: decision index', () => {
       'utf8',
     );
     writeFileSync(
-      join(decisionsDir, 'AIF-ARCH-001.decision.md'),
-      decisionFixture({ id: 'AIF-ARCH-001', title: 'First Decision' }),
+      join(decisionsDir, '0001-first-decision.md'),
+      decisionFixture({ title: 'First Decision' }),
       'utf8',
     );
     writeFileSync(
-      join(decisionsDir, 'AIF-ARCH-002.decision.md'),
-      decisionFixture({ id: 'AIF-ARCH-002', title: 'Second Decision', references: 'AIF-ARCH-001' }),
+      join(decisionsDir, '0002-second-decision.md'),
+      decisionFixture({ title: 'Second Decision', supersedes: '["0001"]' }),
       'utf8',
     );
 
@@ -137,71 +93,16 @@ describe('integration: decision index', () => {
         const index = JSON.parse(readFileSync(indexPath, 'utf8'));
         assert.equal(index.entries.length, 2);
         const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
-        assert.deepEqual(byId['AIF-ARCH-001'].referenced_by, ['AIF-ARCH-002']);
-        assert.deepEqual(byId['AIF-ARCH-002'].references, ['AIF-ARCH-001']);
+        assert.deepEqual(byId['0001'].superseded_by, ['0002']);
+        assert.deepEqual(byId['0002'].supersedes, ['0001']);
       },
     );
   });
 
-  it(
-    'DEC-IT01b: legacy records missing Tier/Domain do not halt the scan and ' +
-      'produce a complete, correct index alongside fully-tagged records',
-    async () => {
-      const decisionsDir = join(projectRoot, 'docs', 'decisions');
-      mkdirSync(decisionsDir, { recursive: true });
-      writeFileSync(
-        join(projectRoot, '.aiconfig.json'),
-        JSON.stringify({ paths: { decisions: 'docs/decisions' } }),
-        'utf8',
-      );
-      // Fully-tagged record.
-      writeFileSync(
-        join(decisionsDir, 'AIF-002-001.decision.md'),
-        decisionFixture({ id: 'AIF-002-001', title: 'Fully Tagged Decision' }),
-        'utf8',
-      );
-      // Legacy records missing Tier/Domain, one referencing the other.
-      writeFileSync(
-        join(decisionsDir, 'AIF-ARCH-001.decision.md'),
-        legacyDecisionFixture({ id: 'AIF-ARCH-001', title: 'Legacy Decision One' }),
-        'utf8',
-      );
-      writeFileSync(
-        join(decisionsDir, 'AIF-ARCH-002.decision.md'),
-        legacyDecisionFixture({
-          id: 'AIF-ARCH-002',
-          title: 'Legacy Decision Two',
-          references: 'AIF-ARCH-001',
-        }),
-        'utf8',
-      );
-
-      const { code } = await quiet(() =>
-        runIndex({ args: {}, positional: ['decisions'] }, projectRoot),
-      );
-      assert.equal(code, 0);
-
-      const indexPath = join(decisionsDir, 'index.json');
-      assert.ok(existsSync(indexPath));
-      const index = JSON.parse(readFileSync(indexPath, 'utf8'));
-      assert.equal(index.entries.length, 3);
-
-      const byId = Object.fromEntries(index.entries.map((e) => [e.id, e]));
-      assert.equal(byId['AIF-002-001'].tier, 'A');
-      assert.equal(byId['AIF-002-001'].domain, 'architecture');
-      assert.equal(byId['AIF-ARCH-001'].tier, null);
-      assert.equal(byId['AIF-ARCH-001'].domain, null);
-      assert.equal(byId['AIF-ARCH-002'].tier, null);
-      assert.equal(byId['AIF-ARCH-002'].domain, null);
-      assert.deepEqual(byId['AIF-ARCH-001'].referenced_by, ['AIF-ARCH-002']);
-      assert.deepEqual(byId['AIF-ARCH-002'].references, ['AIF-ARCH-001']);
-    },
-  );
-
   it('DEC-IT02: no target is a usage error, not an implicit knowledge index', async () => {
     const { code, output } = await quiet(() => runIndex({ args: {}, positional: [] }, projectRoot));
     assert.equal(code, 1);
-    assert.ok(output.some((line) => /knowledge|decisions/.test(line)));
+    assert.ok(output.some((line) => /decisions|architecture/.test(line)));
     assert.ok(!existsSync(join(projectRoot, 'knowledge', 'index.json')));
   });
 
@@ -214,8 +115,8 @@ describe('integration: decision index', () => {
       'utf8',
     );
     writeFileSync(
-      join(decisionsDir, 'AIF-ARCH-001.decision.md'),
-      decisionFixture({ id: 'AIF-ARCH-001', title: 'First Decision' }),
+      join(decisionsDir, '0001-first-decision.md'),
+      decisionFixture({ title: 'First Decision' }),
       'utf8',
     );
 
@@ -236,12 +137,8 @@ describe('integration: decision index', () => {
       JSON.stringify({ paths: { decisions: 'docs/decisions' } }),
       'utf8',
     );
-    const fixturePath = join(decisionsDir, 'AIF-ARCH-001.decision.md');
-    writeFileSync(
-      fixturePath,
-      decisionFixture({ id: 'AIF-ARCH-001', title: 'First Decision' }),
-      'utf8',
-    );
+    const fixturePath = join(decisionsDir, '0001-first-decision.md');
+    writeFileSync(fixturePath, decisionFixture({ title: 'First Decision' }), 'utf8');
 
     const gen = await quiet(() => runIndex({ args: {}, positional: ['decisions'] }, projectRoot));
     assert.equal(gen.code, 0);
@@ -249,7 +146,7 @@ describe('integration: decision index', () => {
     // Stale the index by changing the fixture's status after generation.
     writeFileSync(
       fixturePath,
-      decisionFixture({ id: 'AIF-ARCH-001', title: 'First Decision', status: 'Deferred' }),
+      decisionFixture({ title: 'First Decision', status: 'deprecated' }),
       'utf8',
     );
 
@@ -257,7 +154,7 @@ describe('integration: decision index', () => {
       runIndex({ args: { check: true }, positional: ['decisions'] }, projectRoot),
     );
     assert.equal(check.code, 1);
-    assert.ok(check.output.some((line) => /AIF-ARCH-001/.test(line)));
+    assert.ok(check.output.some((line) => /0001/.test(line)));
   });
 
   it('DEC-IT05: a malformed fixture file exits non-zero and names the offending file', async () => {
@@ -269,21 +166,17 @@ describe('integration: decision index', () => {
       'utf8',
     );
     writeFileSync(
-      join(decisionsDir, 'AIF-ARCH-001.decision.md'),
-      decisionFixture({ id: 'AIF-ARCH-001', title: 'Good Decision' }),
+      join(decisionsDir, '0001-good-decision.md'),
+      decisionFixture({ title: 'Good Decision' }),
       'utf8',
     );
-    writeFileSync(
-      join(decisionsDir, 'broken.decision.md'),
-      '# Decision Record: Broken\n\n## Metadata\n\nNot a table.\n',
-      'utf8',
-    );
+    writeFileSync(join(decisionsDir, '0002-broken.md'), '# Broken\n\nNo frontmatter.\n', 'utf8');
 
     const { code, output } = await quiet(() =>
       runIndex({ args: {}, positional: ['decisions'] }, projectRoot),
     );
     assert.equal(code, 1);
-    assert.ok(output.some((line) => /broken\.decision\.md/.test(line)));
+    assert.ok(output.some((line) => /0002-broken\.md/.test(line)));
     assert.ok(!existsSync(join(decisionsDir, 'index.json')));
   });
 
@@ -293,6 +186,66 @@ describe('integration: decision index', () => {
     );
     assert.equal(code, 1);
     assert.ok(output.some((line) => /Unknown index target/.test(line)));
+  });
+
+  it('DEC-IT07: a file under an archive/ subfolder is not picked up (flat corpus only)', async () => {
+    const decisionsDir = join(projectRoot, 'docs', 'decisions');
+    const archiveDir = join(decisionsDir, 'archive', 'process');
+    mkdirSync(archiveDir, { recursive: true });
+    writeFileSync(
+      join(projectRoot, '.aiconfig.json'),
+      JSON.stringify({ paths: { decisions: 'docs/decisions' } }),
+      'utf8',
+    );
+    writeFileSync(
+      join(decisionsDir, '0001-live-decision.md'),
+      decisionFixture({ title: 'Live Decision' }),
+      'utf8',
+    );
+    // Old-format archived record — should never be scanned by the retargeted
+    // MADR-only collector.
+    writeFileSync(
+      join(archiveDir, 'AIF-PROC-999_archived.decision.md'),
+      '# Decision Record: Archived\n\n## Metadata\n\n| Field | Value |\n|---|---|\n| Decision ID | AIF-PROC-999 |\n| Status | Superseded |\n',
+      'utf8',
+    );
+
+    const { code } = await quiet(() =>
+      runIndex({ args: {}, positional: ['decisions'] }, projectRoot),
+    );
+    assert.equal(code, 0);
+
+    const index = JSON.parse(readFileSync(join(decisionsDir, 'index.json'), 'utf8'));
+    assert.equal(index.entries.length, 1);
+    assert.equal(index.entries[0].id, '0001');
+  });
+
+  it('DEC-IT08: a template file (_template.md) is excluded from the scan', async () => {
+    const decisionsDir = join(projectRoot, 'docs', 'decisions');
+    mkdirSync(decisionsDir, { recursive: true });
+    writeFileSync(
+      join(projectRoot, '.aiconfig.json'),
+      JSON.stringify({ paths: { decisions: 'docs/decisions' } }),
+      'utf8',
+    );
+    writeFileSync(
+      join(decisionsDir, '0001-live-decision.md'),
+      decisionFixture({ title: 'Live Decision' }),
+      'utf8',
+    );
+    writeFileSync(
+      join(decisionsDir, '_template.md'),
+      '---\nstatus: proposed\n---\n\n# Title\n',
+      'utf8',
+    );
+
+    const { code } = await quiet(() =>
+      runIndex({ args: {}, positional: ['decisions'] }, projectRoot),
+    );
+    assert.equal(code, 0);
+
+    const index = JSON.parse(readFileSync(join(decisionsDir, 'index.json'), 'utf8'));
+    assert.equal(index.entries.length, 1);
   });
 
   it(
@@ -307,8 +260,8 @@ describe('integration: decision index', () => {
         'utf8',
       );
       writeFileSync(
-        join(decisionsDir, 'AIF-ARCH-001.decision.md'),
-        decisionFixture({ id: 'AIF-ARCH-001', title: 'First Decision' }),
+        join(decisionsDir, '0001-first-decision.md'),
+        decisionFixture({ title: 'First Decision' }),
         'utf8',
       );
 
@@ -323,7 +276,7 @@ describe('integration: decision index', () => {
     },
   );
 
-  describe('DEC-IT07: resolveDecisionsPath fallback derivation', () => {
+  describe('DEC-IT09: resolveDecisionsPath fallback derivation', () => {
     it('(a) paths.knowledge configured non-default, paths.decisions unset -> {knowledge}/decisions', () => {
       writeFileSync(
         join(projectRoot, '.aiconfig.json'),

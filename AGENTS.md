@@ -31,7 +31,7 @@ ai-foundation/
 ├── servers/                         ← MCP tool server definitions
 ├── bundles/                         ← Install bundles (per-harness deployment)
 ├── projects/                        ← Per-project overrides
-├── docs/                            ← Decision records
+├── docs/                            ← Plans, ADRs, and arc42 architecture docs
 ├── bin/                             ← CLI entry point (aif)
 ├── lib/                             ← CLI modules
 └── tests/                           ← unit/, integration/, validation/
@@ -65,7 +65,7 @@ A named persona with a defined role, prompt, tools, and skills.
 
 **Lives in:** `agents/` | **Format:** `.yaml` | **Authoring:** `skill/agent-authoring`
 
-Fields: `name`, `version`, `domain`, `description`, `prompt`, `tools`, `approved_tools`, optional `skills`, optional `blocked_commands`
+Fields: `name`, `version`, `domain`, `description`, `prompt`, `tools`, `approved_tools`, optional `skills`, optional `preload_skills`, optional `blocked_commands`
 
 `blocked_commands`: array of shell command glob patterns (using `*` as wildcard) that the agent is forbidden from executing directly. Each harness adapter translates these into its native denial format (e.g. Kiro `permissions.rules` deny, Claude Code `Bash()` deny rules).
 
@@ -123,34 +123,35 @@ See `projects/_template/.aiconfig.json` for the schema and default values.
 
 ### Fields
 
-| Field                           | Type    | Required | Description                                                                                                                        |
-| ------------------------------- | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `project_name`                  | string  | Yes      | Project identifier used in file naming and human-readable metadata                                                                 |
-| `project_shortname`             | string  | No       | Short project identifier (max 5 characters) used in Epic IDs and worktree paths. Falls back to `project_name` if unset.            |
-| `repo_type`                     | string  | No       | Repository type: `project` (default) or `framework`. Determines which git workflow and conventions apply.                          |
-| `standards`                     | object  | No       | Map of domain → tags for tag-based standard matching. See below.                                                                   |
-| `project_standards`             | string  | No       | Path to project-specific standards override                                                                                        |
-| `ai_identity`                   | object  | No       | AI agent git identity for commits and push auth                                                                                    |
-| `ai_identity.git_author_name`   | string  | No       | Name used in GIT_AUTHOR_NAME and GIT_COMMITTER_NAME env vars                                                                       |
-| `ai_identity.git_author_email`  | string  | No       | Email used in GIT_AUTHOR_EMAIL and GIT_COMMITTER_EMAIL env vars                                                                    |
-| `ai_identity.git_token_env`     | string  | No       | Name of env var holding the PAT for push/PR ops                                                                                    |
-| `secrets`                       | object  | No       | Provider-agnostic secrets resolution for `ai-git` (see below)                                                                      |
-| `secrets.run`                   | array   | No       | Command+args prefix for a secrets manager's own "run wrapper" (e.g. `["bws", "run", "--project-id", "${BWS_PROJECT_ID}", "--"]`)   |
-| `secrets.allow_insecure_dotenv` | boolean | No       | Explicit opt-in to a gitignored `.env` fallback when `secrets.run` is unset. Default `false` — for local testing only.             |
-| `paths`                         | object  | No       | Artifact output directories (relative to repo root). Any value may reference another resolved field with `{key.path}` — see below. |
-| `paths.plans`                   | string  | No       | Root for all plan artifacts. Default: `plans`                                                                                      |
-| `paths.epics`                   | string  | No       | Epic plan location. Default: `plans/epics`                                                                                         |
-| `paths.chunks`                  | string  | No       | Chunk plans and chunks.json. Default: `plans/chunks`                                                                               |
-| `paths.decisions`               | string  | No       | Decision Records. Default: `knowledge/decisions`                                                                                   |
-| `paths.orchestration`           | string  | No       | Orchestration state files. Default: `plans/orchestration`                                                                          |
-| `paths.knowledge`               | string  | No       | Knowledge directory. Default: `knowledge`                                                                                          |
-| `paths.worktrees`               | string  | No       | Root directory for git worktrees used by parallel agents. Default: `../worktrees/{project_shortname}`                              |
-| `orchestration`                 | object  | No       | Orchestration behaviour configuration                                                                                              |
-| `orchestration.max_concurrent`  | number  | No       | Maximum parallel subagents the Engineering Manager may dispatch. Default: `4`                                                      |
+| Field                           | Type    | Required | Description                                                                                                                                                                  |
+| ------------------------------- | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `project_name`                  | string  | Yes      | Project identifier used in file naming and human-readable metadata                                                                                                           |
+| `project_shortname`             | string  | No       | Short project identifier (max 5 characters) used in Feature IDs and worktree paths. Falls back to `project_name` if unset.                                                   |
+| `repo_type`                     | string  | No       | Repository type: `project` (default) or `framework`. Determines which git workflow and conventions apply.                                                                    |
+| `standards`                     | object  | No       | Map of domain → tags for tag-based standard matching. See below.                                                                                                             |
+| `project_standards`             | string  | No       | Path to project-specific standards override                                                                                                                                  |
+| `ai_identity`                   | object  | No       | AI agent git identity for commits and push auth                                                                                                                              |
+| `ai_identity.git_author_name`   | string  | No       | Name used in GIT_AUTHOR_NAME and GIT_COMMITTER_NAME env vars                                                                                                                 |
+| `ai_identity.git_author_email`  | string  | No       | Email used in GIT_AUTHOR_EMAIL and GIT_COMMITTER_EMAIL env vars                                                                                                              |
+| `ai_identity.git_token_env`     | string  | No       | Name of env var holding the PAT for push/PR ops                                                                                                                              |
+| `secrets`                       | object  | No       | Provider-agnostic secrets resolution for `ai-git` (see below)                                                                                                                |
+| `secrets.run`                   | array   | No       | Command+args prefix for a secrets manager's own "run wrapper" (e.g. `["bws", "run", "--project-id", "${BWS_PROJECT_ID}", "--"]`)                                             |
+| `secrets.allow_insecure_dotenv` | boolean | No       | Explicit opt-in to a gitignored `.env` fallback when `secrets.run` is unset. Default `false` — for local testing only.                                                       |
+| `paths`                         | object  | No       | Artifact output directories (relative to repo root). Any value may reference another resolved field with `{key.path}` — see below.                                           |
+| `paths.plans`                   | string  | No       | Root for all plan artifacts. Default: `plans`                                                                                                                                |
+| `paths.features`                | string  | No       | Root for a Feature's folder — `{paths.features}/{FeatureID}/plan.md`, `tasks.json`, and `orchestration-state.json` all live together as siblings. Default: `plans/features`  |
+| `paths.decisions`               | string  | No       | ADRs (MADR format), flat directory, no domain subfolders. Default: `knowledge/decisions`                                                                                     |
+| `paths.knowledge`               | string  | No       | Knowledge directory. Default: `knowledge`                                                                                                                                    |
+| `paths.architecture`            | string  | No       | arc42 architecture sections, flat directory. Default: `knowledge/architecture`                                                                                               |
+| `paths.research`                | string  | No       | Engineering Researcher's brief output (`.md` only). Default: `knowledge/research`                                                                                            |
+| `paths.product`                 | string  | No       | Reserved for a future product-doc agent. No default — omitted from generated configs until that agent exists; set it explicitly only if you're building that agent yourself. |
+| `paths.worktrees`               | string  | No       | Root directory for git worktrees used by parallel agents. Default: `../worktrees/{project_shortname}`                                                                        |
+| `orchestration`                 | object  | No       | Orchestration behaviour configuration                                                                                                                                        |
+| `orchestration.max_concurrent`  | number  | No       | Maximum parallel subagents the Engineering Manager may dispatch. Default: `4`                                                                                                |
 
 #### `{key.path}` references in path values
 
-Any string field — including a custom key not listed above, e.g. `paths.features` —
+Any string field — including a custom key not listed above, e.g. `paths.features`
 may reference another field's _resolved_ value with `{key.path}`:
 
 ```json
@@ -235,11 +236,12 @@ If no config file exists, agents fall back to:
 - `project_shortname`: same as `project_name`
 - `standards`: none (agent must ask or search `standards/`)
 - `paths.plans`: `plans`
-- `paths.epics`: `plans/epics`
-- `paths.chunks`: `plans/chunks`
+- `paths.features`: `plans/features`
 - `paths.decisions`: `knowledge/decisions`
-- `paths.orchestration`: `plans/orchestration`
 - `paths.knowledge`: `knowledge`
+- `paths.architecture`: `knowledge/architecture`
+- `paths.research`: `knowledge/research`
+- `paths.product`: not set (reserved, no default)
 - `paths.worktrees`: `../worktrees/{project_shortname}`
 
 ---

@@ -1,19 +1,19 @@
 ---
 name: 'test-execution'
-version: '0.3.1'
+version: '0.4.1'
 description: 'Writes and executes automated tests, producing a Test Results Report with pass/fail/blocked status.'
 ---
 
 ## Purpose
 
-Writes and executes automated tests from the Chunk Plan's Testing Plan section.
+Writes and executes automated tests validating a Task's implementation against its governing plan.
 Produces a structured report showing pass/fail/blocked status per test case with failure analysis. Applies the testable-by-design principle from `steering/engineering/core.md`.
 
 ---
 
 ## Inputs
 
-- **Chunk Plan** — specifically the Testing Plan section with defined test cases
+- **Governing plan** — the Feature Plan's Acceptance Criteria and Error States sections (`skills/feature-planning/reference/template.md`), plus a Task-level plan's own test-case detail when the Task's complexity tier produced one
 - **Source code** — approved implementation to test
 - **Language standards** — testing conventions from `standards/{stack}.md`
 - **Project standards** — test project structure from `projects/{name}/project-standards.md`
@@ -22,7 +22,7 @@ Produces a structured report showing pass/fail/blocked status per test case with
 
 ## Steps
 
-### Step 1 — Read Testing Plan
+### Step 1 — Read the Governing Plan
 
 Understand every test case before writing any tests. Identify:
 
@@ -71,10 +71,16 @@ Rules:
 - `describe` blocks group by function or feature; `it` blocks describe the scenario
 - Use shared fixtures from `tests/helpers/` for setup/teardown
 - Follow naming conventions in the active standards file
+- Every public method needs at least one happy-path test and one
+  failure/edge-case test — write these before marking the corresponding
+  acceptance criterion as passing
 
 ### Step 5 — Run All Tests
 
-Execute the full test suite. Do not stop at the first failure.
+Execute the full test suite. Do not stop at the first failure. Never modify
+source code just to make a test pass: if a test reveals a genuine defect, fix
+the defect; if the test itself is wrong, fix the test and document why — never
+silently weaken either just to get green.
 
 ```bash
 # Run by category for fast feedback:

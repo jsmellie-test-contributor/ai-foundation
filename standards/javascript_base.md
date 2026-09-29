@@ -1,6 +1,6 @@
 ---
 name: javascript_base
-version: 1.0.1
+version: 1.0.2
 description: Core JavaScript language conventions for all JS projects
 tags: [javascript]
 depends_on: []
@@ -286,7 +286,7 @@ Rules:
 
 - **Never omit the header.** Every `.js` file gets one regardless of size or purpose.
 - `Author` is whoever created the file. If an AI agent creates it, use the configured AI identity name.
-- `Plan` is the chunk plan ID (or equivalent) that caused this file to be created or meaningfully modified.
+- `Plan` is the Plan ID (or equivalent) that caused this file to be created or meaningfully modified.
 - If a file is modified under a new plan, add the new Plan ID (do not remove the original).
 - This mirrors the header block convention in `csharp_base`. It may be extracted into its own cross-language standard in the future if more languages adopt it.
 

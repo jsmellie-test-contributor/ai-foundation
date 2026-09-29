@@ -19,11 +19,11 @@
   "project_standards": "",
   "paths": {
     "plans": "plans",
-    "epics": "plans/epics",
-    "chunks": "plans/chunks",
+    "features": "plans/features",
     "decisions": "knowledge/decisions",
-    "orchestration": "plans/orchestration",
     "knowledge": "knowledge",
+    "architecture": "knowledge/architecture",
+    "research": "knowledge/research",
     "worktrees": "../worktrees/{ProjectShortName}"
   },
   "orchestration": {

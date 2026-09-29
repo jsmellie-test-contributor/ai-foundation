@@ -88,7 +88,7 @@ describe('unit: kiro adapter', () => {
       prompt: 'You are the Architect agent.',
       tools: ['read', 'write', 'web_search', 'shell', 'grep', 'glob'],
       approved_tools: ['read', 'web_search', 'grep', 'glob'],
-      skills: ['skill/decision-record'],
+      skills: ['skill/plan-lifecycle'],
     };
 
     it('maps name, description, and prompt directly', () => {
@@ -121,7 +121,7 @@ describe('unit: kiro adapter', () => {
 
     it('converts skills to skill:// resources', () => {
       const result = transformAgent(agent);
-      assert.ok(result.resources.includes('skill://.kiro/skills/decision-record/SKILL.md'));
+      assert.ok(result.resources.includes('skill://.kiro/skills/plan-lifecycle/SKILL.md'));
     });
 
     it('always includes steering resource', () => {

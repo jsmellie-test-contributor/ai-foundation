@@ -3,7 +3,7 @@
  * uninstalling one bundle must not break another installed bundle that
  * shares the same MCP server.
  *
- * See docs/decisions/2026-08-13_003_shared-resource-lifecycle-management.decision.md
+ * See docs/decisions/0003-shared-resource-lifecycle-management.md
  */
 
 import { describe, it, beforeEach, afterEach } from 'node:test';
