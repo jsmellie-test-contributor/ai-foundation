@@ -1,7 +1,14 @@
 name: CI
 
 on:
+  # PRs (any branch) get a run so contributors see results before merging;
+  # a bare push only triggers one on main. Pushing to a feature branch with
+  # no open PR does NOT trigger CI — avoids paying for runs on WIP commits
+  # nobody's reviewing yet. Open a PR (or push to main) to get one.
   push:
+    branches:
+      - main
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,6 +43,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          # On a PR, check out the PR head commit itself rather than
+          # actions/checkout's default synthetic merge-with-base commit.
+          # The version-bump check's parent-branch detection merge-bases
+          # against HEAD to rank candidate branches by recency; if HEAD
+          # were that synthetic merge commit, main's tip would be a direct
+          # parent of it and would always look like the most-recently-
+          # forked-from branch, even when the PR was actually cut from
+          # another feature branch. github.sha covers push-to-main, where
+          # there's no pull_request context.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # Full history needed for the version-bump check: it diffs against
           # `main`'s previous tip on pushes to main, and against the tip of
           # whichever branch was forked from otherwise (found via
@@ -68,20 +85,22 @@ jobs:
         run: node bin/aif.js snapshot --check
 
       - name: "Check: version bump"
-        # main only ever moves forward one accepted state at a time, so it
-        # diffs against its own previous tip (github.event.before — empty
-        # or all-zeros on the very first commit, which skips the check).
-        # Every other branch diffs against whichever still-existing branch
-        # it was most recently forked from (see auto-parent mode in the
-        # script), found via merge-base rather than assumed to be main —
-        # this also means a branch's own follow-up pushes (e.g. a typo fix)
-        # compare against that ancestor's tip, not against each other, so
-        # they don't demand a fresh version bump every time.
+        # Only main triggers a `push` event now, and it only ever moves
+        # forward one accepted state at a time, so that case diffs against
+        # its own previous tip (github.event.before — empty or all-zeros on
+        # the very first commit, which skips the check). Every PR diffs
+        # against whichever still-existing branch it was most recently
+        # forked from (see auto-parent mode in the script), found via
+        # merge-base rather than assumed to be main — this also means a
+        # branch's own follow-up pushes (e.g. a typo fix) compare against
+        # that ancestor's tip, not against each other, so they don't demand
+        # a fresh version bump every time. github.head_ref is only set for
+        # pull_request events, which is the only case reaching this branch.
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          if [ "${{ github.event_name }}" = "push" ]; then
             node .github/scripts/check-version-bumps.mjs sha "${{ github.event.before }}"
           else
-            node .github/scripts/check-version-bumps.mjs auto-parent "${{ github.ref_name }}"
+            node .github/scripts/check-version-bumps.mjs auto-parent "${{ github.head_ref }}"
           fi
 
   test-node-min:
