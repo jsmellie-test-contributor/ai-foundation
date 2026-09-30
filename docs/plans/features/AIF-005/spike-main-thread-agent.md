@@ -166,3 +166,18 @@ The Setup script is one field per environment and editing it rebuilds the cache,
 | 2 (parallel) | C in B's environment (script unchanged, any number of sessions), D1 and D2 | D1 and D2 each in their own | D1 needs B's script cached first, then a session after editing `REF`. D2 uses a misspelled `AGENT`. |
 
 Start the first session in a newly edited environment and wait until it is running before starting others, so two sessions do not both build the cache. Parallel sessions share the account's rate limits.
+
+## Cloud results
+
+### Stage B, session 1 (2026-09-30): passed
+
+Setup script `B-install.sh`, pinned `95156a2`, new session on `cloud-sandbox`. The network level of the environment was not reported.
+
+- **Primary agent:** the session answered as the Engineering-Manager ("Your role spans both planning and orchestration.") with no `.claude/` in the repo, so user-level provisioning by the Setup script works with the real bundle.
+- **Log:** `npm install ok 15s`, `aif install ok 3s` (55 files, all five agents, twelve rules, fourteen skills, four standards, both servers, the hook script), `agent set to engineering-manager`, `B done total 19s`. The script started 7s after VM boot (`uptime -s` 10:36:39, `B start` 10:36:46).
+- **Fetch was anonymous:** `HTTPS_PROXY`, `GITHUB_TOKEN` and `GH_TOKEN` were all empty in the Setup stage, and the fetch still worked against the public repo. At Setup time `bws` and `gh` were not on the path; `cargo` was.
+- **MCP tools work:** `mcp__dag__dag-validate` was granted and returned `{"valid": true, "errors": []}` on a two-task graph, so the tool-name fix works in cloud and the user-scope `dag` server registration in `~/.claude.json` is honoured.
+- **Interactive tool set:** `Agent`, `ListAgents`, `SendMessage`, `EnterPlanMode`, `ExitPlanMode`, `AskUserQuestion`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList`, `TaskStop`, `Skill`, `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, and the two `mcp__dag__*` tools. So the tools missing in headless mode are present interactively. Not callable: `TaskOutput` (listed in the agent, apparently not a tool in this Claude Code version), the `mcp__youtrack__*` tools (the YouTrack server fails to connect in cloud, the known proxy 403), and no GitHub, Gmail or Docs tools, and no `ToolSearch`.
+- **Noise:** npm warned `skipping integrity check for git dependency ssh://git@github.com/...`; the install still succeeded over the public route.
+- **Still pending for B:** the second session (cache proof) and the environment's network level.
+
