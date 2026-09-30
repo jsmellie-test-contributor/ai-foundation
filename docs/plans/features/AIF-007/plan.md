@@ -30,7 +30,7 @@ Make the Claude Code `block-command` hook enforce an agent's `blocked_commands` 
 
 ## 3. Quick Summary
 
-**Open Items:** 3 open (1 High / 1 Medium / 1 Low) — see Section 8
+**Open Items:** 2 open (1 High / 1 Low) — see Section 8
 
 ---
 
@@ -46,7 +46,7 @@ Make the Claude Code `block-command` hook enforce an agent's `blocked_commands` 
 
 ### Out of Scope
 
-- The identity backstop (option (d) in the investigation: ambient `GIT_AUTHOR_*`/`GIT_COMMITTER_*`). Tracked as a separate decision (Section 8, question 2).
+- Ambient identity (option (d) in the investigation) — dropped. Making `ai-git` on PATH, BWS-authenticated and installed early in cloud sessions is a separate follow-up Feature (see the investigation brief, option (d)).
 - Kiro: its `blocked_commands` handling is unchanged and unverified. Explicitly not needed for this Feature.
 - Native permission deny rules, a PATH shim, a commit-time audit, or sandboxing.
 - Closing gaps that cannot be closed by inspecting command text: interpreters that call git internally (`python -c`, `node -e`), scripts and build tools (`make`, `npm run x`, a repo script), shell functions and aliases defined in earlier commands.
@@ -121,7 +121,7 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 | #   | Risk / Question                                                                                                                                                                                     | Type     | Impact | Source       | Raised By | Resolved |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | -------- |
 | 1   | Parser approach: hand-written zero-dependency tokenizer (prototype ~120 lines) vs a third-party parser that would need bundling into the installed hook. Route to Architect; ADR only if contested. | Question | H      | Architecture | Agent     | No       |
-| 2   | Identity backstop (option (d)): include in a follow-up Feature or drop? Scope (agent/cloud sessions vs everyone) and mechanism need a human decision. See investigation brief, option (d).          | Question | M      | Design       | Agent     | No       |
+| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                                                                           | Question | M      | Design       | Human     | Yes      |
 | 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.                                                              | Risk     | L      | Design       | Agent     | No       |
 | 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                                                                                      | Question | M      | Design       | Human     | Yes      |
 | 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30).                                                            | Question | M      | Design       | Human     | Yes      |
