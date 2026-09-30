@@ -1,0 +1,20 @@
+{
+  "feature_id": "AIF-007",
+  "tasks": [
+    {
+      "id": "001",
+      "title": "Shell-aware matcher in logic.js: splitter, normalizer, dynamic-word rule, fail-open, unit tests",
+      "depends_on": []
+    },
+    {
+      "id": "002",
+      "title": "Real-CLI integration tests for cli.js and installed-copy check; installer and lifecycle test changes only if a sibling module is added; block message points at ai-git",
+      "depends_on": ["001"]
+    },
+    {
+      "id": "003",
+      "title": "Update arc42 5.02 (mechanism, residual gaps, key_files, last_verified) and blocked_commands semantics wording",
+      "depends_on": ["001"]
+    }
+  ]
+}

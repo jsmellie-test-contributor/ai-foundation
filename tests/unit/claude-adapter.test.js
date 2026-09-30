@@ -64,7 +64,6 @@ describe('unit: claude adapter', () => {
     'TaskUpdate',
     'TaskGet',
     'TaskList',
-    'TaskOutput',
     'TaskStop',
     'Skill',
   ]);
@@ -86,7 +85,6 @@ describe('unit: claude adapter', () => {
         'TaskUpdate',
         'TaskGet',
         'TaskList',
-        'TaskOutput',
         'TaskStop',
       ]);
       assert.deepEqual(TOOL_MAP['skill'], ['Skill']);
