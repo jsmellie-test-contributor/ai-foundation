@@ -134,15 +134,10 @@ Each stage answers one question, ends at a decision point, and only then do we m
 
 | Stage | Question | Setup script | Break: if it fails |
 | ----- | -------- | ------------ | ------------------ |
-| A | Can the Setup stage reach GitHub and npm anonymously, how long does fetching `aif` take, and is the result actually cached? | `A-probe.sh` (installs nothing, sets no agent) | If GitHub or npm is unreachable: stop and choose between adding trusted hosts to the environment, or a different fetch (tarball via `curl`). Nothing later is meaningful until A passes. |
 | A2 | Is a prebuilt `bws` binary faster than `cargo install bws`, and does cargo alone fit the five-minute budget? | `A2-toolchain.sh` (run alone; the cargo build is bounded at 280s) | Independent of the rest: the result only decides how the README's `bws` line is written. The download is checksum-verified; the release tag `bws-v2.1.0` and the asset `bws-x86_64-unknown-linux-gnu-2.1.0.zip` were read from Bitwarden's GitHub releases page. Whether the Setup stage can reach that URL is what this measures. |
-| B | Does the real bundle install and the real Engineering-Manager start as primary, with its MCP tools and a readable log? | `B-install.sh` | If install fails, read the log and fix the script. If the manager starts but the `dag` tools are missing, investigate MCP registration in the cloud (`~/.claude.json`) before Stage C. If it starts as the default agent, the agent-file check or the settings merge failed; the log says which. |
+| B | Can the Setup stage reach GitHub and npm anonymously and how long does it take, is the result cached, does the real bundle install, and does the real Engineering-Manager start as primary with its MCP tools and a readable log? (This absorbs the old stage A.) | `B-install.sh` | If the fetch fails, the log's diagnostics say whether git, the codeload tarball or npm is blocked: stop and choose between adding trusted hosts to the environment and a different fetch (tarball via `curl`). If install fails, read the log and fix the script. If the manager starts but the `dag` tools are missing, investigate MCP registration in the cloud (`~/.claude.json`) before Stage C. If it starts as the default agent, the agent-file check or the settings merge failed; the log says which. |
 | C | Can the manager do its real job as primary: plan, wait for approval, decompose, validate, dispatch? | Same as B, no change | Findings here are follow-up fixes (tool set, permissions, missing GitHub tools, skills on demand), not a reason to redo A or B. |
 | D | Does bumping the pinned ref rebuild the cache, and do the failure paths behave (missing agent, bad settings)? | `B-install.sh` with a new `REF`, then with `AGENT` misspelled | A failure means the cache-bust or verify-and-skip design in the plan is wrong and needs rework. |
-
-### Stage A: reach and cache
-
-Paste `A-probe.sh`, start a new session on `cloud-sandbox`, and send: "Run `cat /root/.claude/aif-setup.log; date -u` with Bash and paste the raw output." Then start a second new session and send the same message. Pass: every probe reads `ok`, the `npm install github ref` time is well under the five-minute budget, and the second session's log still has a single `A start` line from before that session began (proof the environment was cached, not re-run). Also note whether `GITHUB_TOKEN` shows as set, since that says whether the fetch was anonymous. Decision after A: keep `npm install github:…#<ref>` as the fetch, or switch.
 
 ### Stage A2: toolchain timing
 
@@ -150,7 +145,7 @@ Paste `A2-toolchain.sh`, start one new session, and send the same `cat` message.
 
 ### Stage B: install and select
 
-Paste `B-install.sh` and start a new session on `cloud-sandbox`. Send: "1. State which agent you are and the first sentence of your role. 2. Run `tail -40 /root/.claude/aif-setup.log; cat /root/.claude/settings.json; ls /root/.claude/agents` and paste it. 3. Create `/tmp/t/tasks.json` for feature_id AIF-999 with tasks A and B (B depends on A) and call `mcp__dag__dag-validate` on it; report the result or the exact error. 4. List every tool you can call." Pass: the agent is the Engineering-Manager, the log shows install and `agent set`, the file list has all five agents, and `dag-validate` runs. Decision after B: proceed to C, or fix MCP or install issues first.
+Paste `B-install.sh` and start a new session on `cloud-sandbox`. Send: "1. State which agent you are and the first sentence of your role. 2. Run `tail -40 /root/.claude/aif-setup.log; cat /root/.claude/settings.json; ls /root/.claude/agents` and paste it. 3. Create `/tmp/t/tasks.json` for feature_id AIF-999 with tasks A and B (B depends on A) and call `mcp__dag__dag-validate` on it; report the result or the exact error. 4. List every tool you can call." Pass: the agent is the Engineering-Manager, the log shows install and `agent set`, the file list has all five agents, and `dag-validate` runs. Then start a second new session on the same environment and send only step 2 (the `tail` and `cat`). Pass for the cache: the log still has a single `B start` line from before that session began, so the environment was cached and the script did not re-run. Also note whether `GITHUB_TOKEN` is logged as set (whether the fetch was anonymous) and the `npm install` and `aif install` times against the five-minute budget. Decision after B: proceed to C, or fix fetch, MCP or install issues first.
 
 ### Stage C: work as primary
 
@@ -159,3 +154,15 @@ Same setup as B, new session. Send: "Draft a Feature Plan for adding a `hello` c
 ### Stage D: refresh and failure paths
 
 D1: edit `REF` in `B-install.sh` to another pinned ref (a different commit or tag), paste it, start a new session, and confirm the log shows a new `B start` with the new ref (cache rebuilt). D2: misspell `AGENT` (for example `engineering-managr`), paste, start a session: expect `agent NOT set` in the log and the default agent. D3 (optional): pre-seed an invalid `~/.claude/settings.json` from the script before the merge. Decision after D: the recipe is ready to document.
+
+### Running stages in parallel
+
+The Setup script is one field per environment and editing it rebuilds the cache, so stages that need different scripts need different environments. Stage A was folded into B because both depend on reaching GitHub and B's log already shows reach, timing and cache behavior.
+
+| Wave | Stages | Environments | Notes |
+| ---- | ------ | ------------ | ----- |
+| 1 (parallel) | B and A2 | One each | B needs two sessions in order (cache check). A2 runs alone because its cargo build can consume the whole five-minute budget. |
+| Review | | | Does B pass? Read the timings. Skip wave 2 if B failed. |
+| 2 (parallel) | C in B's environment (script unchanged, any number of sessions), D1 and D2 | D1 and D2 each in their own | D1 needs B's script cached first, then a session after editing `REF`. D2 uses a misspelled `AGENT`. |
+
+Start the first session in a newly edited environment and wait until it is running before starting others, so two sessions do not both build the cache. Parallel sessions share the account's rate limits.
