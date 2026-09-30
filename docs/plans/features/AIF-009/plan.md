@@ -6,9 +6,9 @@
 | ------------------- | ----------------------------------------------------- |
 | Feature ID          | AIF-009                                               |
 | Project             | ai-foundation                                         |
-| Status              | Draft                                                 |
+| Status              | Approved                                              |
 | Author (Agent)      | Claude Code session (standalone; no dispatched agent) |
-| Reviewed By         | Pending                                               |
+| Reviewed By         | Jeremy S                                              |
 | Created             | 2026-09-30                                            |
 | Last Updated        | 2026-09-30                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)           |
@@ -28,7 +28,7 @@ Drop Section 11 "Work Log" from the Feature Plan template and every instruction 
 
 ## 3. Quick Summary
 
-**Open Items:** 1 open (0 High / 0 Medium / 1 Low) — see Section 8
+**Open Items:** 0 open — see Section 8
 
 ---
 
@@ -118,11 +118,11 @@ Documentation and prompt edits only. No code, no installer change, no bundle man
 
 ## 8. Risks & Open Questions
 
-| #   | Risk / Question                                                                                                                                                                                                                                                          | Type     | Impact | Source | Raised By | Resolved |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------ | --------- | -------- |
-| 1   | Does "work logs" include the orchestration state file's `log` array? No: it stays, with very strict length rules (Section 5). Human decision 2026-09-30.                                                                                                                 | Question | M      | Design | Agent     | Yes      |
-| 2   | Migrate `AIF-007`/`AIF-008` decision rationale before deleting their Work Logs? No: the logs are tracking only. Human decision 2026-09-30.                                                                                                                               | Question | L      | Design | Agent     | Yes      |
-| 3   | Enforce the `log` length limit mechanically (an `aif validate` check on orchestration-state files) or by rule only? Recommendation: rule only now; a rule with no check will drift, so add the check if violations show up. A check is code and tests, a larger Feature. | Question | L      | Design | Agent     | No       |
+| #   | Risk / Question                                                                                                                                                                                                                                                          | Type     | Impact | Source | Raised By | Resolved                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------ | --------- | ---------------------------------- |
+| 1   | Does "work logs" include the orchestration state file's `log` array? No: it stays, with very strict length rules (Section 5). Human decision 2026-09-30.                                                                                                                 | Question | M      | Design | Agent     | Yes                                |
+| 2   | Migrate `AIF-007`/`AIF-008` decision rationale before deleting their Work Logs? No: the logs are tracking only. Human decision 2026-09-30.                                                                                                                               | Question | L      | Design | Agent     | Yes                                |
+| 3   | Enforce the `log` length limit mechanically (an `aif validate` check on orchestration-state files) or by rule only? Recommendation: rule only now; a rule with no check will drift, so add the check if violations show up. A check is code and tests, a larger Feature. | Question | L      | Design | Agent     | Yes — rule only (human 2026-09-30) |
 
 ---
 
