@@ -30,7 +30,7 @@ Spike evidence is in [`spike-main-thread-agent.md`](./spike-main-thread-agent.md
 
 ## 3. Quick Summary
 
-**Open Items:** 7 open (0 High / 3 Medium / 4 Low) — see Section 8
+**Open Items:** 5 open (0 High / 1 Medium / 4 Low) — see Section 8
 
 ---
 
@@ -50,6 +50,8 @@ Spike evidence is in [`spike-main-thread-agent.md`](./spike-main-thread-agent.md
 - Publishing `aif` to npm: not needed, the public GitHub repo is the source.
 - Choosing different primary agents per repo within one environment.
 - Fixing the `youtrack` MCP proxy 403 seen in cloud sessions.
+- The `block-command` hook only blocking commands that start with a blocked pattern (item 18, tracked separately as AIF-007).
+- The `engineering` bundle not installing `skill/plan-lifecycle` and `adr-authoring` (item 19, tracked separately as AIF-006).
 
 ---
 
@@ -141,8 +143,8 @@ Builds on §5.02 (Claude adapter) and §6 (install runtime). `resolver.js` and t
 | 15 | Discovery, outside this Feature: install freshness snapshots hash component sources only, not adapter code, so after an adapter fix `aif install` still reports a bundle "already current" and the installed files keep the old transform (observed after the tool-name fix). Cloud environments are unaffected because a fresh VM installs from scratch; local installs need a reinstall. Raise as its own item. | Risk | L | Spike | Agent | No |
 | 16 | Discovery: the Claude adapter maps the generic `task` tool to include `TaskOutput`, but the cloud manager could not call it and the local tool lists never showed it, so it is probably not a tool in this Claude Code version. The adapter's own rule says a non-existent native name is silently dropped. Verify against `KNOWN_NATIVE_TOOLS` and prune if confirmed. | Risk | L | Spike | Agent | No |
 | 17 | Resolved: cloud stage C found `ai-git` was not on the `PATH`, so the manager could not commit. The recipe now links `aif` and `ai-git` into `/usr/local/bin`, and the rerun confirmed `ai-git` works in the session. Still to settle for the recipe: pushing needs a token or the GitHub proxy (a raw `git push` worked through the proxy), and `bws` for `ai-git`'s `secrets.run` is not installed yet. | Risk | M | Spike | Human | Yes |
-| 18 | Discovery, outside this Feature: the installed `block-command` hook matches a `blocked_commands` pattern only at the start of the command, so `cd /repo && git commit`, `(git push)` and `/usr/bin/git status` are allowed. In cloud stage C the manager's raw `git` commits went through under `Claude <noreply@anthropic.com>` instead of the AI identity, contrary to the steering. Affects every agent with `blocked_commands`. Raise as its own fix. | Risk | M | Spike | Agent | No |
-| 19 | Discovery, outside this Feature: the `engineering` bundle does not install `skill/plan-lifecycle` (or `adr-authoring`) because no agent lists them in `skills:`, yet the steering and `skill/feature-planning` tell agents to follow `skill/plan-lifecycle`. The manager reported it missing in cloud, and local installs are affected too. Raise as its own fix. | Risk | M | Spike | Agent | No |
+| 18 | Out of scope for this Feature, per the human: the installed `block-command` hook matches a `blocked_commands` pattern only at the start of the command, so `cd /repo && git commit`, `(git push)` and `/usr/bin/git status` are allowed. In cloud stage C the manager's raw `git` commits went through under `Claude <noreply@anthropic.com>` instead of the AI identity, contrary to the steering. Affects every agent with `blocked_commands`. Tracked separately (investigation planned as AIF-007); AIF-005 does not address it. | Risk | M | Spike | Agent | Yes |
+| 19 | Out of scope for this Feature, per the human: the `engineering` bundle does not install `skill/plan-lifecycle` (or `adr-authoring`) because no agent lists them in `skills:`, yet the steering and `skill/feature-planning` tell agents to follow `skill/plan-lifecycle`; the manager reported it missing in cloud, and local installs are affected too. Tracked separately (optional skill-dependency frontmatter field, planned as AIF-006); AIF-005 does not address it. | Risk | M | Spike | Agent | Yes |
 | 20 | Cloud stage C used a single-Task feature, so multi-Task decomposition with `dag-validate` and `dag-compute-waves`, dispatch and worktrees were not exercised in a real flow. Optional rerun with a two-part feature. | Question | L | Spike | Agent | No |
 
 ---
@@ -189,3 +191,4 @@ Not yet decomposed — produced after this plan is Approved (`skill/feature-plan
 [2026-09-30 11:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage C first attempt blocked: ai-git was not on PATH, so the manager correctly held (no Draft or Approved commit possible, no worktrees). Fixed the recipe to link aif and ai-git into /usr/local/bin; rerun pending. Item 17 added.]
 [2026-09-30 12:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage D2 passed: a misspelled agent name is skipped and logged, the default agent runs, no settings file written. Item 4 design confirmed in cloud.]
 [2026-09-30 13:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage C rerun: the real manager worked as primary end to end (Draft commit, wait, separate Approved commit, single-Task judgement); ai-git on PATH confirmed. Verified against the pushed commits. Two framework findings raised outside this Feature: block-command only blocks leading git (items 18) and plan-lifecycle is not installed by the engineering bundle (item 19). Items 5 and 17 resolved, item 20 added.]
+[2026-09-30 14:00] [Engineering Manager] [Revise] [AIF-005] [Per human: items 18 (block-command hook only blocks leading commands) and 19 (engineering bundle omits plan-lifecycle and adr-authoring) are not addressed by AIF-005. Marked resolved as out of scope and added to Out of Scope; they are tracked separately as AIF-007 and AIF-006.]
