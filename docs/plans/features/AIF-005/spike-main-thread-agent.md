@@ -171,7 +171,7 @@ Start the first session in a newly edited environment and wait until it is runni
 
 ### Stage B, session 1 (2026-09-30): passed
 
-Setup script `B-install.sh`, pinned `95156a2`, new session on `cloud-sandbox`. The network level of the environment was not reported.
+Setup script `B-install.sh`, pinned `95156a2`, new session on `cloud-sandbox`. The environment's network level was Trusted (confirmed afterward).
 
 - **Primary agent:** the session answered as the Engineering-Manager ("Your role spans both planning and orchestration.") with no `.claude/` in the repo, so user-level provisioning by the Setup script works with the real bundle.
 - **Log:** `npm install ok 15s`, `aif install ok 3s` (55 files, all five agents, twelve rules, fourteen skills, four standards, both servers, the hook script), `agent set to engineering-manager`, `B done total 19s`. The script started 7s after VM boot (`uptime -s` 10:36:39, `B start` 10:36:46).
@@ -179,7 +179,7 @@ Setup script `B-install.sh`, pinned `95156a2`, new session on `cloud-sandbox`. T
 - **MCP tools work:** `mcp__dag__dag-validate` was granted and returned `{"valid": true, "errors": []}` on a two-task graph, so the tool-name fix works in cloud and the user-scope `dag` server registration in `~/.claude.json` is honoured.
 - **Interactive tool set:** `Agent`, `ListAgents`, `SendMessage`, `EnterPlanMode`, `ExitPlanMode`, `AskUserQuestion`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList`, `TaskStop`, `Skill`, `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, and the two `mcp__dag__*` tools. So the tools missing in headless mode are present interactively. Not callable: `TaskOutput` (listed in the agent, apparently not a tool in this Claude Code version), the `mcp__youtrack__*` tools (the YouTrack server fails to connect in cloud, the known proxy 403), and no GitHub, Gmail or Docs tools, and no `ToolSearch`.
 - **Noise:** npm warned `skipping integrity check for git dependency ssh://git@github.com/...`; the install still succeeded over the public route.
-- **Still pending for B:** the environment's network level (the second session is below).
+- **Network level:** Trusted (confirmed afterward), so the anonymous fetch and reach results hold for the Trusted allowlist.
 
 ### Stage B, session 2 (2026-09-30): passed, cache confirmed
 
@@ -201,5 +201,17 @@ Setup script `A2-toolchain.sh`, its own environment, one session.
 - **Decision:** use the checksum-verified release binary in the recipe; keep cargo only as a fallback. The binary is about 300 times faster, and cargo alone consumed roughly 78% of the five-minute cache budget, which leaves little room for fetching and installing `aif` in the same script.
 - **The script duration is the first-start delay:** the setup log ran from `10:36:07` to `10:40:00` and the session's first `date` was `10:40:05`, so a session started right after an edit waits for the whole Setup script. A cached environment does not.
 - **`bws` was not on the path in the session by design:** the test script installed the binary to `/tmp/bws-bin` and the cargo build to `/tmp/bws-cargo`, neither on `PATH`. The real recipe should install to `/usr/local/bin`. `bws` was `none` on the path before the script ran, so the image does not include it.
-- **Network reach:** the Setup stage reached `github.com/bitwarden/...` and `crates.io`, so the environment is at Trusted or Full; the level was still not reported.
+- **Network reach:** the Setup stage reached `github.com/bitwarden/...` and `crates.io`, so the environment is at Trusted or Full; the level was later confirmed as Trusted.
+
+### Network level: Trusted
+
+The human confirmed the test environments used the **Trusted** network access level. Stage B (github.com, codeload, npm registry, the `dag` server's npm install) and A2 (Bitwarden's GitHub release via `release-assets`/`objects.githubusercontent.com`, and `crates.io`) therefore passed on the Trusted allowlist, not on Full access.
+
+### Wave 2 scripts and expectations
+
+`D1-refbump.sh` is `B-install.sh` pinned to the older commit `e2d8a5c` (before the MCP tool-name fix), so a successful ref bump is visible in the installed manager: its frontmatter carries `@dag/dag-validate` instead of `mcp__dag__dag-validate`. `D2-badagent.sh` is `B-install.sh` with `AGENT="engineering-managr"`. Local dry runs: D2 logged `agent file ... missing; agent NOT set` and wrote no `settings.json`; D1 installed the older names.
+
+- **D1 expectation:** after pasting B (cache built) and then D1, the new session's log shows a `B start` with ref `e2d8a5c...`. The number of `B start` lines says whether the rebuild started from a clean image (1) or on top of the previous snapshot (2). The installed manager shows `@dag/` names and `dag-validate` is not callable.
+- **D2 expectation:** the session runs as the default agent, the log says the agent was not set, `/root/.claude/settings.json` does not exist, and all five agents are installed.
+- **C expectation:** with B's environment unchanged, the manager drafts and commits a plan, waits, then on approval commits it, writes `tasks.json`, and runs `mcp__dag__dag-validate` and `mcp__dag__dag-compute-waves`.
 
