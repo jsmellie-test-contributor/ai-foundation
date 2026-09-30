@@ -127,3 +127,35 @@ So `skills:` frontmatter preloads skill text for subagents but not for a primary
 ## Install freshness ignores adapter code (observed)
 
 After the MCP tool-name fix changed `claude.js`, `aif install -B engineering -H claude` reported `already current, skipping`, because the bundle snapshot hashes component sources, not adapter code. Installed files therefore keep the old transform until reinstalled by other means. Fresh cloud VMs are unaffected.
+
+## Cloud test ladder (staged, pause after each)
+
+Each stage answers one question, ends at a decision point, and only then do we move on. Setup scripts live on `cloud-sandbox` under `cloud-tests/`; paste one into the sandbox environment's Setup script field (changing it rebuilds the cached environment). All scripts pin `REF` to `main` at `95156a2` (which includes the MCP tool-name fix), always exit 0, and log to `/root/.claude/aif-setup.log`. Sessions run on `cloud-sandbox`, an empty repo with no `aif` in it, so they also stand in for a consumer repo.
+
+| Stage | Question | Setup script | Break: if it fails |
+| ----- | -------- | ------------ | ------------------ |
+| A | Can the Setup stage reach GitHub and npm anonymously, how long does fetching `aif` take, and is the result actually cached? | `A-probe.sh` (installs nothing, sets no agent) | If GitHub or npm is unreachable: stop and choose between adding trusted hosts to the environment, or a different fetch (tarball via `curl`). Nothing later is meaningful until A passes. |
+| A2 | Is a prebuilt `bws` binary faster than `cargo install bws`, and does cargo alone fit the five-minute budget? | `A2-toolchain.sh` (run alone; the cargo build is bounded at 280s) | Independent of the rest: the result only decides how the README's `bws` line is written. The bws asset URL and version are a guess; a failed probe is a valid result. |
+| B | Does the real bundle install and the real Engineering-Manager start as primary, with its MCP tools and a readable log? | `B-install.sh` | If install fails, read the log and fix the script. If the manager starts but the `dag` tools are missing, investigate MCP registration in the cloud (`~/.claude.json`) before Stage C. If it starts as the default agent, the agent-file check or the settings merge failed; the log says which. |
+| C | Can the manager do its real job as primary: plan, wait for approval, decompose, validate, dispatch? | Same as B, no change | Findings here are follow-up fixes (tool set, permissions, missing GitHub tools, skills on demand), not a reason to redo A or B. |
+| D | Does bumping the pinned ref rebuild the cache, and do the failure paths behave (missing agent, bad settings)? | `B-install.sh` with a new `REF`, then with `AGENT` misspelled | A failure means the cache-bust or verify-and-skip design in the plan is wrong and needs rework. |
+
+### Stage A: reach and cache
+
+Paste `A-probe.sh`, start a new session on `cloud-sandbox`, and send: "Run `cat /root/.claude/aif-setup.log; date -u` with Bash and paste the raw output." Then start a second new session and send the same message. Pass: every probe reads `ok`, the `npm install github ref` time is well under the five-minute budget, and the second session's log still has a single `A start` line from before that session began (proof the environment was cached, not re-run). Also note whether `GITHUB_TOKEN` shows as set, since that says whether the fetch was anonymous. Decision after A: keep `npm install github:…#<ref>` as the fetch, or switch.
+
+### Stage A2: toolchain timing
+
+Paste `A2-toolchain.sh`, start one new session, and send the same `cat` message. Pass: both timings are recorded. Decision after A2: use the binary in the README if it works and is clearly faster, otherwise keep cargo with the budget warning.
+
+### Stage B: install and select
+
+Paste `B-install.sh` and start a new session on `cloud-sandbox`. Send: "1. State which agent you are and the first sentence of your role. 2. Run `tail -40 /root/.claude/aif-setup.log; cat /root/.claude/settings.json; ls /root/.claude/agents` and paste it. 3. Create `/tmp/t/tasks.json` for feature_id AIF-999 with tasks A and B (B depends on A) and call `mcp__dag__dag-validate` on it; report the result or the exact error. 4. List every tool you can call." Pass: the agent is the Engineering-Manager, the log shows install and `agent set`, the file list has all five agents, and `dag-validate` runs. Decision after B: proceed to C, or fix MCP or install issues first.
+
+### Stage C: work as primary
+
+Same setup as B, new session. Send: "Draft a Feature Plan for adding a `hello` command to this repo, commit it as Draft, present it, and wait." Reply "Approved" in the same session and observe: it commits the approval, decomposes into `tasks.json`, runs `dag-validate`, and reports. Watch and record: which skills it loads through the Skill tool, whether `AskUserQuestion`, plan mode and `Task*` exist, any permission prompts, whether it can use `ai-git`, and what it lacks without GitHub or cloud tools. Decision after C: the list of follow-up fixes, ordered.
+
+### Stage D: refresh and failure paths
+
+D1: edit `REF` in `B-install.sh` to another pinned ref (a different commit or tag), paste it, start a new session, and confirm the log shows a new `B start` with the new ref (cache rebuilt). D2: misspell `AGENT` (for example `engineering-managr`), paste, start a session: expect `agent NOT set` in the log and the default agent. D3 (optional): pre-seed an invalid `~/.claude/settings.json` from the script before the merge. Decision after D: the recipe is ready to document.
