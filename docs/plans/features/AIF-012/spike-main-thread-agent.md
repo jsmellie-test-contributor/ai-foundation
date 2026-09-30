@@ -99,3 +99,12 @@ Result: **passed** on the second attempt. The first attempt's session was on `cl
 | Setup script obtains the real agents from ai-foundation | Not yet tested (Test 4) |
 
 Still open for Test 4 and the plan: GitHub access from the Setup script, the five-minute cache limit, and cache staleness (plan item 11).
+
+## Real Engineering-Manager as primary (local, headless, Claude Code 2.1.285)
+
+Run with the real installed `engineering-manager` via `--agent`, no cloud involved.
+
+- **Works:** the persona and process apply, the installed steering rules from `~/.claude/rules/` are in context in full, and the manager describes a correct feature-planning path (ADR check, Draft plan, approval, then decomposition and `dag-validate`).
+- **Tools:** as installed, `@dag/*` and `@youtrack/*` were not granted; the manager said it had no `dag-validate`. With the entries rewritten to `mcp__dag__dag-validate` and `mcp__dag__dag-compute-waves` in a copy, both were granted and it attempted the call (the headless run then denied permission, and the tool takes a `tasks_path` file, not an inline graph). See plan item 8.
+- **Skills:** the agent's `skills:` frontmatter (`task-orchestration`, `worktree-management`) was not injected into the main thread; it reported no skill text in context in two runs and would load skills with the `Skill` tool on demand. This is a self-report, not a captured prompt. See plan item 13.
+- **Not tested:** the same run in a cloud session (tool set, GitHub MCP tools, permissions).

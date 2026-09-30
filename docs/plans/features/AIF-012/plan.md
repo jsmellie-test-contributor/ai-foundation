@@ -20,7 +20,7 @@
 
 ## 2. Goal
 
-Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) from its first turn, including fresh Claude Code cloud sessions. Today `aif install` writes only to the user's home directory, and the cloud `SessionStart` hook runs after the main-thread agent is already resolved, so an installed agent can be delegated to but never be the primary agent. Fix it with an optional, harness-agnostic project-scope option on `aif install`, implemented for Claude Code and Kiro together.
+Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) from its first turn, including fresh Claude Code cloud sessions. Today `aif install` writes only to the user's home directory, and the cloud `SessionStart` hook runs after the main-thread agent is already resolved, so an installed agent can be delegated to but never be the primary agent. Fix it with an optional, harness-agnostic project-scope option on `aif install`, designed for any harness and implemented for Claude Code first (Kiro deferred).
 
 > Requirement traceability: N/A
 
@@ -28,7 +28,7 @@ Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) f
 
 ## 3. Quick Summary
 
-**Open Items:** 10 open (3 High / 6 Medium / 1 Low) — see Section 8
+**Open Items:** 10 open (4 High / 5 Medium / 1 Low) — see Section 8
 
 ---
 
@@ -37,14 +37,15 @@ Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) f
 ### In Scope
 
 - An optional scope option on `aif install` (and `uninstall`/`status`) that any harness adapter can honour: components written under the project (`.claude/`, `.kiro/`) instead of the user's home directory. Global remains the default.
-- Implementation for both Claude Code and Kiro. Kiro's part cannot be tested in this environment; it is built from the adapter contract and existing Kiro path conventions, and flagged as unverified.
-- A per-harness way to declare the primary agent (Claude Code: `agent` in `.claude/settings.json`; Kiro: mechanism unverified, Section 8) without clobbering existing settings such as the `SessionStart` hook.
+- The shared adapter contract is harness-agnostic (scope input, optional primary-agent function). Only the Claude Code adapter implements it in this Feature; Kiro follows later (Out of Scope).
+- A per-harness way to declare the primary agent (Claude Code: `agent` in `.claude/settings.json`) without clobbering existing settings such as the `SessionStart` hook.
 - Staleness detection for the committed project-scope copies (`aif status`, and a check CI can run).
 - Updating the affected arc42 sections and README cloud-setup guidance.
 
 ### Out of Scope
 
-- Harnesses other than Claude Code and Kiro.
+- Kiro implementation of project scope and default agent: deferred by the human, recorded as a known Kiro gap in `docs/architecture/11_risks.md`.
+- Other harnesses.
 - Changing the existing global (`~/.claude/`) install behaviour or its default.
 - Fixing the `youtrack` MCP proxy 403 seen in cloud sessions.
 - New agents or changes to any agent's tool list.
@@ -55,11 +56,11 @@ Let a session run as a chosen ai-foundation agent (e.g. `engineering-manager`) f
 
 ### User-Facing Behaviour
 
-A project owner runs `aif install -B engineering -H claude --scope project` (flag name is a proposal; the same flag works for `-H kiro`), commits the resulting harness directory, and sets the primary agent. Every new session in that repo starts with that agent as the main thread. Omitting `--scope` keeps today's global install.
+A project owner runs `aif install -B engineering -H claude --scope project` (flag name is a proposal; other harnesses adopt it later), commits the resulting harness directory, and sets the primary agent. Every new session in that repo starts with that agent as the main thread. Omitting `--scope` keeps today's global install.
 
 ### Data Flow
 
-`aif install` → `resolveBundle()` (unchanged) → the selected adapter, given a scope → files under the project's harness directory (Claude: `.claude/{agents,rules,skills,standards,scripts}`; Kiro: `.kiro/{agents,steering,skills,servers,standards}`) → manifest records the scope → `aif status` compares snapshots as it does today. The primary-agent setting is written by the adapter into that harness's own settings file.
+`aif install` → `resolveBundle()` (unchanged) → the selected adapter, given a scope → files under the project's harness directory (Claude: `.claude/{agents,rules,skills,standards,scripts}`) → manifest records the scope → `aif status` compares snapshots as it does today. The primary-agent setting is written by the adapter into that harness's own settings file.
 
 ### Business Rules
 
@@ -86,19 +87,19 @@ A project owner runs `aif install -B engineering -H claude --scope project` (fla
 
 | Component              | Type    | Responsibility                                                                 |
 | ---------------------- | ------- | ------------------------------------------------------------------------------ |
-| Scope-aware `TARGETS`  | Adapter | Both `claude.js` and `kiro.js` derive target paths per scope (global vs project) instead of one constant |
+| Scope-aware `TARGETS`  | Adapter | `claude.js` derives its target paths per scope (global vs project) instead of one constant |
 | Primary-agent setter   | Adapter | New optional adapter-contract function; each harness merges its own setting without dropping other keys |
 | Scope in manifest      | Library | Record which scope a bundle was installed to, so status/uninstall find it      |
 
 ### Component Relationships
 
-Extends §5.02 (the shared adapter contract gains a scope input and an optional primary-agent function; `claude.js` and `kiro.js` both implement them), §5.05 (`install`, `uninstall`, `status` gain a scope option), §5.03/§6 (manifest and freshness carry scope). `resolver.js` (§5.01) is unaffected.
+Extends §5.02 (the shared adapter contract gains a scope input and an optional primary-agent function; `claude.js` implements them; `kiro.js` follows later), §5.05 (`install`, `uninstall`, `status` gain a scope option), §5.03/§6 (manifest and freshness carry scope). `resolver.js` (§5.01) is unaffected.
 
 ### Integration Points
 
 - `lib/harnesses/claude.js` / `kiro.js` — `TARGETS`, MCP settings paths, `{{standards_path}}` substitution, and (Claude) `hookScriptPath()` all currently assume the home directory.
 - `lib/commands/install.js` / `uninstall.js` / `status.js` — flag parsing and manifest use.
-- Project settings files (`.claude/settings.json`, Kiro equivalent) — shared with the existing `SessionStart` hook.
+- Project settings files (`.claude/settings.json`) — shared with the existing `SessionStart` hook.
 
 ---
 
@@ -114,16 +115,19 @@ Extends §5.02 (the shared adapter contract gains a scope input and an optional 
 
 | # | Risk / Question | Type | Impact | Source | Raised By | Resolved |
 | - | --------------- | ---- | ------ | ------ | --------- | -------- |
-| 1 | Is project-scope install (committed `.claude/`) the right approach, or is another route better? Cloud-sandbox Test 1 proved committed project files work; Test 2 proved the Setup script alone works too: it wrote `~/.claude/settings.json` (`agent`) and `~/.claude/agents/engineering-manager.md` before launch and the session started as that agent, with no `.claude/` in the repo; Test 3 showed it combines with committed project files: user-level `agent` plus a committed `.claude/settings.json` (no `agent`) and `.claude/agents/` all loaded in one session. The Setup-script route needs no new scope in `aif install` at all, only a way to get the real agent files onto the VM before launch (Test 3) and a way to set `agent` in user settings. Decide whether project scope is still needed. Likely needs an ADR from Architect. | Question | H | Arch | Agent | No |
+| 1 | Human decision: the goal is a way to load the framework in a cloud session before the repo is checked out (the `SessionStart` hook flow runs too late for bundles or the primary agent, and consumer repos need this to be tested at all). Tests 1-3 show committed project files and Setup-script user files both work, alone and combined. Still open: is optional project scope (the install-CLI flag) part of this Feature, or does the Setup-script route replace it? Likely needs an ADR from Architect. | Question | H | Arch | Agent | No |
 | 2 | Agents must exist at startup, so project-scope files must be committed, not generated by the hook. This creates copies that can drift from source. Is a CI/`aif status` staleness gate enough? | Question | H | Arch | Agent | No |
 | 3 | Resolved by the spike (`spike-main-thread-agent.md`): `agent` in project settings and `--agent` both make a custom agent the main thread, it can dispatch subagents, and both user- and project-scope files work if present at startup. Confirmed in a real cloud session (cloud-sandbox Test 1): committed `.claude/settings.json` plus `.claude/agents/` made the session run as Engineering-Manager and dispatch `principal-engineer`. Remaining unverified: interactive-mode tool set (headless omits `Task*`, `Grep`, `Glob` even without an agent). | Risk | H | Design | Agent | Yes |
 | 4 | Scope of project install: agents only, or the full bundle (rules, skills, standards, servers)? Agents embed preloaded skills at install; rules/standards paths (`{{standards_path}}`) and MCP registration (`~/.claude.json` vs `.mcp.json`) differ by scope. | Question | M | Design | Agent | No |
-| 5 | Which primary agent, and who writes the primary-agent setting — `aif` (a `--primary <agent>` option) or the project owner by hand? | Question | M | Design | Agent | No |
-| 6 | Kiro: project-scope paths and any native "default/primary agent" mechanism are unverified and cannot be tested here. Build against documented Kiro conventions, mark untested, and confirm on a real Kiro install before relying on it. | Risk | M | Design | Human | No |
+| 5 | Resolved by the human: the cloud environment (Setup script, at build time) sets the primary agent; `aif` needs no `--primary` option for cloud. | Question | M | Design | Agent | Yes |
+| 6 | Resolved by the human: Kiro implementation is deferred and added to the Kiro gaps in `docs/architecture/11_risks.md`. | Risk | M | Design | Human | Yes |
 | 7 | A committed `agent` setting naming a missing agent silently falls back to the default agent (spike finding 4c). The install must verify the agent exists, and `aif status` should flag it. | Risk | M | Spike | Agent | No |
-| 8 | Discovered defect, outside this Feature: the Claude adapter passes `@server/tool` entries through unchanged, but Claude Code only grants `mcp__server__tool`, so the manager loses its `dag`/`youtrack` tools. Needs its own Feature or fix; see the spike doc. | Question | H | Spike | Agent | No |
+| 8 | Defect, prerequisite for a useful primary manager: `agents/engineering-manager.yaml` lists `@dag/*` and `@youtrack/*` tools, and `mapAgentTools()` in `lib/harnesses/claude.js` deliberately passes `@server/tool` through unchanged (a unit test asserts it). Claude Code only recognises `mcp__<server>__<tool>`, so the tools are silently not granted. Confirmed twice on the real installed manager: it reported `dag-validate` unavailable; with the names rewritten it had the tools. Without them the manager cannot validate `tasks.json`, which `skill/feature-planning` requires. Fix in or before AIF-012? | Question | H | Spike | Agent | No |
 | 9 | Per the cloud docs, a session with several repositories (including a project thread) does not read any repo's `.claude/settings.json` except two plugin keys, so a committed `agent` setting would not apply there. The Setup-script route (Test 2) has no such limit. | Risk | M | Docs | Agent | No |
-| 11 | The Setup script is cached (rebuilt on script change or after about 7 days), so agent files it installs go stale until then. A SessionStart `aif install` refreshes them, but only takes effect for the next session's main thread. Acceptable, or does the script need a version stamp to force rebuilds? | Risk | M | Docs | Agent | No |
+| 11 | Resolved: per the cloud docs, changing the Setup script (or allowed hosts) rebuilds the cached environment, so editing a version stamp in the script busts the cache. Revisit only if that proves insufficient. | Risk | M | Docs | Human | Yes |
+| 12 | New dependency, separate investigation: how a Setup script gets `aif` before checkout. `aif` is private and unpublished by design. Options: publish to npm (public or a GitHub Packages registry), `npm install github:starvoxel/ai-foundation#<ref>` (allows unreleased refs, needs GitHub access at that stage), or a hosted release tarball. Whether the Setup script can reach a private GitHub repo or registry is unverified. AIF-012 depends on the outcome. | Question | H | Human | Human | No |
+| 13 | Real-manager-as-primary test (local, headless): the persona, process and rules apply and it dispatches subagents, but `skills:` frontmatter (`task-orchestration`, `worktree-management`) was not injected as full text into the main thread (self-reported in two runs; the manager must load them with the Skill tool). Decide whether that is acceptable or the primary variant needs its skills loaded another way. | Risk | M | Spike | Agent | No |
+| 14 | As primary, the manager's `tools` allowlist drops every tool it does not list (in cloud: GitHub and Claude Code Remote MCP tools, file-send and artifact tools). Decide whether a primary variant needs a broader or omitted `tools` list. | Question | M | Spike | Agent | No |
 | 10 | For this repo itself, committing generated `.claude/` copies duplicates `agents/`, `skills/`. Acceptable, or exclude ai-foundation and target consumer repos only? | Question | L | Design | Agent | No |
 
 ---
@@ -139,7 +143,7 @@ Not yet decomposed — produced after this plan is Approved (`skill/feature-plan
 - [ ] All Tasks complete and signed off
 - [ ] Feature works end-to-end as described in Section 5
 - [ ] A fresh cloud session in a repo with committed project-scope install starts with the chosen agent as main thread (verified, not assumed)
-- [ ] Global install behaviour and existing tests unchanged; Kiro project scope covered by unit tests, with real-Kiro verification recorded as pending
+- [ ] Global install behaviour and existing tests unchanged; the Kiro gap is recorded in `docs/architecture/11_risks.md`
 - [ ] No HIGH or CRITICAL findings open in any Task review
 - [ ] Affected arc42 sections and `key_files` updated in the same Tasks
 
@@ -154,3 +158,4 @@ Not yet decomposed — produced after this plan is Approved (`skill/feature-plan
 [2026-09-29 03:00] [Engineering Manager] [Spike] [AIF-012] [Cloud-sandbox Test 1 passed in a real cloud session. Read the cloud docs on Setup scripts and settings: the Setup script can persist files in `~/.claude/`, and repo settings are ignored in multi-repo sessions. Item 1 revised, item 9 added, Test 2 designed in `spike-main-thread-agent.md`.]
 [2026-09-29 04:00] [Engineering Manager] [Spike] [AIF-012] [Cloud-sandbox Test 2 passed: the Setup script alone provisioned the primary agent. Item 1 revised (project scope may not be needed), item 11 added (Setup-script cache staleness). Test 3 designed in `spike-main-thread-agent.md`.]
 [2026-09-30 00:00] [Engineering Manager] [Spike] [AIF-012] [Cloud-sandbox Test 3 passed: user-level `agent` from the Setup script and committed project settings and agents load together. A first attempt started at a stale commit (a continued session, not a real result). Recorded in `spike-main-thread-agent.md`.]
+[2026-09-30 01:00] [Engineering Manager] [Revise] [AIF-012] [Per human: goal is a pre-checkout load path; cloud env sets the primary agent (item 5); Kiro deferred and added to arc42 risks (item 6); cache busts on script edit (item 11); aif distribution is a separate dependency (item 12). Real-manager local test added items 13-14 and refined item 8.]
