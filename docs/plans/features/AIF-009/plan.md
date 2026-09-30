@@ -28,7 +28,7 @@ Drop Section 11 "Work Log" from the Feature Plan template and every instruction 
 
 ## 3. Quick Summary
 
-**Open Items:** 2 open (0 High / 1 Medium / 1 Low) — see Section 8
+**Open Items:** 1 open (0 High / 0 Medium / 1 Low) — see Section 8
 
 ---
 
@@ -38,17 +38,18 @@ Drop Section 11 "Work Log" from the Feature Plan template and every instruction 
 
 - `skills/feature-planning/reference/template.md`: delete Section 11. Move the "minor decisions" convention into Section 8 (see Section 5).
 - `agents/software-engineer.yaml`: delete the two "Write Work Log entry" process steps (implementation step 12, correction step 5).
-- `agents/engineering-manager.yaml`: reword "Maintain orchestration state and work log" (see Section 8, question 1).
+- `agents/engineering-manager.yaml`: reword "Maintain orchestration state and work log" (`work log` → `orchestration log`; see Section 5, "Orchestration log length rules").
 - `steering/engineering/core.md`: remove "work log entries" from the Plan ID rule; replace "noted in the work log" in the scope-expansion exception with the commit message.
 - `steering/global/core.md`: replace "plan or work log" in the security-waiver exception.
 - `skills/feature-planning/SKILL.md`: check for and fix any reference to Section 11 or the log (none found by search; confirm while editing).
-- Live Feature Plans `AIF-007` and `AIF-008` (Draft/Approved, still carrying a Work Log): fold each log's decisions into Section 8, fix `AIF-007`'s Metadata row that points at "the Work Log", delete Section 11 (see Section 8, question 2).
+- Live Feature Plans `AIF-007` and `AIF-008`: delete Section 11 outright (tracking only, no migration) and fix `AIF-007`'s Metadata row that points at "the Work Log".
+- Strict length rules for orchestration `log` entries (see Section 5, "Orchestration log length rules"): owned by `skills/task-orchestration/reference/state-schema.md`; cited, not restated, from `skills/task-orchestration/SKILL.md` and `agents/engineering-manager.yaml` Hard rules.
 - `PLAN.md` line 53 ("Work Log system (persistent activity tracking)"): mark dropped, superseded by git history.
 - Run `aif validate` and the test suites; confirm no arc42 `key_files` entry is touched (none found by search; re-check).
 
 ### Out of Scope
 
-- The orchestration state file's `log` array and its `log` action vocabulary (`skills/task-orchestration/`), unless question 1 resolves the other way. It is machine state for wave dispatch, not the plan's Work Log.
+- Removing the orchestration state file's `log` array or changing its action vocabulary. It stays (Section 8, question 1); only its entry length is tightened.
 - Historical and completed Feature Plans (`AIF-001` to `AIF-004`, `docs/plans/completed/`), ADR archives, and `docs/process-model.md` history. They describe what was true when written.
 - Any tooling that enforces plan section structure: none exists (`lib/` and `tests/` have no reference to plan sections).
 
@@ -68,6 +69,15 @@ The template currently says to record a non-ADR decision inline in a Work Log en
 - The commit message for the revision names it.
 - The escalation rule stays: if it turns out to be a genuine fork, escalate to Architect for an ADR.
 
+### Orchestration log length rules
+
+The `log` array stays as a terse event trace, nothing more. Proposed limits, written once in `state-schema.md`'s "Log entry object":
+
+- `details` is one line, at most 100 characters.
+- Identifiers and facts only: Task ID, PR number, commit SHA, counts, file names. No rationale, no narrative, no "why"; that belongs in the commit message or PR.
+- One entry per event in the action vocabulary. No free-form events, no multi-event summaries.
+- Entries are append-only as today; the limit applies to new entries.
+
 ### Business Rules
 
 - No new Feature Plan section replaces Section 11.
@@ -78,7 +88,7 @@ The template currently says to record a non-ADR decision inline in a Work Log en
 
 | Scenario                                                                | Expected Behaviour                                                                                  |
 | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| A decision's rationale exists only in a deleted Work Log entry          | Preserved in Section 8 before the section is deleted (plans `AIF-007`, `AIF-008`)                   |
+| A `log` entry's `details` exceeds 100 characters or contains narrative  | Violates the schema rule; Principal-Engineer review finding (LOW); see question 1                   |
 | An agent prompt or steering file still says "work log" after the change | `grep -ri "work log"` over `agents/ skills/ steering/` returns only the orchestration-state wording |
 
 ---
@@ -108,10 +118,11 @@ Documentation and prompt edits only. No code, no installer change, no bundle man
 
 ## 8. Risks & Open Questions
 
-| #   | Risk / Question                                                                                                                                                                                                                                                                                      | Type     | Impact | Source | Raised By | Resolved |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ | --------- | -------- |
-| 1   | Does "work logs" include the orchestration state file's `log` array? Recommendation: no. It records dispatch, wave and conflict events that git does not (Task dispatched, review loop count, escalations) and drives resume after interruption. Only the wording "work log" is reworded.            | Question | M      | Design | Agent     | No       |
-| 2   | Migrate `AIF-007` (Approved, decomposed) and `AIF-008` (Draft) now, or leave their logs as history? Recommendation: migrate, since they are the only live plans and leaving Section 11 invites the next agent to keep appending. Editing an Approved plan is cosmetic here and committed separately. | Question | L      | Design | Agent     | No       |
+| #   | Risk / Question                                                                                                                                                                                                                                                          | Type     | Impact | Source | Raised By | Resolved |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------ | --------- | -------- |
+| 1   | Does "work logs" include the orchestration state file's `log` array? No: it stays, with very strict length rules (Section 5). Human decision 2026-09-30.                                                                                                                 | Question | M      | Design | Agent     | Yes      |
+| 2   | Migrate `AIF-007`/`AIF-008` decision rationale before deleting their Work Logs? No: the logs are tracking only. Human decision 2026-09-30.                                                                                                                               | Question | L      | Design | Agent     | Yes      |
+| 3   | Enforce the `log` length limit mechanically (an `aif validate` check on orchestration-state files) or by rule only? Recommendation: rule only now; a rule with no check will drift, so add the check if violations show up. A check is code and tests, a larger Feature. | Question | L      | Design | Agent     | No       |
 
 ---
 
@@ -119,7 +130,7 @@ Documentation and prompt edits only. No code, no installer change, no bundle man
 
 Dependency graph: [`tasks.json`](./tasks.json)
 
-Summary: Pending approval. Expected 1 to 2 Tasks, no parallelism needed: (a) template, skill, agents, steering and `PLAN.md` edits; (b) live-plan migration. Single Task if question 2 resolves to "leave".
+Summary: Pending approval. Expected 1 to 2 Tasks, no parallelism needed: (a) template, skill, agents, steering and `PLAN.md` edits; (b) orchestration log length rules in `state-schema.md` and its citations. Could be one Task; decide at decomposition.
 
 Parallelization notes:
 
@@ -132,6 +143,7 @@ Parallelization notes:
 - [ ] All Tasks complete and signed off
 - [ ] `template.md` has no Section 11 and describes where minor decisions go
 - [ ] `grep -ri "work log" agents skills steering` returns nothing except wording deliberately kept for the orchestration `log` (per question 1)
-- [ ] `AIF-007` and `AIF-008` carry no Section 11 and lose no decision rationale (if question 2 resolves to migrate)
+- [ ] `AIF-007` and `AIF-008` carry no Section 11 and no dangling reference to it
+- [ ] `state-schema.md` states the `log` length rules once; `SKILL.md` and the Engineering Manager Hard rules cite it without restating
 - [ ] `aif validate` and all three test suites pass
 - [ ] No HIGH or CRITICAL findings open in any Task review
