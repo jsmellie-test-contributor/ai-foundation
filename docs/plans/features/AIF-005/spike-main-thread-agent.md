@@ -179,5 +179,13 @@ Setup script `B-install.sh`, pinned `95156a2`, new session on `cloud-sandbox`. T
 - **MCP tools work:** `mcp__dag__dag-validate` was granted and returned `{"valid": true, "errors": []}` on a two-task graph, so the tool-name fix works in cloud and the user-scope `dag` server registration in `~/.claude.json` is honoured.
 - **Interactive tool set:** `Agent`, `ListAgents`, `SendMessage`, `EnterPlanMode`, `ExitPlanMode`, `AskUserQuestion`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList`, `TaskStop`, `Skill`, `Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, and the two `mcp__dag__*` tools. So the tools missing in headless mode are present interactively. Not callable: `TaskOutput` (listed in the agent, apparently not a tool in this Claude Code version), the `mcp__youtrack__*` tools (the YouTrack server fails to connect in cloud, the known proxy 403), and no GitHub, Gmail or Docs tools, and no `ToolSearch`.
 - **Noise:** npm warned `skipping integrity check for git dependency ssh://git@github.com/...`; the install still succeeded over the public route.
-- **Still pending for B:** the second session (cache proof) and the environment's network level.
+- **Still pending for B:** the environment's network level (the second session is below).
+
+### Stage B, session 2 (2026-09-30): passed, cache confirmed
+
+Started after session 1 had responded.
+
+- **Cache proof:** `grep -c 'B start'` returned `1`, and the log has no lines after `10:37:03`, while this session's VM booted at `10:39:36` (first `date` at `10:39:48`). The Setup script did not run again; the environment was restored from the cached snapshot. The agent was still the Engineering-Manager.
+- **The cached run was a separate run from session 1's:** both logs show `B start` at `10:36:46` but different step timings (session 1: npm 15s, `aif install` 3s, total 19s; session 2's log: npm 14s, `aif install` 2s, total 17s, `added 161 packages in 13s`). Inference: on the first start after a script edit, the environment build and the first session each run the script concurrently, and the snapshot comes from the build's run, not from session 1's VM. Consequence: the recipe must be idempotent and free of external side effects.
+- **Timing budget:** about 17 to 19 seconds total against the roughly five-minute limit, so the cache builds comfortably.
 
