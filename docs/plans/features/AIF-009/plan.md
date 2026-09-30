@@ -12,7 +12,7 @@
 | Created             | 2026-09-30                                            |
 | Last Updated        | 2026-09-30                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)           |
-| Total Tasks         | Pending approval                                      |
+| Total Tasks         | 2                                                     |
 | Product Requirement | None                                                  |
 | ADRs                | None                                                  |
 
@@ -130,7 +130,7 @@ Documentation and prompt edits only. No code, no installer change, no bundle man
 
 Dependency graph: [`tasks.json`](./tasks.json)
 
-Summary: Pending approval. Expected 1 to 2 Tasks, no parallelism needed: (a) template, skill, agents, steering and `PLAN.md` edits; (b) orchestration log length rules in `state-schema.md` and its citations. Could be one Task; decide at decomposition.
+Summary: 2 Tasks across 1 wave, independent of each other: 001 removes the Work Log everywhere; 002 adds the orchestration `log` length rules.
 
 Parallelization notes:
 

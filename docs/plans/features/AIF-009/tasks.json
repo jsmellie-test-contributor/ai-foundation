@@ -1,0 +1,15 @@
+{
+  "feature_id": "AIF-009",
+  "tasks": [
+    {
+      "id": "001",
+      "title": "Remove Work Log from template, agents, steering, AIF-007/008 and PLAN.md; move minor-decision convention to Section 8",
+      "depends_on": []
+    },
+    {
+      "id": "002",
+      "title": "Orchestration log length rules in state-schema.md; cite from task-orchestration SKILL.md and engineering-manager Hard rules",
+      "depends_on": []
+    }
+  ]
+}
