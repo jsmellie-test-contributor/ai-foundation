@@ -7,6 +7,7 @@ import {
   TOOL_MAP,
   TARGETS,
   mapToolName,
+  mapMcpToolRef,
   mapAgentTools,
   transformAgent,
   transformSteering,
@@ -119,8 +120,28 @@ describe('unit: claude adapter', () => {
     });
 
     it('passes through unknown names unchanged', () => {
-      assert.equal(mapToolName('@git/git_status'), '@git/git_status');
       assert.equal(mapToolName('some-future-tool'), 'some-future-tool');
+    });
+
+    it('rewrites an @server/tool MCP reference to the native name', () => {
+      assert.equal(mapToolName('@git/git_status'), 'mcp__git__git_status');
+    });
+  });
+
+  describe('mapMcpToolRef()', () => {
+    it('rewrites @server/tool to mcp__server__tool', () => {
+      assert.equal(mapMcpToolRef('@dag/dag-validate'), 'mcp__dag__dag-validate');
+    });
+
+    it('replaces characters Claude Code does not allow in MCP names with underscores', () => {
+      assert.equal(mapMcpToolRef('@my.server/do thing'), 'mcp__my_server__do_thing');
+    });
+
+    it('returns a value that is not a well-formed reference unchanged', () => {
+      assert.equal(mapMcpToolRef('read'), 'read');
+      assert.equal(mapMcpToolRef('@dag'), '@dag');
+      assert.equal(mapMcpToolRef('@/tool'), '@/tool');
+      assert.equal(mapMcpToolRef('@dag/'), '@dag/');
     });
   });
 
@@ -150,7 +171,15 @@ describe('unit: claude adapter', () => {
     });
 
     it('passes through an unrecognized generic name unchanged', () => {
-      assert.deepEqual(mapAgentTools(['@git/git_status']), ['@git/git_status']);
+      assert.deepEqual(mapAgentTools(['some-future-tool']), ['some-future-tool']);
+    });
+
+    it('rewrites @server/tool MCP references to native mcp__server__tool names', () => {
+      assert.deepEqual(mapAgentTools(['read', '@dag/dag-validate', '@youtrack/get_issue']), [
+        'Read',
+        'mcp__dag__dag-validate',
+        'mcp__youtrack__get_issue',
+      ]);
     });
 
     it('returns an empty list for an empty input', () => {
