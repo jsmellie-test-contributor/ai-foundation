@@ -1,4 +1,4 @@
-# Spike: Main-Thread Custom Agent (AIF-012, open item 3)
+# Spike: Main-Thread Custom Agent (AIF-005, open item 3)
 
 Exploratory spike explicitly requested by the human. Output is evidence for the Feature Plan, not production code. Runs in a throwaway project under the session scratchpad, never in this repo.
 
@@ -32,7 +32,7 @@ Run on Claude Code 2.1.285 with `claude -p ... --output-format stream-json --ver
 | 4c | `agent` names an agent that does not exist | Silent fallback to the default agent (41 tools), no error. |
 | 5 | Real `engineering-manager` as main thread | Works, with one defect below. |
 
-### Defect found (outside AIF-012's scope, needs its own item)
+### Defect found (outside AIF-005's scope, needs its own item)
 
 The Claude adapter passes `@dag/dag-validate` style entries through unchanged, and Claude Code does not grant them. The engineering-manager's `@dag/*` and `@youtrack/*` tools were absent. Rewriting the entries to the native form `mcp__dag__dag-validate` granted them. This likely affects the manager as a subagent too. See `lib/harnesses/claude.js` (`TOOL_MAP` comment near line 101).
 
