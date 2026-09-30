@@ -2,19 +2,19 @@
 
 ## 1. Metadata
 
-| Field               | Value                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| Feature ID          | AIF-007                                                                                    |
-| Project             | ai-foundation                                                                              |
-| Status              | Draft                                                                                      |
-| Author (Agent)      | Claude Code session (standalone; no dispatched agent)                                      |
-| Reviewed By         | Pending                                                                                    |
-| Created             | 2026-09-30                                                                                 |
-| Last Updated        | 2026-09-30                                                                                 |
-| Standards           | `javascript`, `node` (per `.aiconfig.json`)                                                |
-| Total Tasks         | Pending approval                                                                           |
-| Product Requirement | None                                                                                       |
-| ADRs                | None (see Section 8, question 1 — Architect to decide whether the parser choice needs one) |
+| Field               | Value                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| Feature ID          | AIF-007                                                                               |
+| Project             | ai-foundation                                                                         |
+| Status              | Draft                                                                                 |
+| Author (Agent)      | Claude Code session (standalone; no dispatched agent)                                 |
+| Reviewed By         | Pending                                                                               |
+| Created             | 2026-09-30                                                                            |
+| Last Updated        | 2026-09-30                                                                            |
+| Standards           | `javascript`, `node` (per `.aiconfig.json`)                                           |
+| Total Tasks         | Pending approval                                                                      |
+| Product Requirement | None                                                                                  |
+| ADRs                | None (Architect decided no ADR is needed; see Section 8, question 1 and the Work Log) |
 
 Source investigation: [`docs/research/block-command-bypass.md`](../../../research/block-command-bypass.md).
 
@@ -30,7 +30,7 @@ Make the Claude Code `block-command` hook enforce an agent's `blocked_commands` 
 
 ## 3. Quick Summary
 
-**Open Items:** 2 open (1 High / 1 Low) — see Section 8
+**Open Items:** 1 open (1 Low) — see Section 8
 
 ---
 
@@ -41,7 +41,7 @@ Make the Claude Code `block-command` hook enforce an agent's `blocked_commands` 
 - Rewrite the hook's matching logic to split a command into simple commands, normalize each, and apply the existing `blocked_commands` glob to each.
 - Close the bypass classes reproduced in the investigation: compound commands, pipes, subshells and groups, control flow, env-var prefixes, absolute and relative paths, wrappers, `bash|sh -c` and `eval`, `xargs`, `find -exec`, command substitution, quoting and escaping of the command word, newlines (including heredoc commit messages), bare commands, and leading whitespace.
 - Block command words whose executable cannot be determined statically (dynamic command words), while allowing the env-var mechanics agents legitimately need.
-- Unit tests for the new logic and new integration tests that run the real hook CLI.
+- Unit tests for the new logic and new integration tests that run the real hook CLI. The parser stays inside `logic.js` unless it becomes unwieldy; if split into a sibling module, add it to the installer's file list and the lifecycle tests.
 - Update arc42 §5.02 (and `key_files`) and the `blocked_commands` description where it states the matching semantics.
 
 ### Out of Scope
@@ -118,13 +118,13 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 
 ## 8. Risks & Open Questions
 
-| #   | Risk / Question                                                                                                                                                                                     | Type     | Impact | Source       | Raised By | Resolved |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | -------- |
-| 1   | Parser approach: hand-written zero-dependency tokenizer (prototype ~120 lines) vs a third-party parser that would need bundling into the installed hook. Route to Architect; ADR only if contested. | Question | H      | Architecture | Agent     | No       |
-| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                                                                           | Question | M      | Design       | Human     | Yes      |
-| 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.                                                              | Risk     | L      | Design       | Agent     | No       |
-| 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                                                                                      | Question | M      | Design       | Human     | Yes      |
-| 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30).                                                            | Question | M      | Design       | Human     | Yes      |
+| #   | Risk / Question                                                                                                                          | Type     | Impact | Source       | Raised By | Resolved                                                                                                                                                                           |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Parser approach: hand-written zero-dependency tokenizer vs a third-party parser bundled into the installed hook.                         | Question | H      | Architecture | Agent     | Yes — Architect 2026-09-30: hand-written zero-dependency tokenizer in the hook assets (ADR 0006: no build or bundle step). No ADR: uncontested and cheap to reverse. See Work Log. |
+| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                | Question | M      | Design       | Human     | Yes                                                                                                                                                                                |
+| 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.   | Risk     | L      | Design       | Agent     | No                                                                                                                                                                                 |
+| 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                           | Question | M      | Design       | Human     | Yes                                                                                                                                                                                |
+| 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30). | Question | M      | Design       | Human     | Yes                                                                                                                                                                                |
 
 ---
 
@@ -143,6 +143,9 @@ Pending approval. Sizing intent: about three Tasks — (1) splitter/normalizer, 
 - [ ] Unparseable input and malformed payloads fail open (tested through the real CLI)
 - [ ] The installed copy under `~/.claude/scripts/block-command/` works with the final file list; install and uninstall lifecycle tests pass
 - [ ] arc42 §5.02 and its `key_files` updated; residual gaps documented; `aif index architecture --check` passes as the final local step
+- [ ] No new runtime dependency and no build step: `logic.js`/`cli.js` (plus any sibling module) run directly from `~/.claude/scripts/block-command/`
+- [ ] The prototype's known cases are unit tests: `flock /tmp/l git log` is blocked, `command -v git` is allowed; `$(git …)` inside an unquoted heredoc is blocked; long input is handled in linear time
+- [ ] An unterminated heredoc or unbalanced construct never throws and fails open
 - [ ] `npm test` passes
 - [ ] No HIGH or CRITICAL findings open in any Task review
 
@@ -151,3 +154,5 @@ Pending approval. Sizing intent: about three Tasks — (1) splitter/normalizer, 
 ## 11. Work Log
 
 [2026-09-30] [Claude Code session] [Draft] [AIF-007] [Drafted from `docs/research/block-command-bypass.md`. Decision: fail open on unparseable commands. **Why:** shell syntax changes must not require a hook change and must not brick agent Bash use. Decision: block dynamic command words while allowing env assignments and variable-prefixed literal paths. **Why:** dynamic words are deliberate evasion with no normal agent use; env injection is required.]
+
+[2026-09-30] [Architect] [Draft] [AIF-007] [Decision: hand-written zero-dependency tokenizer inside the hook assets; no third-party parser, no shelling out to bash; no ADR. **Why:** ADR 0006 requires no build or bundle step, and the installed hook has no node_modules, so a parser library would need vendoring or bundling plus installer, manifest and uninstall changes. The problem is narrow (match a glob per simple command), the prototype passed 82 of 84 cases with both misses fixable by list refinement, and the interface (`matchesBlockedCommand(command, patterns)`) is unchanged so the choice is cheap to reverse. Licence and maintenance of third-party candidates were not verified (no web access). Risks noted: the dynamic-word rule is unprototyped and is the main implementation risk; the prototype throws on an unterminated heredoc, which the real implementation must not.]
