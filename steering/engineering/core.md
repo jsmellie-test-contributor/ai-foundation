@@ -30,7 +30,7 @@ file_patterns: []
 
 ### Rule: Every Artifact Must Reference Its Plan ID
 
-- Source files, work log entries, review reports, and test results must include the Plan ID they belong to
+- Source files, review reports, and test results must include the Plan ID they belong to
 - File header comments must include the Plan ID
 - This applies to new files and to files meaningfully modified as part of a plan
 
@@ -60,7 +60,7 @@ file_patterns: []
 
 **Rationale:** Silent scope expansion undermines the planning gate. Even well-intentioned additions may conflict with other planned work, introduce dependencies, or violate architectural decisions already made.
 
-**Exceptions:** Trivially small corrections (e.g. fixing an obvious typo in a file already being modified) that have zero architectural impact. These should still be noted in the work log.
+**Exceptions:** Trivially small corrections (e.g. fixing an obvious typo in a file already being modified) that have zero architectural impact. These should still be noted in the commit message.
 
 ---
 

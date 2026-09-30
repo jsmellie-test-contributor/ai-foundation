@@ -47,7 +47,7 @@ file_patterns: []
 
 **Rationale:** Security violations are not polish items — they are acceptance criteria. Skipping them introduces risk that may not surface until production.
 
-**Exceptions:** Only when the human explicitly waives a specific security requirement after the agent has flagged it. The waiver must be documented in the plan or work log.
+**Exceptions:** Only when the human explicitly waives a specific security requirement after the agent has flagged it. The waiver must be documented in the plan or the commit message.
 
 ---
 

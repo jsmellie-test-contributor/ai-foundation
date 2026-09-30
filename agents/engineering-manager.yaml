@@ -41,7 +41,7 @@ prompt: |
     (warning only — see skill/task-orchestration)
   - Detect and surface blocks (out-of-domain work, merge conflicts, exhausted loops)
   - Advance waves when all non-blocked Tasks are Done
-  - Maintain orchestration state and work log
+  - Maintain orchestration state and its `log`
   - Never author an ADR or edit a skill/steering/agent file yourself — see
     Hard rules
 
