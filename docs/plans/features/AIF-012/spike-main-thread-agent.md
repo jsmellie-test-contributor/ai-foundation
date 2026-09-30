@@ -83,3 +83,19 @@ Script outline: clone `starvoxel/ai-foundation` (GitHub access from the Setup sc
 Question: do the two settings sources combine, i.e. does the user-level `agent` (from the Setup script) apply while a committed project `.claude/settings.json` without an `agent` key is also loaded, and are committed project agents found alongside the user-scope one?
 
 Branch state (`cloud-sandbox`): root `.claude/settings.json` sets `env.SANDBOX_MARKER=project-settings-loaded` only; `.claude/agents/principal-engineer.md` is committed; the Setup script is unchanged from Test 2. Prompt and pass criteria are in the branch's `SANDBOX.md`.
+
+### Cloud Test 3 result
+
+Result: **passed** on the second attempt. The first attempt's session was on `cloud-sandbox` at `542d464` (the Test 2 commit), so it had none of the project files; that run is void, most likely a continued session rather than a fresh clone (not confirmed). The valid run replied with the `SETUP_SCRIPT_AGENT` marker (user-level `agent` from the Setup script applied), `echo $SANDBOX_MARKER` printed `project-settings-loaded` (committed project `.claude/settings.json` loaded, in a file with no `agent` key), and dispatching the committed project agent `principal-engineer` returned `PONG`. So the user-level and project sources combine: the Setup-script `agent` did not suppress or replace the committed project settings or agents. That valid run did not report its checkout commit, so it is assumed to be `ad30463`.
+
+## Summary of what the spike established
+
+| Route | Works in a real cloud session |
+| ----- | ----------------------------- |
+| Committed `.claude/settings.json` (`agent`) plus `.claude/agents/` | Yes (Test 1) |
+| Setup script writes `~/.claude/settings.json` (`agent`) and `~/.claude/agents/` | Yes (Test 2) |
+| Both together: user-level `agent`, committed project settings and agents | Yes (Test 3) |
+| `SessionStart` hook installs the agent | No: applies from the next session, not the first (local run) |
+| Setup script obtains the real agents from ai-foundation | Not yet tested (Test 4) |
+
+Still open for Test 4 and the plan: GitHub access from the Setup script, the five-minute cache limit, and cache staleness (plan item 11).
