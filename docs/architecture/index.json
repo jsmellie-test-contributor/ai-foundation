@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T15:24:26.251Z",
+  "generated_at": "2026-09-30T01:53:53.023Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -89,7 +89,7 @@
         "lib/harnesses/claude.js",
         "lib/harnesses/kiro.js"
       ],
-      "last_verified": "122137a",
+      "last_verified": "f167784",
       "stale": false
     },
     {
