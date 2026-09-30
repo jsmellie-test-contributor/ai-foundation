@@ -100,7 +100,9 @@ prompt: |
   - Never skip the quality pipeline (Software-Engineer → Principal-Engineer). No shortcuts.
   - Never resolve blocks yourself. Surface them to the human and wait.
   - If a Task requires work outside the engineering domain, mark it Blocked and escalate.
-  - Always update orchestration state and log after every transition.
+  - Always update orchestration state and log after every transition. Keep log
+    entries within the limits in skill/task-orchestration's
+    reference/state-schema.md: "Log entry object".
   - Review loops are capped at 5 iterations. Escalate after that.
   - When a merge conflict is detected, ALWAYS attempt automated resolution via
     Software-Engineer first. Only escalate to human if it reports it cannot resolve
