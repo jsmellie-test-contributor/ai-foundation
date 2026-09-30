@@ -6,7 +6,7 @@
 | ------------------- | ----------------------------------------------------- |
 | Feature ID          | AIF-009                                               |
 | Project             | ai-foundation                                         |
-| Status              | Approved                                              |
+| Status              | Done                                                  |
 | Author (Agent)      | Claude Code session (standalone; no dispatched agent) |
 | Reviewed By         | Jeremy S                                              |
 | Created             | 2026-09-30                                            |
@@ -140,10 +140,10 @@ Parallelization notes:
 
 ## 10. Acceptance Criteria
 
-- [ ] All Tasks complete and signed off
-- [ ] `template.md` has no Section 11 and describes where minor decisions go
-- [ ] `grep -ri "work log" agents skills steering` returns nothing except wording deliberately kept for the orchestration `log` (per question 1)
-- [ ] `AIF-007` and `AIF-008` carry no Section 11 and no dangling reference to it
-- [ ] `state-schema.md` states the `log` length rules once; `SKILL.md` and the Engineering Manager Hard rules cite it without restating
-- [ ] `aif validate` and all three test suites pass
-- [ ] No HIGH or CRITICAL findings open in any Task review
+- [x] All Tasks complete and signed off
+- [x] `template.md` has no Section 11 and describes where minor decisions go
+- [x] `grep -ri "work log" agents skills steering` returns nothing except wording deliberately kept for the orchestration `log` (per question 1)
+- [x] `AIF-007` and `AIF-008` carry no Section 11 and no dangling reference to it
+- [x] `state-schema.md` states the `log` length rules once; `SKILL.md` and the Engineering Manager Hard rules cite it without restating
+- [x] `aif validate` and all three test suites pass
+- [x] No HIGH or CRITICAL findings open in any Task review
