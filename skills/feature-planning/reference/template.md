@@ -97,6 +97,8 @@
 | --- | --------------- | ------------- | ------ | ----------------- | ------------- | -------- |
 | 1   | {Describe}      | Risk/Question | H/M/L  | {PRD/Design/Arch} | {Agent/Human} | No       |
 
+> **Minor decisions made during planning.** A decision made during Feature planning or revision that isn't a genuine architectural/product fork (`docs/process-model.md`'s Decisions section) is not an ADR at all: record it as a resolved `Question` row here, with `Decision: {what was decided}. **Why:** {rationale}.` in the `Resolved` column, and name it in the revision's commit message. No `{paths.decisions}/` entry, no separate approval gate. This rides the Feature Plan's own `skill/plan-lifecycle` cycle. If it later turns out to be a genuine fork (contested, costly to reverse), escalate to Architect for an ADR instead.
+
 ---
 
 ## 9. Task Decomposition
@@ -122,19 +124,3 @@ Parallelization notes:
 - [ ] Feature works end-to-end as described in Section 5
 - [ ] No HIGH or CRITICAL findings open in any Task review
 - [ ] {Feature-specific criteria}
-
----
-
-## 11. Work Log
-
-{Auto-populated by agents. Format:} [{YYYY-MM-DD HH:mm}] [{Agent}] [{Action}] [{ID}] [{Details}]
-
-> **Minor decisions made during planning.** A decision made during Feature planning
-> or revision that isn't a genuine architectural/product fork
-> (`docs/process-model.md`'s Decisions section) is not an ADR at all — record it
-> inline in a Work Log entry, not as a standalone file: no `{paths.decisions}/`
-> entry, no separate approval gate. Fold the convention into the entry's
-> `[Details]`: `Decision: {what was decided}. **Why:** {rationale}.` This rides
-> the Feature Plan's own `skill/plan-lifecycle` cycle. If it later turns out to
-> be a genuine fork — contested, costly to reverse — escalate to Architect for
-> an ADR instead of continuing to treat it as inline.

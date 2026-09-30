@@ -149,9 +149,3 @@ Pending approval. Sizing intent: about four Tasks — (1) `ai-git` shared resour
 - [ ] README "Claude Code Cloud" and arc42 updated; `aif index architecture --check` passes as the final local step
 - [ ] `npm test` passes
 - [ ] No HIGH or CRITICAL findings open in any Task review
-
----
-
-## 11. Work Log
-
-[2026-09-30] [Claude Code session] [Draft] [AIF-008] [Drafted from `docs/research/block-command-bypass.md`. Decision: no ambient identity; use `gh` and `ai-git`, not GitHub MCP tools. **Why:** human direction after the `AIF-007` investigation; enforcement needs a working sanctioned path. Finding: at runtime the cloud network policy denies github.com and crates.io, so tool installs belong in the Setup script.]
