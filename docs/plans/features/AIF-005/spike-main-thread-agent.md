@@ -251,3 +251,19 @@ Environment 3 (Trusted): first a session on `B-install.sh` pinned to `95156a2` t
 - **The `PATH` links work in cloud:** `on PATH: aif=/usr/local/bin/aif ai-git=/usr/local/bin/ai-git`.
 - **Timing:** VM booted `17:03:18`, the script ran `17:03:24` to `17:03:39` (15s total, `aif install` 2s), and the session's first command ran at `17:03:46`. So the first start after a script edit waits roughly 20 to 30 seconds with this recipe, and the script ran in the session's own VM, as expected for a cache miss.
 - **Consequence for refresh:** bumping the pinned ref in the script is enough to refresh a cloud environment, and it replaces the old install. Only a human can edit the script, so each refresh needs the human to bump the ref.
+
+## Test E: two-part feature, decomposition and dispatch
+
+Question: can the real manager, as primary in a cloud session, take a two-part feature through plan, approval, decomposition with `dag-validate` and `dag-compute-waves`, and dispatch of Wave 1 into worktrees created with `ai-git`?
+
+**First attempt (2026-09-30): stopped by the environment, not the plan.** The manager drafted the plan but could not commit it, because every Bash call failed with a Claude Code permission-classifier error ("no verdict"), including the `ai-git` check. It did not fall back to raw `git` and did not dispatch. The installed CLI's strings describe three related classifier failures: a hard "gave no verdict" that retrying will not change, a classifier transcript that exceeded its context window, and a request blocked by a safety monitor. Which one fired is unknown; the long session (steering rules, plan drafting, three Tasks) makes the context-window one plausible. Permission modes are set per session from the session's mode dropdown, and the classifier is the Auto mode's.
+
+**Rerun:** Environment 1 (`B-install.sh`, unchanged), a new session on `cloud-sandbox` with the permission mode set to Default or Accept edits, not Auto. Send each step only after the previous one finishes, so there is a break after each.
+
+- **E1, plan:** "Draft a Feature Plan for a repo with three pieces: (1) bin/hello.js, a script that prints "hello"; (2) bin/goodbye.js, a script that prints "goodbye"; (3) a README.md section documenting both commands, which depends on both. Treat them as separate Tasks so the first two can run in parallel. Use ai-git for every git operation, never raw git. Commit the plan as Draft, present it, and wait. Do not dispatch anything yet."
+- **E2, approval:** reply "Approved." and wait for the approval commit.
+- **E3, decompose:** "Decompose the approved plan into tasks.json, validate it with mcp__dag__dag-validate, compute waves with mcp__dag__dag-compute-waves, and paste the raw results here. Do not dispatch yet."
+- **E4, dispatch:** "Dispatch Wave 1 per your orchestration process: each Task in its own branch and worktree created with ai-git, using the software-engineer agent. Do not push and do not open any pull request. Stop when Wave 1 is complete and report the orchestration state."
+- **E5, report:** "Report: every skill you loaded; every tool call that errored or was denied; every commit, branch and worktree created (ai-git output, hash and subject); the orchestration state file contents; any raw git command you ran."
+
+**Pass:** a valid `tasks.json` with two independent Tasks and a third that depends on both (two waves), both dag tools return results, worktrees and commits are created through `ai-git` under the AI identity, and the dispatched subagents finish. Watch for raw `git` compound commands (the separately tracked hook gap) and for permission prompts.
