@@ -8,7 +8,7 @@
 | Project             | ai-foundation                                                                         |
 | Status              | Approved                                                                              |
 | Author (Agent)      | Claude Code session (standalone; no dispatched agent)                                 |
-| Reviewed By         | jeremysmellie@gmail.com (chat approval 2026-09-30)                                    |
+| Reviewed By         | Jeremy S (chat approval 2026-09-30)                                                   |
 | Created             | 2026-09-30                                                                            |
 | Last Updated        | 2026-09-30                                                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                                           |
