@@ -1,0 +1,137 @@
+# Feature Plan: Remove work logs from Feature Plans
+
+## 1. Metadata
+
+| Field               | Value                                                 |
+| ------------------- | ----------------------------------------------------- |
+| Feature ID          | AIF-009                                               |
+| Project             | ai-foundation                                         |
+| Status              | Draft                                                 |
+| Author (Agent)      | Claude Code session (standalone; no dispatched agent) |
+| Reviewed By         | Pending                                               |
+| Created             | 2026-09-30                                            |
+| Last Updated        | 2026-09-30                                            |
+| Standards           | `javascript`, `node` (per `.aiconfig.json`)           |
+| Total Tasks         | Pending approval                                      |
+| Product Requirement | None                                                  |
+| ADRs                | None                                                  |
+
+---
+
+## 2. Goal
+
+Drop Section 11 "Work Log" from the Feature Plan template and every instruction that tells an agent to write one. Git history already records who did what and when, so the log duplicates it and adds a second place that drifts. The one thing the log carries that git does not cleanly carry, the rationale for minor planning decisions, moves to a home that already exists (Section 8).
+
+> Requirement traceability: N/A. Human request 2026-09-30.
+
+---
+
+## 3. Quick Summary
+
+**Open Items:** 2 open (0 High / 1 Medium / 1 Low) — see Section 8
+
+---
+
+## 4. Scope
+
+### In Scope
+
+- `skills/feature-planning/reference/template.md`: delete Section 11. Move the "minor decisions" convention into Section 8 (see Section 5).
+- `agents/software-engineer.yaml`: delete the two "Write Work Log entry" process steps (implementation step 12, correction step 5).
+- `agents/engineering-manager.yaml`: reword "Maintain orchestration state and work log" (see Section 8, question 1).
+- `steering/engineering/core.md`: remove "work log entries" from the Plan ID rule; replace "noted in the work log" in the scope-expansion exception with the commit message.
+- `steering/global/core.md`: replace "plan or work log" in the security-waiver exception.
+- `skills/feature-planning/SKILL.md`: check for and fix any reference to Section 11 or the log (none found by search; confirm while editing).
+- Live Feature Plans `AIF-007` and `AIF-008` (Draft/Approved, still carrying a Work Log): fold each log's decisions into Section 8, fix `AIF-007`'s Metadata row that points at "the Work Log", delete Section 11 (see Section 8, question 2).
+- `PLAN.md` line 53 ("Work Log system (persistent activity tracking)"): mark dropped, superseded by git history.
+- Run `aif validate` and the test suites; confirm no arc42 `key_files` entry is touched (none found by search; re-check).
+
+### Out of Scope
+
+- The orchestration state file's `log` array and its `log` action vocabulary (`skills/task-orchestration/`), unless question 1 resolves the other way. It is machine state for wave dispatch, not the plan's Work Log.
+- Historical and completed Feature Plans (`AIF-001` to `AIF-004`, `docs/plans/completed/`), ADR archives, and `docs/process-model.md` history. They describe what was true when written.
+- Any tooling that enforces plan section structure: none exists (`lib/` and `tests/` have no reference to plan sections).
+
+---
+
+## 5. Feature Description
+
+### User-Facing Behaviour
+
+New Feature Plans end at Section 10 (Acceptance Criteria). Agents no longer append log lines. To reconstruct a plan's history, read `git log` on the plan file: the Draft, revision, Approved and decomposition commits already required by `skill/plan-lifecycle` are that history.
+
+### Minor planning decisions
+
+The template currently says to record a non-ADR decision inline in a Work Log entry as `Decision: {what}. **Why:** {rationale}.`. Replacement:
+
+- Record the decision as a row in Section 8 (Risks & Open Questions) with Type `Question`, resolved, and the decision plus `**Why:**` in the `Resolved` column. This is what `AIF-007` question 1 already does.
+- The commit message for the revision names it.
+- The escalation rule stays: if it turns out to be a genuine fork, escalate to Architect for an ADR.
+
+### Business Rules
+
+- No new Feature Plan section replaces Section 11.
+- The Plan ID rule still binds review reports and test results; only "work log entries" leaves its list.
+- Implementation progress is reported through commits, the PR description and the Test Results Report, not a log.
+
+### Error States
+
+| Scenario                                                                | Expected Behaviour                                                                                  |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| A decision's rationale exists only in a deleted Work Log entry          | Preserved in Section 8 before the section is deleted (plans `AIF-007`, `AIF-008`)                   |
+| An agent prompt or steering file still says "work log" after the change | `grep -ri "work log"` over `agents/ skills/ steering/` returns only the orchestration-state wording |
+
+---
+
+## 6. Architecture Overview
+
+### New Components
+
+None.
+
+### Component Relationships
+
+Documentation and prompt edits only. No code, no installer change, no bundle manifest change.
+
+### Integration Points
+
+- `aif validate` — schema and cross-reference check over the edited agents, skills and steering.
+- Installed copies under `~/.claude/` are regenerated by `aif install --update`; no separate action.
+
+---
+
+## 7. Security Considerations
+
+- The security-waiver exception in `steering/global/core.md` must still say where a waiver is documented; it moves to the plan or the commit message, never to nowhere. No security requirement is relaxed.
+
+---
+
+## 8. Risks & Open Questions
+
+| #   | Risk / Question                                                                                                                                                                                                                                                                                      | Type     | Impact | Source | Raised By | Resolved |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------ | --------- | -------- |
+| 1   | Does "work logs" include the orchestration state file's `log` array? Recommendation: no. It records dispatch, wave and conflict events that git does not (Task dispatched, review loop count, escalations) and drives resume after interruption. Only the wording "work log" is reworded.            | Question | M      | Design | Agent     | No       |
+| 2   | Migrate `AIF-007` (Approved, decomposed) and `AIF-008` (Draft) now, or leave their logs as history? Recommendation: migrate, since they are the only live plans and leaving Section 11 invites the next agent to keep appending. Editing an Approved plan is cosmetic here and committed separately. | Question | L      | Design | Agent     | No       |
+
+---
+
+## 9. Task Decomposition
+
+Dependency graph: [`tasks.json`](./tasks.json)
+
+Summary: Pending approval. Expected 1 to 2 Tasks, no parallelism needed: (a) template, skill, agents, steering and `PLAN.md` edits; (b) live-plan migration. Single Task if question 2 resolves to "leave".
+
+Parallelization notes:
+
+- None. The edits are small and independent of each other; splitting further adds only overhead.
+
+---
+
+## 10. Acceptance Criteria
+
+- [ ] All Tasks complete and signed off
+- [ ] `template.md` has no Section 11 and describes where minor decisions go
+- [ ] `grep -ri "work log" agents skills steering` returns nothing except wording deliberately kept for the orchestration `log` (per question 1)
+- [ ] `AIF-007` and `AIF-008` carry no Section 11 and lose no decision rationale (if question 2 resolves to migrate)
+- [ ] `aif validate` and all three test suites pass
+- [ ] No HIGH or CRITICAL findings open in any Task review
