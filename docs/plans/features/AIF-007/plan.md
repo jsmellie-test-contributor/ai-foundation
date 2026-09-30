@@ -12,7 +12,7 @@
 | Created             | 2026-09-30                                                                            |
 | Last Updated        | 2026-09-30                                                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                                           |
-| Total Tasks         | Pending approval                                                                      |
+| Total Tasks         | 3                                                                                     |
 | Product Requirement | None                                                                                  |
 | ADRs                | None (Architect decided no ADR is needed; see Section 8, question 1 and the Work Log) |
 
@@ -130,7 +130,18 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 
 ## 9. Task Decomposition
 
-Pending approval. Sizing intent: about three Tasks — (1) splitter/normalizer, dynamic-word rule and unit tests; (2) `cli.js` integration tests plus installer/manifest changes if a module is added; (3) arc42 §5.02 and semantics documentation. Decomposed with `tasks.json` and `dag-validate` only after `Status: Approved` is committed.
+Dependency graph: [`tasks.json`](./tasks.json)
+
+Summary: 3 Tasks across 2 waves. Task 001 (matcher and unit tests) is the only dependency; Tasks 002 and 003 then run in parallel.
+
+- **001** — shell-aware matcher in `logic.js`: splitter, normalizer, dynamic-word rule, fail-open behaviour, unit tests.
+- **002** — real-CLI integration tests for `cli.js` and the installed copy; the block message points at `ai-git`; installer, manifest and lifecycle-test changes only if the parser is split into a sibling module.
+- **003** — arc42 §5.02 update (mechanism, residual gaps, `key_files`, `last_verified`) and the `blocked_commands` semantics wording.
+
+Parallelization notes:
+
+- 002 and 003 both need 001's final behaviour; neither touches the other's files, so they can run concurrently.
+- Task 003 ends with `aif index architecture --check` as the last local step (`steering/engineering/architecture-authoring.md`: "`--check` Is a Final Validation, Not a Mid-Sequence One").
 
 ---
 
@@ -160,3 +171,5 @@ Pending approval. Sizing intent: about three Tasks — (1) splitter/normalizer, 
 [2026-09-30] [Claude Code session] [Revise] [AIF-007] [Risk 3 (parser drift from bash syntax) accepted by the human as low. **Why:** mitigated by fail-open and the false-positive test suite. No open items remain.]
 
 [2026-09-30] [Claude Code session] [Approved] [AIF-007] [Human explicitly approved the plan in chat; Status set to Approved in this commit. Task decomposition not yet done.]
+
+[2026-09-30] [Claude Code session] [Decompose] [AIF-007] [Decomposed into 3 Tasks in 2 waves; `dag-validate` passed. **Why 3:** one Task for the shared logic, then test/integration and documentation work that can proceed in parallel; not split by artifact type.]
