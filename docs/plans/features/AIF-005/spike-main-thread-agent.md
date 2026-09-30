@@ -223,3 +223,11 @@ The manager, as primary, started the task and then stopped: it could not create 
 - **Fix:** `B-install.sh` (and D1 and D2, kept in sync) now link `aif` and `ai-git` into `/usr/local/bin` and log where they resolve. Verified locally against a fake root: both links are created, and the linked `ai-git` commits under the AI identity from `.aiconfig.json`. (The script's own `on PATH` log line reads `none` in a local run only because the fake directory is not on the shell's `PATH`.)
 - **Not yet confirmed in cloud:** Environment 1 needs the updated script pasted (the cache rebuilds), then Stage C rerun. Other things C may still hit: the sandbox repo's `.aiconfig.json` supplies the identity, but pushing needs a token or the GitHub proxy, and `bws` is not installed by the recipe yet.
 
+### Stage D2 (2026-09-30): passed
+
+Setup script `D2-badagent.sh` (`AGENT="engineering-managr"`), Trusted network, new session. The report was a summary rather than the raw output.
+
+- **Verify-and-skip works in cloud:** the session ran as the default Claude Code agent (its system prompt names no agent), and the setup log said the agent file `engineering-managr.md` was missing and the agent was not set. The installed file on disk is `engineering-manager.md`.
+- **No settings file:** `/root/.claude/settings.json` does not exist, so the failed check left user settings untouched.
+- **Known YouTrack failure:** the session reported the YouTrack server failing to connect with a proxy 403 (`ERR_PROXY_TUNNEL`), although the install log lists it as installed. This is the known limitation, unrelated to the agent setting.
+
