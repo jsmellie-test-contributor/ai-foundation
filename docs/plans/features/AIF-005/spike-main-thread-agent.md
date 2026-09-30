@@ -242,3 +242,13 @@ Environment 1 with the updated `B-install.sh`, new session on `cloud-sandbox`. T
 - **Benign:** two Bash surveys hit `ls: cannot access` for paths that did not exist in the empty sandbox repo.
 - **Not reported:** permission prompts. Not exercised: a multi-Task decomposition, dispatch, and worktrees.
 
+### Stage D1 (2026-09-30): passed
+
+Environment 3 (Trusted): first a session on `B-install.sh` pinned to `95156a2` to build the cache, then the `REF=` line changed to the older `e2d8a5c` and a new session. The first reply gave only a summary, so the raw output was requested and pasted.
+
+- **The bump rebuilt the environment and took effect:** the log's `B start` line shows ref `e2d8a5c24a64afca5e6bcc472f87e03e928c7a64`, and the installed manager's frontmatter has `@dag/dag-validate` and `@dag/dag-compute-waves` (the pre-fix names), so the old commit really was installed over the earlier one.
+- **Clean rebuild:** only one `B start` line appears in the log, so the rebuild started from a clean image, not on top of the previous snapshot. (The pasted output did not include a count, only the matching lines.)
+- **The `PATH` links work in cloud:** `on PATH: aif=/usr/local/bin/aif ai-git=/usr/local/bin/ai-git`.
+- **Timing:** VM booted `17:03:18`, the script ran `17:03:24` to `17:03:39` (15s total, `aif install` 2s), and the session's first command ran at `17:03:46`. So the first start after a script edit waits roughly 20 to 30 seconds with this recipe, and the script ran in the session's own VM, as expected for a cache miss.
+- **Consequence for refresh:** bumping the pinned ref in the script is enough to refresh a cloud environment, and it replaces the old install. Only a human can edit the script, so each refresh needs the human to bump the ref.
+
