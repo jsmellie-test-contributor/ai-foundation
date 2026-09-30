@@ -6,9 +6,9 @@
 | ------------------- | ------------------------------------------------------------------------------------- |
 | Feature ID          | AIF-007                                                                               |
 | Project             | ai-foundation                                                                         |
-| Status              | Draft                                                                                 |
+| Status              | Approved                                                                              |
 | Author (Agent)      | Claude Code session (standalone; no dispatched agent)                                 |
-| Reviewed By         | Pending                                                                               |
+| Reviewed By         | jeremysmellie@gmail.com (chat approval 2026-09-30)                                    |
 | Created             | 2026-09-30                                                                            |
 | Last Updated        | 2026-09-30                                                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                                           |
@@ -158,3 +158,5 @@ Pending approval. Sizing intent: about three Tasks — (1) splitter/normalizer, 
 [2026-09-30] [Architect] [Draft] [AIF-007] [Decision: hand-written zero-dependency tokenizer inside the hook assets; no third-party parser, no shelling out to bash; no ADR. **Why:** ADR 0006 requires no build or bundle step, and the installed hook has no node_modules, so a parser library would need vendoring or bundling plus installer, manifest and uninstall changes. The problem is narrow (match a glob per simple command), the prototype passed 82 of 84 cases with both misses fixable by list refinement, and the interface (`matchesBlockedCommand(command, patterns)`) is unchanged so the choice is cheap to reverse. Licence and maintenance of third-party candidates were not verified (no web access). Risks noted: the dynamic-word rule is unprototyped and is the main implementation risk; the prototype throws on an unterminated heredoc, which the real implementation must not.]
 
 [2026-09-30] [Claude Code session] [Revise] [AIF-007] [Risk 3 (parser drift from bash syntax) accepted by the human as low. **Why:** mitigated by fail-open and the false-positive test suite. No open items remain.]
+
+[2026-09-30] [Claude Code session] [Approved] [AIF-007] [Human explicitly approved the plan in chat; Status set to Approved in this commit. Task decomposition not yet done.]
