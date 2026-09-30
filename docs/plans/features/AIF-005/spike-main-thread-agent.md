@@ -189,3 +189,17 @@ Started after session 1 had responded.
 - **The cached run was a separate run from session 1's:** both logs show `B start` at `10:36:46` but different step timings (session 1: npm 15s, `aif install` 3s, total 19s; session 2's log: npm 14s, `aif install` 2s, total 17s, `added 161 packages in 13s`). Inference: on the first start after a script edit, the environment build and the first session each run the script concurrently, and the snapshot comes from the build's run, not from session 1's VM. Consequence: the recipe must be idempotent and free of external side effects.
 - **Timing budget:** about 17 to 19 seconds total against the roughly five-minute limit, so the cache builds comfortably.
 
+### Stage A2 (2026-09-30): passed, decision made
+
+Setup script `A2-toolchain.sh`, its own environment, one session.
+
+| Method | Result | Time |
+| ------ | ------ | ---- |
+| Prebuilt `bws-x86_64-unknown-linux-gnu-2.1.0.zip` from the Bitwarden GitHub release, sha256 verified against the release checksum file | ok, `bws 2.1.0` ran | 777ms |
+| `cargo install bws --locked` | ok | 232,755ms (about 3m53s) |
+
+- **Decision:** use the checksum-verified release binary in the recipe; keep cargo only as a fallback. The binary is about 300 times faster, and cargo alone consumed roughly 78% of the five-minute cache budget, which leaves little room for fetching and installing `aif` in the same script.
+- **The script duration is the first-start delay:** the setup log ran from `10:36:07` to `10:40:00` and the session's first `date` was `10:40:05`, so a session started right after an edit waits for the whole Setup script. A cached environment does not.
+- **`bws` was not on the path in the session by design:** the test script installed the binary to `/tmp/bws-bin` and the cargo build to `/tmp/bws-cargo`, neither on `PATH`. The real recipe should install to `/usr/local/bin`. `bws` was `none` on the path before the script ran, so the image does not include it.
+- **Network reach:** the Setup stage reached `github.com/bitwarden/...` and `crates.io`, so the environment is at Trusted or Full; the level was still not reported.
+
