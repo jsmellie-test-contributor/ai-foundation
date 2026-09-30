@@ -215,3 +215,11 @@ The human confirmed the test environments used the **Trusted** network access le
 - **D2 expectation:** the session runs as the default agent, the log says the agent was not set, `/root/.claude/settings.json` does not exist, and all five agents are installed.
 - **C expectation:** with B's environment unchanged, the manager drafts and commits a plan, waits, then on approval commits it, writes `tasks.json`, and runs `mcp__dag__dag-validate` and `mcp__dag__dag-compute-waves`.
 
+### Stage C, first attempt (2026-09-30): blocked by a recipe gap, fixed in the script
+
+The manager, as primary, started the task and then stopped: it could not create the Draft commit or the Approved commit, because raw `git` is blocked by the installed `block-command` hook and `ai-git` was not installed. It also could not dispatch, because every Task needs its own branch and worktree from `ai-git`. It held rather than working around either block, which is the behavior the steering asks for (approval must be its own commit, no fallback to the main directory).
+
+- **Cause:** `B-install.sh` installed `aif` and `ai-git` under `/opt/aif/node_modules/.bin`, which is not on `PATH`, so `ai-git` did not exist in the session.
+- **Fix:** `B-install.sh` (and D1 and D2, kept in sync) now link `aif` and `ai-git` into `/usr/local/bin` and log where they resolve. Verified locally against a fake root: both links are created, and the linked `ai-git` commits under the AI identity from `.aiconfig.json`. (The script's own `on PATH` log line reads `none` in a local run only because the fake directory is not on the shell's `PATH`.)
+- **Not yet confirmed in cloud:** Environment 1 needs the updated script pasted (the cache rebuilds), then Stage C rerun. Other things C may still hit: the sandbox repo's `.aiconfig.json` supplies the identity, but pushing needs a token or the GitHub proxy, and `bws` is not installed by the recipe yet.
+

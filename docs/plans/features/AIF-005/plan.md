@@ -30,7 +30,7 @@ Spike evidence is in [`spike-main-thread-agent.md`](./spike-main-thread-agent.md
 
 ## 3. Quick Summary
 
-**Open Items:** 5 open (0 High / 2 Medium / 3 Low) — see Section 8
+**Open Items:** 6 open (0 High / 3 Medium / 3 Low) — see Section 8
 
 ---
 
@@ -38,7 +38,7 @@ Spike evidence is in [`spike-main-thread-agent.md`](./spike-main-thread-agent.md
 
 ### In Scope
 
-- A documented, repeatable environment Setup-script recipe that fetches a pinned ai-foundation from GitHub, installs the chosen bundles for the Claude harness, and merges the primary `agent` into the user's `~/.claude/settings.json` without clobbering other settings.
+- A documented, repeatable environment Setup-script recipe that fetches a pinned ai-foundation from GitHub, installs the chosen bundles for the Claude harness, puts `aif` and `ai-git` on the `PATH` (the steering requires `ai-git` and the installed `block-command` hook blocks raw `git`), and merges the primary `agent` into the user's `~/.claude/settings.json` without clobbering other settings.
 - Making the real Engineering-Manager viable as a primary agent: the MCP tool-name defect is fixed on `main`; skill loading for a main-thread agent is documented (Section 8, item 3).
 - Verifying the result in a real cloud session, including the recipe's time and network behavior, the manager's tools, and a readable setup log.
 - README cloud-setup guidance and any arc42 sections touched by code changes.
@@ -61,7 +61,7 @@ An environment owner saves a short Setup script once, naming the pinned ai-found
 
 ### Data Flow
 
-The environment Setup script runs before Claude Code launches and before the repo is cloned, as root, and its result is cached. It fetches ai-foundation with `npm install github:starvoxel/ai-foundation#<ref>`, runs `aif install -B <bundles> -H claude` to write agents, rules, skills, standards, servers and the hook script under `~/.claude/`, verifies the named agent file exists, and merges `{"agent": "<name>"}` into `~/.claude/settings.json`. When a session starts, Claude Code reads the user settings and runs the named agent as the main thread. Any repo `SessionStart` hook, such as this repo's `aif install`, runs afterward and only refreshes files for later sessions.
+The environment Setup script runs before Claude Code launches and before the repo is cloned, as root, and its result is cached. It fetches ai-foundation with `npm install github:starvoxel/ai-foundation#<ref>`, runs `aif install -B <bundles> -H claude` and links `aif` and `ai-git` into `/usr/local/bin` to write agents, rules, skills, standards, servers and the hook script under `~/.claude/`, verifies the named agent file exists, and merges `{"agent": "<name>"}` into `~/.claude/settings.json`. When a session starts, Claude Code reads the user settings and runs the named agent as the main thread. Any repo `SessionStart` hook, such as this repo's `aif install`, runs afterward and only refreshes files for later sessions.
 
 ### Business Rules
 
@@ -140,6 +140,7 @@ Builds on §5.02 (Claude adapter) and §6 (install runtime). `resolver.js` and t
 | 14 | Resolved by the human: the cloud environment sets the primary agent at build time; `aif` needs no `--primary` option for cloud. Kiro is deferred and recorded as a Kiro gap in `docs/architecture/11_risks.md`. | Question | M | Design | Human | Yes |
 | 15 | Discovery, outside this Feature: install freshness snapshots hash component sources only, not adapter code, so after an adapter fix `aif install` still reports a bundle "already current" and the installed files keep the old transform (observed after the tool-name fix). Cloud environments are unaffected because a fresh VM installs from scratch; local installs need a reinstall. Raise as its own item. | Risk | L | Spike | Agent | No |
 | 16 | Discovery: the Claude adapter maps the generic `task` tool to include `TaskOutput`, but the cloud manager could not call it and the local tool lists never showed it, so it is probably not a tool in this Claude Code version. The adapter's own rule says a non-existent native name is silently dropped. Verify against `KNOWN_NATIVE_TOOLS` and prune if confirmed. | Risk | L | Spike | Agent | No |
+| 17 | Found by cloud stage C: the recipe did not put `ai-git` on the `PATH`, so the manager could not make the Draft or Approved commits (raw `git` is blocked by the installed hook) or create worktrees to dispatch. Fixed in the script (links `aif` and `ai-git` into `/usr/local/bin`, verified locally). To confirm in cloud by rerunning stage C. Also to settle for the recipe: pushing needs a token or the GitHub proxy, and `bws` (for `ai-git`'s `secrets.run`) is not installed yet. | Risk | M | Spike | Human | No |
 
 ---
 
@@ -182,3 +183,4 @@ Not yet decomposed — produced after this plan is Approved (`skill/feature-plan
 [2026-09-30 08:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage B session 2 passed: environment cached, script did not re-run (count 1, log ends before the VM booted). The snapshot came from a separate run, concurrent with session 1's, so the recipe must be idempotent. Added that business rule.]
 [2026-09-30 09:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage A2 passed: verified bws binary 777ms versus cargo install 232.8s. Decision: the recipe installs the binary to /usr/local/bin and keeps cargo only as a fallback. **Why:** cargo alone used about 78% of the five-minute cache budget. Script duration also equals the first-start delay after an edit.]
 [2026-09-30 10:00] [Engineering Manager] [Spike] [AIF-005] [Human confirmed the test environments used Trusted network access, so B and A2 results hold for the Trusted allowlist. Wave 2 scripts D1 and D2 added to `cloud-sandbox`.]
+[2026-09-30 11:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage C first attempt blocked: ai-git was not on PATH, so the manager correctly held (no Draft or Approved commit possible, no worktrees). Fixed the recipe to link aif and ai-git into /usr/local/bin; rerun pending. Item 17 added.]
