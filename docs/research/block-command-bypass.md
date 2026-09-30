@@ -141,7 +141,7 @@ Findings from this session (environment `AIF-Test`, checked with read-only comma
 
 Decided 2026-09-30: option (a) is the solution — `AIF-007` drafted (`docs/plans/features/AIF-007/plan.md`, Status: Draft); fail open on unparseable commands; block dynamic command words while allowing env-var injection and variable-prefixed literal paths; Kiro verification not needed; ambient identity (d) dropped in favour of steering plus `ai-git` cloud readiness.
 
-Still open: approve `AIF-007`; approve drafting the `ai-git` cloud-readiness Feature; how `gh` and `bws` reach the cloud image (Setup script binary download vs `apt`, or allow the GitHub release hosts); whether the parser needs Architect review or an ADR (hand-written and dependency-free is the proposal).
+Architect decided 2026-09-30: hand-written zero-dependency tokenizer, no ADR (recorded in AIF-007's Work Log). Still open: approve `AIF-007`; approve `AIF-008`; how `gh` and `bws` reach the cloud image (Setup script binary download vs `apt`, or allow the GitHub release hosts);
 
 ## Sources
 
