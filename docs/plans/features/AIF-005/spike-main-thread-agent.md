@@ -1,4 +1,4 @@
-# Spike: Main-Thread Custom Agent (AIF-005, open item 3)
+# Spike: Main-Thread Custom Agent (AIF-005)
 
 Exploratory spike explicitly requested by the human. Output is evidence for the Feature Plan, not production code. Runs in a throwaway project under the session scratchpad, never in this repo.
 
@@ -16,7 +16,7 @@ Headless `claude -p` runs in a scratch project, each asking the agent to state i
 
 ## Exit criteria
 
-Each question answered with observed output (or marked untestable and why). Findings feed Section 8 items 1, 3 and 4 of the plan.
+Each question answered with observed output (or marked untestable and why). Findings feed the risks and open questions in Section 8 of the plan.
 
 ## Findings
 
@@ -39,7 +39,7 @@ The Claude adapter passes `@dag/dag-validate` style entries through unchanged, a
 ## Consequences for the plan
 
 - Item 3 is largely answered: main-thread agents work and can dispatch subagents.
-- The hook route is confirmed unworkable, which strengthens item 1's case for files present at startup.
+- The hook route is confirmed unworkable, which is why the primary agent has to be provisioned before launch (by the environment Setup script or committed files).
 - Item 4c raises a new risk: a committed `agent` setting with a missing agent fails silently.
 
 ## Cloud Test 1 — committed project files (branch `cloud-sandbox`, commit e5220cb)
@@ -98,17 +98,19 @@ Result: **passed** on the second attempt. The first attempt's session was on `cl
 | `SessionStart` hook installs the agent | No: applies from the next session, not the first (local run) |
 | Setup script obtains the real agents from ai-foundation | Not yet tested (Test 4) |
 
-Still open for Test 4 and the plan: GitHub access from the Setup script, the five-minute cache limit, and cache staleness (plan item 11).
+Still open for Test 4 and the plan: GitHub access from the Setup script, the five-minute cache limit, and cache staleness (resolved: bumping the pinned ref in the script rebuilds the cache).
 
 ## Real Engineering-Manager as primary (local, headless, Claude Code 2.1.285)
 
 Run with the real installed `engineering-manager` via `--agent`, no cloud involved.
 
 - **Works:** the persona and process apply, the installed steering rules from `~/.claude/rules/` are in context in full, and the manager describes a correct feature-planning path (ADR check, Draft plan, approval, then decomposition and `dag-validate`).
-- **Tools:** as installed, `@dag/*` and `@youtrack/*` were not granted; the manager said it had no `dag-validate`. With the entries rewritten to `mcp__dag__dag-validate` and `mcp__dag__dag-compute-waves` in a copy, both were granted and it attempted the call (the headless run then denied permission, and the tool takes a `tasks_path` file, not an inline graph). See plan item 8.
-- **Skills:** the agent's `skills:` frontmatter (`task-orchestration`, `worktree-management`) was not injected into the main thread; it reported no skill text in context in two runs and would load skills with the `Skill` tool on demand. This is a self-report, not a captured prompt. See plan item 13.
+- **Tools:** as installed, `@dag/*` and `@youtrack/*` were not granted; the manager said it had no `dag-validate`. With the entries rewritten to `mcp__dag__dag-validate` and `mcp__dag__dag-compute-waves` in a copy, both were granted and it attempted the call (the headless run then denied permission, and the tool takes a `tasks_path` file, not an inline graph). See the `@server/tool` defect in the plan's Section 8.
+- **Skills:** the agent's `skills:` frontmatter (`task-orchestration`, `worktree-management`) was not injected into the main thread; it reported no skill text in context in two runs and would load skills with the `Skill` tool on demand. This is a self-report, not a captured prompt. See the skills-frontmatter risk in the plan's Section 8.
 - **Not tested:** the same run in a cloud session (tool set, GitHub MCP tools, permissions).
 
 ## Fetching `aif` from GitHub (local check, this container)
 
 The human confirmed the repo is public. In a scratch project, `npm install github:starvoxel/ai-foundation#main` took 18s (161 packages) and put `aif` and `ai-git` in `node_modules/.bin`. `HOME=<throwaway> node_modules/.bin/aif install -B engineering -H claude` then took 5s and installed the full engineering bundle (5 agents, rules, skills, standards, both servers, the `block-command` hook script; 55 files). Caveats: this container's traffic goes through a proxy that may inject credentials, so anonymous access is expected but not proven here; the manifest `.installs.yaml` is written inside `node_modules/ai-foundation/`. Cloud Test 4 therefore becomes a low-risk confirmation: the same two commands plus the `agent` merge, in a real Setup script.
+
+Note: after the plan was reframed around cloud-session primary agent selection (2026-09-30), Section 8 was renumbered, so the item numbers cited in older commits and in the plan's earlier work-log entries refer to the previous table. This document now refers to the plan's Section 8 by topic.
