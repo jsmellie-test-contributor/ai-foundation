@@ -114,3 +114,16 @@ Run with the real installed `engineering-manager` via `--agent`, no cloud involv
 The human confirmed the repo is public. In a scratch project, `npm install github:starvoxel/ai-foundation#main` took 18s (161 packages) and put `aif` and `ai-git` in `node_modules/.bin`. `HOME=<throwaway> node_modules/.bin/aif install -B engineering -H claude` then took 5s and installed the full engineering bundle (5 agents, rules, skills, standards, both servers, the `block-command` hook script; 55 files). Caveats: this container's traffic goes through a proxy that may inject credentials, so anonymous access is expected but not proven here; the manifest `.installs.yaml` is written inside `node_modules/ai-foundation/`. Cloud Test 4 therefore becomes a low-risk confirmation: the same two commands plus the `agent` merge, in a real Setup script.
 
 Note: after the plan was reframed around cloud-session primary agent selection (2026-09-30), Section 8 was renumbered, so the item numbers cited in older commits and in the plan's earlier work-log entries refer to the previous table. This document now refers to the plan's Section 8 by topic.
+
+## Skills frontmatter on a main-thread agent (canary test, local, headless)
+
+A scratch project had a skill `canary-skill` whose body held the token `CANARY-7F3A-91`, and an agent `canary` whose frontmatter listed `skills: [canary-skill]`. Asked, with no tools, for the token if its full text was already in context:
+
+- Run as the main thread (`--agent canary`): `NONE`.
+- Dispatched as a subagent by the default main thread: `CANARY-7F3A-91`.
+
+So `skills:` frontmatter preloads skill text for subagents but not for a primary agent. This replaces the earlier self-report. The manager as primary must load `task-orchestration` and `worktree-management` with the Skill tool on demand.
+
+## Install freshness ignores adapter code (observed)
+
+After the MCP tool-name fix changed `claude.js`, `aif install -B engineering -H claude` reported `already current, skipping`, because the bundle snapshot hashes component sources, not adapter code. Installed files therefore keep the old transform until reinstalled by other means. Fresh cloud VMs are unaffected.
