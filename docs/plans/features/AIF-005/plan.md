@@ -30,7 +30,7 @@ Spike evidence is in [`spike-main-thread-agent.md`](./spike-main-thread-agent.md
 
 ## 3. Quick Summary
 
-**Open Items:** 1 open (0 High / 0 Medium / 1 Low) — see Section 8
+**Open Items:** 0 open (0 High / 0 Medium / 0 Low) — see Section 8
 
 ---
 
@@ -54,6 +54,7 @@ Spike evidence is in [`spike-main-thread-agent.md`](./spike-main-thread-agent.md
 - The `engineering` bundle not installing `skill/plan-lifecycle` and `adr-authoring` (item 19, tracked separately as AIF-006).
 - Install freshness ignoring adapter code (item 15): cloud environments refresh by bumping the pinned ref.
 - Whether `TaskOutput` is a real Claude Code tool (item 16): investigated separately and fixed on `main` if it is not.
+- Orchestration and review process findings from Test E (item 21): invented timestamps, undefined Task statuses, reviewer overrides, reviewers without a shell.
 
 ---
 
@@ -199,3 +200,4 @@ Not yet decomposed — produced after this plan is Approved (`skill/feature-plan
 [2026-09-30 17:00] [Engineering Manager] [Revise] [AIF-005] [Item 16 resolved outside this plan: TaskOutput confirmed removed from Claude Code (docs deprecate it, the 2.1.285 CLI ignores it); dropped from the adapter's task tool map directly on main per human instruction.]
 [2026-09-30 18:00] [Engineering Manager] [Spike] [AIF-005] [Cloud stage D1 passed: bumping the pinned ref rebuilt the cached environment from a clean image and installed the new ref (old pre-fix tool names visible); PATH links confirmed in cloud; about 20 to 30 seconds first-start delay. Item 6 resolved. Only item 20 (two-part feature run) remains open.]
 [2026-09-30 19:00] [Engineering Manager] [Spike] [AIF-005] [Named item 20 Test E. First attempt stopped on permission-classifier errors (every Bash call failed), not on the plan or recipe; rerun needs a permission mode that does not use the classifier. PR #81 title and body rewritten to describe this plan.]
+[2026-09-30 20:00] [Engineering Manager] [Spike] [AIF-005] [Test E passed: the real manager, as primary in a cloud session, took a two-part feature from plan through approval, a valid two-wave tasks.json, and dispatch of two subagents into ai-git worktrees. Verified against pushed commits. Item 20 resolved; process findings recorded as item 21, out of scope. No open items remain.]
