@@ -52,7 +52,7 @@ A bundle install must include every skill that an installed skill or steering fi
 
 ### Out of Scope
 
-- A `domain` field on skills. Considered and rejected — see Work Log.
+- A `domain` field on skills. Considered and rejected.
 - `requires_skills` on agents (agents keep `skills` and `preload_skills`, unchanged), servers, or standards.
 - Requirements between other component kinds (steering → steering, skill → steering, and so on).
 - Automatically adding required skills to any agent's `preload_skills`.
@@ -212,21 +212,3 @@ Parallelization notes:
 - [ ] `npm test` passes (unit, integration, validation) before any push
 - [ ] Edited skills, steering and agents carry version bumps as the repo's version-bump check requires
 - [ ] `docs/architecture/05_01_bundle_resolution.md` and any other affected arc42 section updated, with `last_verified` set by a final `aif index architecture --check`
-
----
-
-## 11. Work Log
-
-[2026-09-30 00:00] [Engineering Manager] [Tier assessed] [AIF-006] [Tier 3 (schema change, cross-cutting) — Feature Plan required. Feature ID chosen as AIF-006 per the request (AIF-005 is reserved for another Feature).]
-
-[2026-09-30 00:00] [Engineering Manager] [Decision] [AIF-006] [Decision: no `domain` field on skills. **Why:** it installs every skill in a domain regardless of need, cannot express a skill shared across domains, does not help the domain-less `generic` bundle, and does not attach skills to Kiro agents, whereas `requires_skills` states the actual dependency; the validation work in this Feature is needed either way.]
-
-[2026-09-30 00:00] [Engineering Manager] [Decision] [AIF-006] [Decision: `requires_skills` is transitive and applies to bundles with explicit `skills:` lists. **Why:** one level breaks on the first chain (steering → `task-orchestration` → `plan-lifecycle`), and hand-listed skills without their dependencies is the bug being fixed.]
-
-[2026-09-30 00:00] [Engineering Manager] [Decision] [AIF-006] [Decision: `adr-authoring` is added to Architect's `skills:` but not `preload_skills`. **Why:** preloading costs context on every Architect start; it can be added later at no risk.]
-
-[2026-09-30 00:00] [Engineering Manager] [Revision] [AIF-006] [Human review round 1: Open Questions 1–4 resolved (Kiro attachment, cycles, field name, severity and false-positive handling). Decision: cycles are allowed, not errors, and the closure stops at the first repeated skill. **Why:** `code-review` and `ai-component-review` genuinely need each other, and a visited set terminates without a special case. Decision: replaced the planned `mentions_skills` field and consumer exemption with a three-class prose convention (reference, example, other). **Why:** the human preferred a convention in `skill-authoring` over a second frontmatter field, and it keeps the escape hatch next to the text it covers.]
-
-[2026-09-30 00:00] [Engineering Manager] [Verified] [AIF-006] [Read the `plan-lifecycle` mentions in `agent-authoring` and the `task-orchestration` mention in `document-types.md`. Decision: neither is declared as a dependency. **Why:** the `agent-authoring` mentions are YAML syntax examples and the `document-types.md` mention is a pointer to who edits skill files. The original request listed `agent-authoring` → `plan-lifecycle`; this reverses that for the reason above and is open to being overruled at review.]
-
-[2026-09-30 00:00] [Engineering Manager] [Revision] [AIF-006] [Human review round 2: Open Question 5 resolved as out of scope, to be fixed in a separate follow-up session; Open Question 7 resolved, the reference/example/other syntax is confirmed as proposed. No open items remain. Status stays Draft until the human gives an explicit Approved decision.]

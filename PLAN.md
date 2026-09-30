@@ -50,7 +50,7 @@ Tracks what has been done and what is planned for the ai-foundation framework.
 | Code review skill maturity (checklists, structured output)                         | M    | v1.0      | 🔲      |
 | Test execution skill maturity (test types, per-language patterns)                  | M    | v1.0      | 🔲      |
 | Model selection per agent                                                          | S    | v1.0      | 🔲      |
-| Work Log system (persistent activity tracking)                                     | M    | v1.1      | 🔲      |
+| Work Log system (dropped: git history replaces it, AIF-009)                        | M    | v1.1      | ❌      |
 | Task/progress tracking (Task status across Features)                               | L    | v1.1      | 🔲      |
 | CI/CD pipeline (automated tests on push)                                           | S    | v1.1      | 🔲      |
 | Error recovery / resume orchestration                                              | M    | v1.1      | 🔲      |

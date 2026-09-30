@@ -31,6 +31,8 @@ the last time the roster changed.
 
 ## Steps
 
+Every `Log:` entry below obeys the `details` limits in `reference/state-schema.md`: "Log entry object".
+
 ### Step 1 — Initialize
 
 1. Read `.aiconfig.json` from the project root to resolve artifact paths
@@ -65,7 +67,7 @@ silently for those; nothing to compare pre-dispatch):
 1. For each Task in the wave that does have a written outline, extract the files/components it names
 2. Compare across all such Tasks in the wave for overlapping file paths
 3. If overlap is found:
-   - Log: `overlap_warning` with the overlapping Task IDs and file paths
+   - Log: `overlap_warning` with the overlapping Task IDs and the overlap count
    - Present the warning to the human: "Potential merge conflict — Tasks {X} and {Y} both modify {files}. Proceeding in parallel; conflicts will be handled at PR merge time."
    - **Do not block or serialize.** Proceed with parallel dispatch.
 
@@ -83,7 +85,7 @@ For each Task in the current wave with status `Ready`:
    - **The worktree path as the agent's working directory** (the agent works HERE, not in the main repo)
    - Instruction to implement the Task, assessing its own complexity tier per `skill/complexity-tiers` as its first step — this skill does not pre-gate on a written Task plan; whether one exists, and how detailed, is the implementing agent's own tier-driven call
 3. Update Task status to `Implementing`
-4. Log: `task_dispatched` with agent, branch, and worktree path details
+4. Log: `task_dispatched` with agent and branch
 
 Constraints:
 
@@ -158,7 +160,7 @@ A Task may be blocked for reasons beyond review loops:
 Triggered by: human reports conflict during PR review, OR wave-boundary rebase fails (Step 5).
 
 1. Update Task status to `Conflict`
-2. Log: `conflict_detected` with branch name, conflicting files (if known), and trigger source
+2. Log: `conflict_detected` with branch name and trigger source
 3. Dispatch the implementing agent (the same one that implemented the Task in Step 2) to the Task's worktree with instructions:
    - Fetch latest main: `ai-git fetch origin main`
    - Rebase onto main: `ai-git rebase origin/main`
@@ -169,7 +171,7 @@ Triggered by: human reports conflict during PR review, OR wave-boundary rebase f
 4. **If the agent reports success:**
    - Update Task status to `Implementing`
    - Reset `iterations` to 0
-   - Log: `conflict_resolved` with details of which files were resolved
+   - Log: `conflict_resolved` with the resolved-file count
    - Re-dispatch the same agent to verify/complete implementation in context of the new base
    - The full pipeline restarts: Implementing → Reviewing → Done
 5. **If the agent reports inability to resolve** (complex conflict, semantic ambiguity, or validation failures after resolution):

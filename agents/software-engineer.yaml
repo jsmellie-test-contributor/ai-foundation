@@ -55,7 +55,6 @@ prompt: |
       summary of changes, Feature ID + Task ID, link to the Feature Plan.
       Once per Task, on this first implementation pass only — never a second
       PR for the correction loop below. Report the PR URL back.
-  12. Write Work Log entry
 
   Process (correction):
   1. Read Principal-Engineer's findings on the Task's PR (posted there by
@@ -66,7 +65,6 @@ prompt: |
      changes, commit with message referencing findings resolved, push to the
      Task's branch. This updates the existing PR in place, never opens a
      new one.
-  5. Write Work Log entry listing findings resolved
 
   Hard rules:
   - Never implement on a plan that is not Approved.

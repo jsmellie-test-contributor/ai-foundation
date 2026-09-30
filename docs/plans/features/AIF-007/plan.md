@@ -2,19 +2,19 @@
 
 ## 1. Metadata
 
-| Field               | Value                                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------- |
-| Feature ID          | AIF-007                                                                               |
-| Project             | ai-foundation                                                                         |
-| Status              | Approved                                                                              |
-| Author (Agent)      | Claude Code session (standalone; no dispatched agent)                                 |
-| Reviewed By         | Jeremy S (chat approval 2026-09-30)                                                   |
-| Created             | 2026-09-30                                                                            |
-| Last Updated        | 2026-09-30                                                                            |
-| Standards           | `javascript`, `node` (per `.aiconfig.json`)                                           |
-| Total Tasks         | 3                                                                                     |
-| Product Requirement | None                                                                                  |
-| ADRs                | None (Architect decided no ADR is needed; see Section 8, question 1 and the Work Log) |
+| Field               | Value                                                                |
+| ------------------- | -------------------------------------------------------------------- |
+| Feature ID          | AIF-007                                                              |
+| Project             | ai-foundation                                                        |
+| Status              | Approved                                                             |
+| Author (Agent)      | Claude Code session (standalone; no dispatched agent)                |
+| Reviewed By         | Jeremy S (chat approval 2026-09-30)                                  |
+| Created             | 2026-09-30                                                           |
+| Last Updated        | 2026-09-30                                                           |
+| Standards           | `javascript`, `node` (per `.aiconfig.json`)                          |
+| Total Tasks         | 3                                                                    |
+| Product Requirement | None                                                                 |
+| ADRs                | None (Architect decided no ADR is needed; see Section 8, question 1) |
 
 Source investigation: [`docs/research/block-command-bypass.md`](../../../research/block-command-bypass.md).
 
@@ -118,13 +118,13 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 
 ## 8. Risks & Open Questions
 
-| #   | Risk / Question                                                                                                                          | Type     | Impact | Source       | Raised By | Resolved                                                                                                                                                                           |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Parser approach: hand-written zero-dependency tokenizer vs a third-party parser bundled into the installed hook.                         | Question | H      | Architecture | Agent     | Yes — Architect 2026-09-30: hand-written zero-dependency tokenizer in the hook assets (ADR 0006: no build or bundle step). No ADR: uncontested and cheap to reverse. See Work Log. |
-| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                | Question | M      | Design       | Human     | Yes                                                                                                                                                                                |
-| 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.   | Risk     | L      | Design       | Agent     | Yes — accepted by human 2026-09-30                                                                                                                                                 |
-| 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                           | Question | M      | Design       | Human     | Yes                                                                                                                                                                                |
-| 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30). | Question | M      | Design       | Human     | Yes                                                                                                                                                                                |
+| #   | Risk / Question                                                                                                                          | Type     | Impact | Source       | Raised By | Resolved                                                                                                                                                             |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Parser approach: hand-written zero-dependency tokenizer vs a third-party parser bundled into the installed hook.                         | Question | H      | Architecture | Agent     | Yes — Architect 2026-09-30: hand-written zero-dependency tokenizer in the hook assets (ADR 0006: no build or bundle step). No ADR: uncontested and cheap to reverse. |
+| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
+| 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.   | Risk     | L      | Design       | Agent     | Yes — accepted by human 2026-09-30                                                                                                                                   |
+| 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                           | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
+| 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30). | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
 
 ---
 
@@ -159,17 +159,3 @@ Parallelization notes:
 - [ ] An unterminated heredoc or unbalanced construct never throws and fails open
 - [ ] `npm test` passes
 - [ ] No HIGH or CRITICAL findings open in any Task review
-
----
-
-## 11. Work Log
-
-[2026-09-30] [Claude Code session] [Draft] [AIF-007] [Drafted from `docs/research/block-command-bypass.md`. Decision: fail open on unparseable commands. **Why:** shell syntax changes must not require a hook change and must not brick agent Bash use. Decision: block dynamic command words while allowing env assignments and variable-prefixed literal paths. **Why:** dynamic words are deliberate evasion with no normal agent use; env injection is required.]
-
-[2026-09-30] [Architect] [Draft] [AIF-007] [Decision: hand-written zero-dependency tokenizer inside the hook assets; no third-party parser, no shelling out to bash; no ADR. **Why:** ADR 0006 requires no build or bundle step, and the installed hook has no node_modules, so a parser library would need vendoring or bundling plus installer, manifest and uninstall changes. The problem is narrow (match a glob per simple command), the prototype passed 82 of 84 cases with both misses fixable by list refinement, and the interface (`matchesBlockedCommand(command, patterns)`) is unchanged so the choice is cheap to reverse. Licence and maintenance of third-party candidates were not verified (no web access). Risks noted: the dynamic-word rule is unprototyped and is the main implementation risk; the prototype throws on an unterminated heredoc, which the real implementation must not.]
-
-[2026-09-30] [Claude Code session] [Revise] [AIF-007] [Risk 3 (parser drift from bash syntax) accepted by the human as low. **Why:** mitigated by fail-open and the false-positive test suite. No open items remain.]
-
-[2026-09-30] [Claude Code session] [Approved] [AIF-007] [Human explicitly approved the plan in chat; Status set to Approved in this commit. Task decomposition not yet done.]
-
-[2026-09-30] [Claude Code session] [Decompose] [AIF-007] [Decomposed into 3 Tasks in 2 waves; `dag-validate` passed. **Why 3:** one Task for the shared logic, then test/integration and documentation work that can proceed in parallel; not split by artifact type.]

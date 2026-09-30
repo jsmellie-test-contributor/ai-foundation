@@ -2,7 +2,7 @@
 
 The orchestrating agent maintains an orchestration state file throughout execution.
 This is the single source of truth for Task pipeline status, wave progression,
-escalations, and the coordination work log.
+escalations, and the coordination `log`.
 
 Start from the template at `skills/task-orchestration/assets/orchestration-state.json`.
 
@@ -23,15 +23,15 @@ the Feature Plan (`plan.md`) and `tasks.json`.
 
 ### Top-level
 
-| Field          | Type   | Required | Description                                          |
-| -------------- | ------ | -------- | ---------------------------------------------------- |
-| `feature_id`   | string | Yes      | Parent Feature ID for traceability                   |
-| `status`       | string | Yes      | Overall status: `In Progress`, `Complete`, `Blocked` |
-| `current_wave` | number | Yes      | Index of the active wave (0-based)                   |
-| `total_waves`  | number | Yes      | Total number of waves computed from DAG              |
-| `tasks`        | array  | Yes      | Array of Task state objects                          |
-| `escalations`  | array  | Yes      | Array of issues raised to human                      |
-| `log`          | array  | Yes      | Chronological work log entries                       |
+| Field          | Type   | Required | Description                                                             |
+| -------------- | ------ | -------- | ----------------------------------------------------------------------- |
+| `feature_id`   | string | Yes      | Parent Feature ID for traceability                                      |
+| `status`       | string | Yes      | Overall status: `In Progress`, `Complete`, `Blocked`                    |
+| `current_wave` | number | Yes      | Index of the active wave (0-based)                                      |
+| `total_waves`  | number | Yes      | Total number of waves computed from DAG                                 |
+| `tasks`        | array  | Yes      | Array of Task state objects                                             |
+| `escalations`  | array  | Yes      | Array of issues raised to human                                         |
+| `log`          | array  | Yes      | Chronological event trace; see "Log entry object" for the length limits |
 
 ### Task state object
 
@@ -100,7 +100,14 @@ Steps 3–4 — not restated here.
 | `agent`     | string       | Yes      | Which agent performed the action        |
 | `action`    | string       | Yes      | What happened (see actions below)       |
 | `task_id`   | string\|null | Yes      | Which Task (null for wave-level events) |
-| `details`   | string       | Yes      | Human-readable description              |
+| `details`   | string       | Yes      | Terse facts only; see limits below      |
+
+`details` limits (hard; the log is a trace of events, not a narrative):
+
+- One line, at most 100 characters.
+- Identifiers and facts only: Task ID, PR number, commit SHA, counts, branch or file names. No rationale, no explanation, no prose; that belongs in the commit message or PR.
+- One entry per event, using an action from the table below. No free-form actions and no multi-event summaries.
+- Applies to every new entry; existing entries are not rewritten.
 
 ### Log actions
 
