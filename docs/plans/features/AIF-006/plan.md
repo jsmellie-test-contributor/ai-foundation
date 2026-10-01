@@ -10,7 +10,7 @@
 | Author (Agent)      | Engineering Manager                                                                                                                                       |
 | Reviewed By         | Pending                                                                                                                                                   |
 | Created             | 2026-09-30 00:00                                                                                                                                          |
-| Last Updated        | 2026-09-30 00:00                                                                                                                                          |
+| Last Updated        | 2026-10-01 00:00                                                                                                                                          |
 | Standards           | `javascript`, `node` (resolver, validator and tests — real runtime code); AGENTS.md component schemas (skill, steering and agent frontmatter and prompts) |
 | Total Tasks         | {filled after decomposition}                                                                                                                              |
 | Product Requirement | None                                                                                                                                                      |
@@ -30,7 +30,7 @@ A bundle install must include every skill that an installed skill or steering fi
 
 **Open Items:** 0 open (0 High / 0 Medium / 0 Low) — see Section 8
 
-**Tier:** Tier 3 under `skill/complexity-tiers` (a schema change spanning resolver, validator, snapshot behaviour, one harness adapter, and several component definitions and docs), so it is a Feature.
+**Tier:** Tier 3 under `skill/complexity-tiers` (a schema change spanning resolver, validator, snapshot behaviour, and several component definitions and docs), so it is a Feature.
 
 **Approach in one line:** `requires_skills` on skills and steering, resolved as a transitive closure (cycles allowed, broken at the first repeated skill) in `resolveBundle`; dependents go stale through the existing snapshot hashing; `aif validate` enforces a structured prose-reference form (error), ignores marked examples, and warns on any other mention.
 
@@ -46,7 +46,6 @@ A bundle install must include every skill that an installed skill or steering fi
 - Declarations for the dependencies the audit verified (Section 5, "Audit result"), including `plan-lifecycle` for the three engineering steering files and for `feature-planning`, `task-orchestration` and `adr-authoring`. `agent-authoring` and `document-types.md` are deliberately not declared (their mentions are an example and a pointer, not needs).
 - `adr-authoring` added to `agents/architect.yaml` `skills:`; not preloaded.
 - `aif validate`: nonexistent `requires_skills` entry (error), malformed field (error), prose reference to a skill not covered by the file's `requires_skills` (error), and any other `skill/x` mention (warning). Marked examples are ignored.
-- Kiro adapter: skills required by an agent's skills and by the steering that agent loads are attached as that agent's `skill://` resources.
 - Docs: AGENTS.md schema section, `skill-authoring` and `steering-authoring` skills and their schema references, `docs/architecture/05_01_bundle_resolution.md`, and any other arc42 section the Doc-Update Acceptance Gate identifies, with `last_verified` bumped per `steering/engineering/architecture-authoring.md`.
 - Unit, integration and validation tests for all of the above.
 
@@ -56,7 +55,7 @@ A bundle install must include every skill that an installed skill or steering fi
 - `requires_skills` on agents (agents keep `skills` and `preload_skills`, unchanged), servers, or standards.
 - Requirements between other component kinds (steering → steering, skill → steering, and so on).
 - Automatically adding required skills to any agent's `preload_skills`.
-- Fixing `validateBundleSchemas` in `lib/commands/validate.js`, which never validates anything because it looks for `bundles/*.yaml` files while bundles are `bundles/<name>/bundle.yaml` directories — raised as Open Question 5 and deferred to a separate follow-up session by human decision.
+- Kiro adapter work: attaching skills required by an agent's skills, and by the steering that agent loads, as that agent's `skill://` resources. Kiro work is deferred (human 2026-10-01); this becomes a follow-up Feature. The closure itself is harness-agnostic and lands here; `lib/harnesses/kiro.js` is unchanged.
 - A cycle diagnostic. Cycles are legal and produce no error or warning.
 
 ---
@@ -91,7 +90,7 @@ The ignore marker covers the rare backticked mention that is not a need (a point
 1. `resolveBundle` collects seed skills exactly as today (domain discovery from agents, then the bundle's explicit `skills:`), plus the `requires_skills` of every steering file in the resolved steering list.
 2. A new closure step walks `requires_skills` from each seed skill, reading each `SKILL.md` frontmatter. It keeps the set of skills already visited and stops descending as soon as it reaches one of them, which both deduplicates and breaks cycles. The result goes through the existing `dedupe`.
 3. `ResolvedBundle.skills` now holds the closure. `install.js`, `computeBundleSourceHashes` and the snapshot code consume it unchanged, so a skill pulled in only as a dependency is installed, hashed and tracked like any other.
-4. Claude: no adapter change (installed skills are reachable through the Skill tool). Kiro: each agent's `resources` are built from the closure of its `skills` plus the skills required by the steering it loads.
+4. Claude: no adapter change (installed skills are reachable through the Skill tool). Kiro: unchanged; attaching required skills is a follow-up Feature.
 
 ### Business Rules
 
@@ -150,14 +149,13 @@ Design follows `steering/engineering/core.md`: "Design for Testability" — the 
 ### Component Relationships
 
 - `resolveBundle` → dependency reader → closure step → `ResolvedBundle.skills`.
-- `install.js`, `snapshot/io.js` and the Kiro adapter consume `ResolvedBundle.skills` and agent `skills`; only the Kiro adapter also needs the steering-required skills, passed in by `install.js`.
+- `install.js` and `snapshot/io.js` consume `ResolvedBundle.skills` and agent `skills` unchanged. The Kiro adapter is not changed in this Feature.
 - `validate.js` calls the same reader and closure step, so `validate` and `install` cannot disagree about what a bundle contains.
 
 ### Integration Points
 
 - `lib/resolver.js` — `collectSkillsFromAgents`, `parseSkillRef`, `dedupe` (the closure extends this pipeline).
 - `lib/snapshot/io.js` — `computeBundleSourceHashes` already hashes every resolved skill; verified, not modified.
-- `lib/harnesses/kiro.js` — `transformAgent` builds `skill://` resources from `agent.skills` only today.
 - `lib/harnesses/claude.js` — unchanged; preload stays driven by `preload_skills`.
 - `lib/commands/validate.js` — schema checks for skills and steering, cross-reference checks, and the citation checker this Feature sits beside (`validateCitations`).
 - `lib/component-defs.js` — gains a JSDoc type for the new field.
@@ -173,15 +171,15 @@ Design follows `steering/engineering/core.md`: "Design for Testability" — the 
 
 ## 8. Risks & Open Questions
 
-| #   | Risk / Question                                                                                                                                                                                                                                                                                                       | Type     | Impact | Source       | Raised By           | Resolved                                                                                                                                |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Kiro attaches only an agent's own `skills`. Should skills required only by steering attach too?                                                                                                                                                                                                                       | Question | M      | Architecture | Engineering Manager | Yes — Kiro resources use the closure of each agent's `skills` plus the skills required by the steering that agent loads                 |
-| 2   | `code-review`, `ai-component-review` and `review-severity` reference each other. How are cycles handled?                                                                                                                                                                                                              | Question | M      | Audit        | Engineering Manager | Yes — cycles are allowed; the closure stops at the first skill already visited, so there is no loop and no cycle error                  |
-| 3   | Field name.                                                                                                                                                                                                                                                                                                           | Question | L      | Request      | Engineering Manager | Yes — `requires_skills`                                                                                                                 |
-| 4   | Severity of the undeclared-reference check, and how false positives are worked around.                                                                                                                                                                                                                                | Question | L      | Request      | Engineering Manager | Yes — a structured reference form that is enforced (error), a defined example form that is ignored, and a warning for any other mention |
-| 5   | Discovered: `validateBundleSchemas` reads `bundles/*.yaml` files, but bundles are directories, so bundle schema checks never run. Recommendation: fix in a separate follow-up, not silently inside this Feature; include it here only if the human says so.                                                           | Question | L      | Audit        | Engineering Manager | Yes — out of scope for this Feature; fixed separately in a follow-up session                                                            |
-| 6   | The mention scan is prose matching and may misclassify. Mitigation: the three-class convention, the ignore marker, fenced-block skipping, and a repo-wide dry run before merge.                                                                                                                                       | Risk     | L      | Design       | Engineering Manager | Yes — mitigated by the convention in Section 5                                                                                          |
-| 7   | Confirm the concrete syntax: reference = inline code span holding exactly `skill/<name>`; example = fenced block, longer inline span, or `<!-- skill-ref: ignore -->` immediately after the span; README files not scanned; a reference is covered if `<name>` is in the closure of the file's own `requires_skills`. | Question | L      | Design       | Engineering Manager | Yes — syntax confirmed as proposed                                                                                                      |
+| #   | Risk / Question                                                                                                                                                                                                                                                                                                       | Type     | Impact | Source       | Raised By           | Resolved                                                                                                                                                               |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Kiro attaches only an agent's own `skills`. Should skills required only by steering attach too?                                                                                                                                                                                                                       | Question | M      | Architecture | Engineering Manager | Moved out — Kiro work is deferred (human 2026-10-01); attaching steering-required skills on Kiro is a follow-up Feature, and `lib/harnesses/kiro.js` is unchanged here |
+| 2   | `code-review`, `ai-component-review` and `review-severity` reference each other. How are cycles handled?                                                                                                                                                                                                              | Question | M      | Audit        | Engineering Manager | Yes — cycles are allowed; the closure stops at the first skill already visited, so there is no loop and no cycle error                                                 |
+| 3   | Field name.                                                                                                                                                                                                                                                                                                           | Question | L      | Request      | Engineering Manager | Yes — `requires_skills`                                                                                                                                                |
+| 4   | Severity of the undeclared-reference check, and how false positives are worked around.                                                                                                                                                                                                                                | Question | L      | Request      | Engineering Manager | Yes — a structured reference form that is enforced (error), a defined example form that is ignored, and a warning for any other mention                                |
+| 5   | Discovered: `validateBundleSchemas` reads `bundles/*.yaml` files, but bundles are directories, so bundle schema checks never run. Recommendation: fix in a separate follow-up, not silently inside this Feature; include it here only if the human says so.                                                           | Question | L      | Audit        | Engineering Manager | Yes — resolved: fixed on `main` by `2b14d2e` (bundle schemas now validate from `bundles/<name>/bundle.yaml`); no longer a concern of this Feature                      |
+| 6   | The mention scan is prose matching and may misclassify. Mitigation: the three-class convention, the ignore marker, fenced-block skipping, and a repo-wide dry run before merge.                                                                                                                                       | Risk     | L      | Design       | Engineering Manager | Yes — mitigated by the convention in Section 5                                                                                                                         |
+| 7   | Confirm the concrete syntax: reference = inline code span holding exactly `skill/<name>`; example = fenced block, longer inline span, or `<!-- skill-ref: ignore -->` immediately after the span; README files not scanned; a reference is covered if `<name>` is in the closure of the file's own `requires_skills`. | Question | L      | Design       | Engineering Manager | Yes — syntax confirmed as proposed                                                                                                                                     |
 
 ---
 
@@ -189,7 +187,9 @@ Design follows `steering/engineering/core.md`: "Design for Testability" — the 
 
 Dependency graph: [`tasks.json`](./tasks.json) — not yet produced; decomposition follows approval (`skill/feature-planning`: "Decompose into Tasks").
 
-Summary: {filled after decomposition}. Expected shape, not binding: resolver and closure with unit tests; mention classifier and validator checks; declarations, Architect change and Kiro attachment; authoring docs, AGENTS.md and arc42 bumps last.
+Summary: {filled after decomposition}. Expected shape, not binding: resolver and closure with unit tests; mention classifier and validator checks; declarations and the Architect change; authoring docs, AGENTS.md and arc42 bumps last.
+
+Landing order (human decision 2026-10-01): after `AIF-008` and `AIF-007` (008, then 007, then 006, then `AIF-005`), because the validator checks the skill and steering files `AIF-008` rewrites (`skill/pr-stewardship`, `git-workflow-core.md`). The zero-errors-and-warnings criterion is evaluated on the tree rebased onto those changes, with snapshots regenerated and versions bumped again where a file changed in both.
 
 Parallelization notes:
 
@@ -205,6 +205,7 @@ Parallelization notes:
 - [ ] No HIGH or CRITICAL findings open in any Task review
 - [ ] A fresh `engineering` bundle install includes `plan-lifecycle` and `adr-authoring`, and a `generic`-only install includes `steering-authoring`
 - [ ] A missing dependency and a non-list `requires_skills` each fail `resolveBundle` and `aif validate`, with a message naming the chain for a missing dependency
+- [ ] A `requires_skills` entry that is not a plain kebab-case skill name (`../x`, `a/b`) is rejected by the resolver and by `aif validate`, covered by a test (the path-traversal requirement in Section 7)
 - [ ] A cycle (A requires B, B requires A) resolves, terminates, and installs each skill once, with no error or warning
 - [ ] Reference-form mentions of a nonexistent or undeclared skill are errors; fenced, longer-span and marked mentions are ignored; other mentions are warnings
 - [ ] `aif validate` passes on the repo with no errors and no warnings outstanding
