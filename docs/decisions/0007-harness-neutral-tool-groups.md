@@ -35,12 +35,15 @@ Claude Code cloud sessions expose claude-code-remote tools (PR subscription, `se
 
 ## Decision Outcome
 
-Chosen: A. Groups are named for capability, never tier or harness, are granted all-or-nothing, and are additive to the 13 baseline names. Claude resolves a group to a `mcp__claude-code-remote__*` cluster; Kiro and Copilot resolve it to one shared `UNSUPPORTED` marker. Adapters share one three-state contract (mapped, unsupported, passthrough): bare unknown names are rejected, only `@server/tool` passes through, and each dropped tool is reported per agent and harness at install. Groups for session control and routines are defined now but granted to no agent; they stay distinct from `subagent`, which covers in-session subagents. B fails ADR 0004's premise and makes yamls depend on Kiro's unverified handling of foreign entries; C violates ADR 0002.
+Chosen: A. Agent yamls grant capability-named generic groups, never tier- or harness-named, additive to the baseline tool names. Each adapter decides how to resolve a group; a harness with no equivalent drops it, and the drop is reported at install. B fails ADR 0004's premise (claude-code-remote is platform-provided, not a framework-installed server) and makes yamls depend on Kiro's unverified handling of foreign entries; C violates ADR 0002.
+
+Scope: all groups are defined now, including repo-scope (`add_repo`, `register_repo_root`), session-control, and routines (including `watch_url`). `list_repos` stays a separate read-only member or group. None of the T3+ groups are granted to any agent yet.
+
+Resolution mechanism, the unsupported-marker contract, and install-time reporting are implementation detail owned by the AIF-010 plan and arc42 §5.02, not this decision.
 
 ## Consequences
 
-- Claude adapter owns member lists; a Claude tool rename touches one file, guarded by `KNOWN_NATIVE_TOOLS`.
-- Reversible toward B: a group can expand to `@ref` names without editing yamls. Not reversible toward C.
-- Independent of the Kiro unknown-entry check, since groups never reach Kiro's output. Option B would depend on it.
+- Harness neutrality: yamls carry no Claude-specific names, so a Copilot adapter adds one mapping, not a schema change.
+- Reversible toward B: a group can expand to `@ref` names without editing yamls. Not reversible toward C. The group names written into yamls are the costly part to change.
+- Unsupported harnesses (Kiro, Copilot) drop groups rather than fail, so a grant is only effective where the harness has an equivalent.
 - Dependent on pending verification: subagent inheritance and `ToolSearch` behavior decide who is granted what, and whether `ToolSearch` needs a group of its own; neither changes this decision.
-- Mechanism detail belongs in arc42 §5.02, updated by AIF-010's implementation Task.
