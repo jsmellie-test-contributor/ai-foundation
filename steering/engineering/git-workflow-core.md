@@ -41,7 +41,7 @@ file_patterns: []
 - Never use `git` or `gh` directly
 - `ai-git` reads `.aiconfig.json`, injects identity env vars, and authenticates push/PR operations automatically
 - If `ai-git` reports a missing prerequisite (no `.aiconfig.json`, no token env var), the agent must stop and report it to the human
-- In a Claude Code cloud session, GitHub work goes through `ai-git gh-api` (REST) — `gh pr ...` and `gh repo view` are unavailable there. `skill/pr-stewardship` documents the REST calls
+- In a Claude Code cloud session use `ai-git gh-api` (REST); `gh pr ...` and `gh repo view` are unavailable — see `skill/pr-stewardship`
 
 ---
 

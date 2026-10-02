@@ -14,19 +14,18 @@ This skill does one check-and-act pass per invocation; it does not loop or sleep
 
 - **PR number or URL** — which pull request to check
 - **Repository** — owner/name, if not already implied by the working directory's git remote
-- **GitHub access method** — always through `ai-git`; never raw `gh`/`git`, never GitHub MCP tools. Locally, `ai-git gh-*` subcommands work. In a Claude Code cloud session use `ai-git gh-api` — see the Cloud GitHub access section below.
+- **GitHub access method** — always through `ai-git`; never raw `gh`/`git`, never GitHub MCP tools. Locally, `ai-git gh-*` subcommands work. In a Claude Code cloud session use `ai-git gh-api` — see the cloud table below.
 
-## Cloud GitHub access
+**Cloud table.** The cloud session proxy blocks GraphQL, so `gh pr ...` (every `ai-git gh-pr-*`, including `ai-git gh-pr-create`) and `gh repo view` (`ai-git gh-repo-view`) fail there with HTTP 403 and are unavailable. Use REST through `ai-git gh-api`, repository-scoped paths only (`repos/{owner}/{repo}/...`; non-repo paths are blocked too):
 
-The cloud session proxy blocks GraphQL, so `gh pr ...` (`ai-git gh-pr-*`) and `gh repo view` (`ai-git gh-repo-view`) fail there with HTTP 403 and are unavailable. Use REST through `ai-git gh-api`, repository-scoped paths only (`repos/{owner}/{repo}/...`; non-repo paths are blocked too):
-
-| Need                                         | Call                                                                                                |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Mergeable state                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}` (`mergeable`, `mergeable_state`)                     |
-| CI status                                    | `ai-git gh-api repos/{owner}/{repo}/commits/{head_sha}/check-runs`                                  |
-| Review comments                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}/comments` (also `.../reviews`, `issues/{n}/comments`) |
-| Post a comment                               | `ai-git gh-api repos/{owner}/{repo}/issues/{n}/comments --method POST ...`                          |
-| Review threads, auto-merge, ready-for-review | The proxy's `ccr/...` routes (the proxy's 403 message lists them), not GraphQL                      |
+| Need                                         | Call                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Mergeable state                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}` (`mergeable`, `mergeable_state`)                                          |
+| CI status                                    | `ai-git gh-api repos/{owner}/{repo}/commits/{head_sha}/check-runs`                                                       |
+| Review comments                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}/comments` (also `.../reviews`, `issues/{n}/comments`)                      |
+| Create a PR (draft)                          | `ai-git gh-api repos/{owner}/{repo}/pulls --method POST -f title=... -f head=... -f base=main -f body=... -F draft=true` |
+| Post a comment                               | `ai-git gh-api repos/{owner}/{repo}/issues/{n}/comments --method POST ...`                                               |
+| Review threads, auto-merge, ready-for-review | The proxy's `ccr/...` routes (the proxy's 403 message lists them), not GraphQL                                           |
 
 GitHub-side actions in cloud carry the proxy's identity, not the `ai-git` token's.
 
@@ -34,7 +33,7 @@ GitHub-side actions in cloud carry the proxy's identity, not the `ai-git` token'
 
 ### Step 1 — Check mergeable state
 
-Read the PR's mergeable state (locally `ai-git gh-pr-view <n> --json mergeable,mergeStateStatus`; in cloud the REST call above). If it is not cleanly mergeable:
+Read the PR's mergeable state (locally `ai-git gh-pr-view <n> --json mergeable,mergeStateStatus`; in cloud the cloud table in Inputs). If it is not cleanly mergeable:
 
 1. Merge the base branch into the PR branch. Regenerate lockfiles or other generated files with the repo's own tooling — never by hand.
 2. Never rewrite history on a branch you did not create (no rebase, amend, or force-push — a merge commit is always safe). On a branch you created yourself, follow `steering/engineering/git-workflow-projects.md`'s branching convention instead.

@@ -61,9 +61,8 @@ prompt: |
   summary, not a substitute for it.
 
   Hard rules:
-  - On a git identity error, use `ai-git`. Never supply, infer, or ask for a
-    git identity, including one from session context
-    (`steering/engineering/git-workflow-core.md`: "Never Supply, Infer, or Ask for a Git Identity").
+  - On a git identity error, follow
+    `steering/engineering/git-workflow-core.md`: "Never Supply, Infer, or Ask for a Git Identity".
   - Never author an ADR yourself. A Process/tooling/convention change is not
     an ADR at all — it's implementation work like any other AI-component
     authoring, dispatched to Software-Engineer as a Task
