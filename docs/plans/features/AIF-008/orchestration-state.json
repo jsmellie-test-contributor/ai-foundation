@@ -4,14 +4,91 @@
   "current_wave": 0,
   "total_waves": 3,
   "tasks": [
-    { "id": "001", "wave": 0, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
-    { "id": "002", "wave": 0, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
-    { "id": "003", "wave": 0, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
-    { "id": "004", "wave": 1, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
-    { "id": "005", "wave": 2, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null }
+    {
+      "id": "001",
+      "wave": 0,
+      "status": "Implementing",
+      "branch": "AIF-008/001-reexec-arg-transport",
+      "worktree_path": "../worktrees/ai-foundation/AIF-008/001-reexec-arg-transport",
+      "pr_number": null,
+      "pr_url": null,
+      "iterations": 0,
+      "blocked_reason": null
+    },
+    {
+      "id": "002",
+      "wave": 0,
+      "status": "Implementing",
+      "branch": "AIF-008/002-doctor-command",
+      "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
+      "pr_number": null,
+      "pr_url": null,
+      "iterations": 0,
+      "blocked_reason": null
+    },
+    {
+      "id": "003",
+      "wave": 0,
+      "status": "Implementing",
+      "branch": "AIF-008/003-rest-path-identity",
+      "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
+      "pr_number": null,
+      "pr_url": null,
+      "iterations": 0,
+      "blocked_reason": null
+    },
+    {
+      "id": "004",
+      "wave": 1,
+      "status": "Ready",
+      "branch": "",
+      "worktree_path": "",
+      "pr_number": null,
+      "pr_url": null,
+      "iterations": 0,
+      "blocked_reason": null
+    },
+    {
+      "id": "005",
+      "wave": 2,
+      "status": "Ready",
+      "branch": "",
+      "worktree_path": "",
+      "pr_number": null,
+      "pr_url": null,
+      "iterations": 0,
+      "blocked_reason": null
+    }
   ],
   "escalations": [],
   "log": [
-    { "timestamp": "2026-10-02T00:00:00Z", "agent": "engineering-manager", "action": "wave_started", "task_id": null, "details": "wave 0: 001,002,003" }
+    {
+      "timestamp": "2026-10-02T00:00:00Z",
+      "agent": "engineering-manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 0: 001,002,003"
+    },
+    {
+      "timestamp": "2026-10-02T00:01:00Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "001",
+      "details": "software-engineer; AIF-008/001-reexec-arg-transport"
+    },
+    {
+      "timestamp": "2026-10-02T00:01:00Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "002",
+      "details": "software-engineer; AIF-008/002-doctor-command"
+    },
+    {
+      "timestamp": "2026-10-02T00:01:00Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "003",
+      "details": "software-engineer; AIF-008/003-rest-path-identity"
+    }
   ]
 }
