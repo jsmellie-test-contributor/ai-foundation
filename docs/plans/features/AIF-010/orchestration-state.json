@@ -7,7 +7,7 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-010/001-tool-mapping-contract",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/001-tool-mapping-contract",
       "pr_number": 90,
@@ -138,6 +138,13 @@
       "action": "review_loop",
       "task_id": "001",
       "details": "iteration 3; fix 1 MEDIUM + 1 LOW leftover group wording"
+    },
+    {
+      "timestamp": "2026-10-02T21:25:33.716Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Reviewing (iter 3); PR 90"
     }
   ]
 }
