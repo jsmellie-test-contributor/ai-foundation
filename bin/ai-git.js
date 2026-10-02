@@ -23,7 +23,7 @@
  *
  * All arguments after the command are passed through verbatim.
  *
- * No Plan ID — small human-approved security bugfix (see chat approval
+ * Plan: AIF-008 (doctor command). Original header: no Plan ID — small human-approved security bugfix (see chat approval
  * 2026-08-23) for the push/fetch auth-injection argument-order bug.
  */
 
@@ -40,10 +40,16 @@ import {
   needsPushAuth,
   findRemoteName,
   buildAuthConfigArgs,
+  isDoctorCommand,
+  buildDoctorReport,
+  DOCTOR_TOOLS,
+  DOCTOR_PROBE_ENV,
+  DOCTOR_PROBE_SCRIPT,
 } from '../lib/ai-git.js';
 import {
   getSecretsConfig,
   parseDotenv,
+  resolvePlaceholders,
   isAlreadyWrapped,
   buildWrapperInvocation,
   REEXEC_GUARD_ENV,
@@ -166,6 +172,59 @@ function runGh(command, args, identity) {
   return result.status ?? 1;
 }
 
+// --- doctor (Plan AIF-008, Task 002) ---
+
+/** @returns {boolean} whether `tool --help` can be spawned. */
+function toolResolves(tool) {
+  // Constant tool name + args; shell only on Windows so .cmd shims (npm bins) resolve.
+  const r = spawnSync(tool, ['--help'], { stdio: 'ignore', shell: process.platform === 'win32' });
+  return !r.error && r.status === 0;
+}
+
+/**
+ * Report tool presence, config found and token resolution (yes/no only;
+ * never prints a token). Returns the process exit code.
+ */
+function runDoctor() {
+  const tools = {};
+  for (const t of DOCTOR_TOOLS) tools[t] = toolResolves(t);
+
+  const found = findAiConfig();
+  let tokenEnvName = null;
+  let tokenSource = null;
+  if (found) {
+    tokenEnvName = getIdentity(found.config).tokenEnvName;
+    if (tokenEnvName) {
+      const { run, allowInsecureDotenv } = getSecretsConfig(found.config);
+      if (process.env[tokenEnvName]) {
+        tokenSource = 'env';
+      } else if (run) {
+        const [cmd, ...rest] = run.map((p) => resolvePlaceholders(p, process.env));
+        const r = spawnSync(cmd, [...rest, 'node', '-e', DOCTOR_PROBE_SCRIPT], {
+          env: { ...process.env, [DOCTOR_PROBE_ENV]: tokenEnvName },
+          stdio: 'ignore',
+        });
+        if (!r.error && r.status === 0) tokenSource = 'wrapper';
+      }
+      if (!tokenSource && allowInsecureDotenv) {
+        const dotenvPath = join(found.root, '.env');
+        if (existsSync(dotenvPath) && parseDotenv(readFileSync(dotenvPath, 'utf8'))[tokenEnvName]) {
+          tokenSource = 'dotenv';
+        }
+      }
+    }
+  }
+
+  const { ok, lines } = buildDoctorReport({
+    tools,
+    configFound: Boolean(found),
+    tokenEnvName,
+    tokenSource,
+  });
+  for (const line of lines) console.log(line);
+  return ok ? 0 : 1;
+}
+
 // --- Main ---
 
 function printUsage() {
@@ -187,6 +246,9 @@ GitHub commands (GH_TOKEN injected):
   ai-git gh-pr-merge <number> [--squash]
   ai-git gh-pr-view <number>
   ai-git gh-repo-view
+
+Diagnostics:
+  ai-git doctor   Report whether ai-git, gh, bws, .aiconfig.json and the token resolve
 
 Configuration:
   Reads .aiconfig.json from the current directory or any parent.
@@ -256,6 +318,8 @@ function main() {
     printUsage();
     process.exit(0);
   }
+
+  if (isDoctorCommand(args[0])) process.exit(runDoctor());
 
   // Find and load config
   const found = findAiConfig();

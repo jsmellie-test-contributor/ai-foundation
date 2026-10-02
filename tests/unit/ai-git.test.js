@@ -16,6 +16,9 @@ import {
   buildAuthHeaderValue,
   buildAuthConfigArgs,
   findRemoteName,
+  isDoctorCommand,
+  buildDoctorReport,
+  DOCTOR_PROBE_SCRIPT,
 } from '../../lib/ai-git.js';
 
 describe('unit: ai-git', () => {
@@ -272,5 +275,67 @@ describe('unit: ai-git', () => {
         assert.ok(!finalArgs.join(' ').includes('super-secret-token'));
       });
     }
+  });
+
+  describe('doctor (AIF-008)', () => {
+    const allOk = {
+      tools: { 'ai-git': true, gh: true, bws: true },
+      configFound: true,
+      tokenEnvName: 'MY_TOKEN',
+      tokenSource: 'env',
+    };
+
+    it('isDoctorCommand matches only doctor', () => {
+      assert.equal(isDoctorCommand('doctor'), true);
+      assert.equal(isDoctorCommand('commit'), false);
+      assert.equal(isDoctorCommand(undefined), false);
+    });
+
+    it('reports ok when everything resolves', () => {
+      const r = buildDoctorReport(allOk);
+      assert.equal(r.ok, true);
+      assert.ok(r.lines.some((l) => l.includes('token (MY_TOKEN): resolved via env')));
+    });
+
+    it('names each missing tool', () => {
+      const r = buildDoctorReport({ ...allOk, tools: { 'ai-git': true, gh: false, bws: false } });
+      assert.equal(r.ok, false);
+      assert.ok(r.lines.some((l) => l.startsWith('FAIL') && l.includes('gh:')));
+      assert.ok(r.lines.some((l) => l.startsWith('FAIL') && l.includes('bws:')));
+      assert.ok(r.lines.some((l) => l.startsWith('ok') && l.includes('ai-git:')));
+    });
+
+    it('fails when config is not found', () => {
+      const r = buildDoctorReport({ ...allOk, configFound: false });
+      assert.equal(r.ok, false);
+      assert.ok(r.lines.some((l) => l.includes('.aiconfig.json: NOT found')));
+    });
+
+    it('fails when the token does not resolve or is unconfigured', () => {
+      assert.equal(buildDoctorReport({ ...allOk, tokenSource: null }).ok, false);
+      const r = buildDoctorReport({ ...allOk, tokenEnvName: null, tokenSource: null });
+      assert.equal(r.ok, false);
+      assert.ok(r.lines.some((l) => l.includes('no ai_identity.git_token_env')));
+    });
+
+    it('always tells agents to use ai-git on identity errors', () => {
+      for (const facts of [allOk, { ...allOk, configFound: false }]) {
+        assert.ok(buildDoctorReport(facts).lines.some((l) => l.includes('use ai-git')));
+      }
+    });
+
+    it('never includes a token value in the report', () => {
+      const secret = 'ghp_SECRET_VALUE_123';
+      const text = buildDoctorReport({
+        ...allOk,
+        tokenEnvName: 'MY_TOKEN',
+        tokenSource: 'wrapper',
+      }).lines.join(' ');
+      assert.ok(!text.includes(secret));
+    });
+
+    it('probe script contains no whitespace or quotes (safe through shell-joining wrappers)', () => {
+      assert.doesNotMatch(DOCTOR_PROBE_SCRIPT, /[\s'"]/);
+    });
   });
 });
