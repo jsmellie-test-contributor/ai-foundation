@@ -8,9 +8,9 @@
 | Project             | ai-foundation                                                        |
 | Status              | Approved                                                             |
 | Author (Agent)      | Claude Code session (standalone; no dispatched agent)                |
-| Reviewed By         | Jeremy S (chat approval 2026-09-30)                                  |
+| Reviewed By         | Jeremy S (chat approval 2026-10-02)                                  |
 | Created             | 2026-09-30                                                           |
-| Last Updated        | 2026-09-30                                                           |
+| Last Updated        | 2026-10-02                                                           |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                          |
 | Total Tasks         | 3                                                                    |
 | Product Requirement | None                                                                 |
@@ -42,11 +42,13 @@ Make the Claude Code `block-command` hook enforce an agent's `blocked_commands` 
 - Close the bypass classes reproduced in the investigation: compound commands, pipes, subshells and groups, control flow, env-var prefixes, absolute and relative paths, wrappers, `bash|sh -c` and `eval`, `xargs`, `find -exec`, command substitution, quoting and escaping of the command word, newlines (including heredoc commit messages), bare commands, and leading whitespace.
 - Block command words whose executable cannot be determined statically (dynamic command words), while allowing the env-var mechanics agents legitimately need.
 - Unit tests for the new logic and new integration tests that run the real hook CLI. The parser stays inside `logic.js` unless it becomes unwieldy; if split into a sibling module, add it to the installer's file list and the lifecycle tests.
-- Update arc42 §5.02 (and `key_files`) and the `blocked_commands` description where it states the matching semantics.
+- Update arc42 §5.02 and the `blocked_commands` description where it states the matching semantics. §5.02's `key_files` lists only `base.js`, `claude.js` and `kiro.js` today, so it must gain `lib/harnesses/assets/block-command/logic.js` and `cli.js` (and any sibling module).
+- Treat secrets-manager run wrappers (`bws run [flags] --`, `op run [flags] --`, `doppler run [flags] --`, and the prefix configured as `secrets.run` in `.aiconfig.json`) as wrappers whose trailing command is matched as its own simple command, so `bws run -- git log` is blocked while `bws run -- ai-git push` runs.
+- Make the block message tell the agent what to do instead: use `ai-git`, and never supply, infer or ask for a git identity.
 
 ### Out of Scope
 
-- Ambient identity (option (d) in the investigation) — dropped. Making `ai-git` on PATH, BWS-authenticated and installed early in cloud sessions is a separate follow-up Feature (see the investigation brief, option (d)).
+- Ambient identity (option (d) in the investigation) — dropped. Making `ai-git` runnable in cloud sessions is `AIF-008`. The environment-level backstop that makes an accidental raw `git commit` fail (`GIT_CONFIG_GLOBAL=/dev/null` set in the cloud environment) is an environment setting documented by `AIF-005` and `AIF-008`, not part of this hook; the two layers are independent and both are wanted.
 - Kiro: its `blocked_commands` handling is unchanged and unverified. Explicitly not needed for this Feature.
 - Native permission deny rules, a PATH shim, a commit-time audit, or sandboxing.
 - Closing gaps that cannot be closed by inspecting command text: interpreters that call git internally (`python -c`, `node -e`), scripts and build tools (`make`, `npm run x`, a repo script), shell functions and aliases defined in earlier commands.
@@ -67,11 +69,13 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 ### Business Rules
 
 - **Matching unit.** Each simple command is matched after normalization. The existing glob semantics are unchanged; additionally a trailing ` *` also matches the bare command (`git *` matches `git`).
-- **Normalization.** Strip leading `VAR=value` assignments; strip a fixed wrapper list and each wrapper's own flags; take the executable's basename; remove quoting and escaping of the command word (`"git"`, `\git`, `gi""t` all normalize to `git`).
+- **Normalization.** Strip leading `VAR=value` assignments; strip a fixed wrapper list and each wrapper's own flags (the list includes the secrets-manager run wrappers named in Section 4, which end at a `--` separator after which the real command begins); take the executable's basename; remove quoting and escaping of the command word (`"git"`, `\git`, `gi""t` all normalize to `git`).
 - **Re-entry.** Recurse into `bash|sh -c '…'`, `eval` with a literal argument, `find -exec`, command substitution (`$(…)`, backticks), process substitution, subshells and groups, control-flow bodies, and heredoc bodies that are subject to expansion. Text that is only quoted data (for example a quoted heredoc body or an `echo` argument) is not executed and is not matched.
 - **Env vars that must keep working.** Leading env assignments (`GIT_AUTHOR_NAME=x cmd`, `env VAR=x cmd`), `export`, variables in arguments, and a variable used as the prefix of a path whose final component is literal (`$HOME/.local/bin/tool`, `"$PWD/node_modules/.bin/eslint"`, `${CLAUDE_PROJECT_DIR}/scripts/x.sh`) are never blocked by themselves; the literal basename is what is matched.
 - **Dynamic command words are blocked.** A command word whose basename cannot be determined statically is blocked for any agent that has at least one `blocked_commands` entry, because it could expand to a blocked command: a variable or substitution as the whole word or its final path component (`$g log`, `"$GIT" log`, `${cmd}`, `$(echo git) log`, `` `x` log ``, `/usr/bin/$x`), `eval` with a non-literal argument, an unquoted glob or brace pattern in the command word (`/usr/bin/g?t`, `{git,x}`), and ANSI-C or other quoting that cannot be resolved. The block message states that the command word is dynamic and asks for it to be written literally.
 - **Failure behaviour.** The parser is best-effort and never throws on odd input: an unbalanced construct is treated as literal text. If the command still cannot be parsed, or an internal error occurs, the hook **fails open** (allows), so new shell syntax never bricks an agent's Bash use. A malformed hook payload also fails open, as today.
+- **Identity-changing forms are raw git.** `git -c user.name=x -c user.email=y commit`, `GIT_AUTHOR_NAME=x git commit` and similar forms that set an identity are ordinary raw `git` commands and are blocked like any other; no special case is needed, but each is a named test so the guarantee is stated, not implied.
+- **Block message.** Besides naming the matched pattern (or the dynamic-word reason), the message says to use `ai-git` and that an agent must never supply, infer or ask for a git identity; the identity comes only from `.aiconfig.json`.
 - **Positioning unchanged.** The hook remains workflow discipline, not a security boundary; the header comment and arc42 say so and list the residual gaps.
 
 ### Error States
@@ -103,7 +107,7 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 - `lib/harnesses/claude.js` — the installer copies exactly `['logic.js','cli.js']` today with no `node_modules`; the parser must be dependency-free, and any new module file must be added to that list and to the manifest/uninstall tests.
 - `docs/decisions/0003-shared-resource-lifecycle-management.md` — governs the shared-resource install/uninstall lifecycle the hook relies on.
 - `docs/architecture/05_02_harness_adapters.md` — describes the hook and must be updated, including `key_files`.
-- Agents carrying `blocked_commands` today: engineering-manager, software-engineer, principal-engineer.
+- Agents carrying `blocked_commands` today: engineering-manager and software-engineer. Principal-engineer has no shell tool and no `blocked_commands`.
 
 ---
 
@@ -118,13 +122,15 @@ Claude Code sends the PreToolUse payload on stdin → `cli.js` reads `tool_input
 
 ## 8. Risks & Open Questions
 
-| #   | Risk / Question                                                                                                                          | Type     | Impact | Source       | Raised By | Resolved                                                                                                                                                             |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Parser approach: hand-written zero-dependency tokenizer vs a third-party parser bundled into the installed hook.                         | Question | H      | Architecture | Agent     | Yes — Architect 2026-09-30: hand-written zero-dependency tokenizer in the hook assets (ADR 0006: no build or bundle step). No ADR: uncontested and cheap to reverse. |
-| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
-| 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.   | Risk     | L      | Design       | Agent     | Yes — accepted by human 2026-09-30                                                                                                                                   |
-| 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                           | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
-| 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30). | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
+| #   | Risk / Question                                                                                                                                                                                                                                                                | Type     | Impact | Source       | Raised By | Resolved                                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Parser approach: hand-written zero-dependency tokenizer vs a third-party parser bundled into the installed hook.                                                                                                                                                               | Question | H      | Architecture | Agent     | Yes — Architect 2026-09-30: hand-written zero-dependency tokenizer in the hook assets (ADR 0006: no build or bundle step). No ADR: uncontested and cheap to reverse. |
+| 2   | Ambient identity backstop (option (d)) dropped 2026-09-30 in favour of steering plus an `ai-git` cloud-readiness Feature.                                                                                                                                                      | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
+| 3   | A hand-written shell parser can drift from bash syntax; mitigated by fail-open on parse failure and a broad false-positive test suite.                                                                                                                                         | Risk     | L      | Design       | Agent     | Yes — accepted by human 2026-09-30                                                                                                                                   |
+| 4   | Fail-open on unparseable commands (human decision 2026-09-30).                                                                                                                                                                                                                 | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
+| 5   | Block dynamic command words, allowing env-var injection and variable-prefixed paths with a literal basename (human decision 2026-09-30).                                                                                                                                       | Question | M      | Design       | Human     | Yes                                                                                                                                                                  |
+| 6   | Secrets-manager run wrappers (`bws run -- git log` was allowed in the investigation) are treated as re-entry wrappers.                                                                                                                                                         | Question | M      | Review       | Agent     | Yes — human 2026-10-01 (review of AIF-005 to AIF-008)                                                                                                                |
+| 7   | An agent that hits a git identity error offered to use the human's name and email from its session context (observed 2026-10-01 in a bare environment with `GIT_CONFIG_GLOBAL=/dev/null`). The block message and steering say to use `ai-git` and never to supply an identity. | Risk     | M      | Test         | Human     | Yes — human 2026-10-01                                                                                                                                               |
 
 ---
 
@@ -134,9 +140,11 @@ Dependency graph: [`tasks.json`](./tasks.json)
 
 Summary: 3 Tasks across 2 waves. Task 001 (matcher and unit tests) is the only dependency; Tasks 002 and 003 then run in parallel.
 
-- **001** — shell-aware matcher in `logic.js`: splitter, normalizer, dynamic-word rule, fail-open behaviour, unit tests.
-- **002** — real-CLI integration tests for `cli.js` and the installed copy; the block message points at `ai-git`; installer, manifest and lifecycle-test changes only if the parser is split into a sibling module.
-- **003** — arc42 §5.02 update (mechanism, residual gaps, `key_files`, `last_verified`) and the `blocked_commands` semantics wording.
+- **001** — shell-aware matcher in `logic.js`: splitter, normalizer (including secrets-manager run wrappers), dynamic-word rule, fail-open behaviour, identity-changing raw-git cases, unit tests.
+- **002** — real-CLI integration tests for `cli.js` and the installed copy; the block message says to use `ai-git` and never to supply an identity; installer, manifest and lifecycle-test changes only if the parser is split into a sibling module.
+- **003** — arc42 §5.02 update (mechanism, residual gaps, `key_files` including the block-command asset files, `last_verified`) and the `blocked_commands` semantics wording.
+
+Landing order: built in parallel with `AIF-008`, merged after it (human decision 2026-10-01: 008, then 007, then 006, then 005), because enforcement is only useful once `ai-git` is runnable in cloud.
 
 Parallelization notes:
 
@@ -150,6 +158,10 @@ Parallelization notes:
 - [ ] All Tasks complete and signed off
 - [ ] Every bypass class in the investigation brief (section 1) that is in scope is blocked by a unit test, including the heredoc commit message and bare `git`/`gh`
 - [ ] The false-positive guard list (quoted mentions, `grep git`, `cat .gitignore`, `git-lfs`, `ai-git …`, `command -v git`) still runs
+- [ ] `ai-git …`, `/opt/node22/bin/ai-git …`, `node …/ai-git.js …` and `bws run … -- ai-git …` run; `bws run … -- git …`, `op run -- git …` and a `secrets.run`-shaped prefix around raw `git` or `gh` are blocked
+- [ ] Raw `git` with identity-setting forms (`-c user.name=… -c user.email=…`, `GIT_AUTHOR_NAME=… git commit`) is blocked
+- [ ] The block message names the matched pattern, says to use `ai-git`, and says never to supply, infer or ask for a git identity
+- [ ] An agent with no `blocked_commands` is unaffected (the hook is not installed for it)
 - [ ] Dynamic command words are blocked; leading env assignments, `export`, and variable-prefixed paths with a literal basename still run
 - [ ] Unparseable input and malformed payloads fail open (tested through the real CLI)
 - [ ] The installed copy under `~/.claude/scripts/block-command/` works with the final file list; install and uninstall lifecycle tests pass
