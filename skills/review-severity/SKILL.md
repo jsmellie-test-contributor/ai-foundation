@@ -52,7 +52,9 @@ it. A finding missing any of the three is not yet ready to report — go back an
 
 ### Step 4 — Order and render the report
 
-Order findings CRITICAL → HIGH → MEDIUM → LOW. Render using the template at
+Order findings CRITICAL → HIGH → MEDIUM → LOW. Number each finding with a zero-based index that runs once
+across the whole report, in that order, and prefix it with the finding's severity in the heading (e.g.
+`MEDIUM-0`, `MEDIUM-1`, `LOW-2`) so any finding can be referenced unambiguously. Render using the template at
 `skills/review-severity/reference/template.md`.
 
 ### Step 5 — Never expand scope

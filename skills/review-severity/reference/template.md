@@ -14,7 +14,7 @@
 
 ## Findings
 
-### [{Severity}] {Short Title}
+### [{Severity}-{n}] {Short Title}
 
 **File**: `{path/to/file}` (line {n})
 **Violation**: {Which plan requirement, standard, or schema rule is violated}
