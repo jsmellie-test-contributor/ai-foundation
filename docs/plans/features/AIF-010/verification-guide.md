@@ -78,12 +78,14 @@ Observed (run on `AIF-010-verification-A2-1`): `verify-b` did not inherit `get_s
 2. As a human, add a comment on the PR, then wait 2 minutes.
 3. Fill in:
 
-| Observation                                                    | Result |
-| -------------------------------------------------------------- | ------ |
-| Did `verify-c`'s subscribe call succeed?                       |        |
-| Did a `<wake>` arrive in the main (`verify-a`) session?        |        |
-| Did anything arrive anywhere else? Describe.                   |        |
-| After `verify-c` finished, did the subscription still deliver? |        |
+| Observation                                                    | Result (run on `AIF-010-verification-A3-1`, PR 85)                                                                                                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Did `verify-c`'s subscribe call succeed?                       | Yes: "Subscribed to activity on #85. Comments, CI status changes, reviews, and other PR events will now be delivered into this conversation as `<wake reason="external-event">` envelopes." |
+| Did a `<wake>` arrive in the main (`verify-a`) session?        | No, nothing after 2 minutes. A `subscription.created` event did arrive in the main session at subscribe time, before the comment.                                                           |
+| Did anything arrive anywhere else? Describe.                   | No, nothing woke anywhere after 2 minutes.                                                                                                                                                  |
+| After `verify-c` finished, did the subscription still deliver? | No (nothing woke after the PR comment). Not distinguishable yet from "subagent subscriptions never deliver"; step 4 is the control.                                                         |
+
+Observed (step 1-3): a subagent's subscribe call succeeds and its `subscription.created` event reaches the main session, but a later PR comment produced no wake. Step 4 (main agent subscribing directly) is needed to tell "subagent-owned subscriptions do not wake" apart from "comments do not wake at all in this setup".
 
 4. Repeat with `verify-a` subscribing directly (ask it to call `subscribe_pr_activity` itself), add another PR comment, and record whether the wake arrives.
 5. Ask `verify-a` to call `unsubscribe_pr_activity` for the PR and record the outcome. Close the throwaway PR and delete the branch.
