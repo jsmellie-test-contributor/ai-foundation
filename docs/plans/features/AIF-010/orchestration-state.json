@@ -7,11 +7,11 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-010/001-tool-mapping-contract",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/001-tool-mapping-contract",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 90,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/90",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -75,6 +75,20 @@
       "action": "task_dispatched",
       "task_id": "001",
       "details": "software-engineer; AIF-010/001-tool-mapping-contract"
+    },
+    {
+      "timestamp": "2026-10-02T17:39:56.522Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "001",
+      "details": "PR 90 draft"
+    },
+    {
+      "timestamp": "2026-10-02T17:39:56.522Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
