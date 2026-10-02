@@ -18,7 +18,9 @@ import {
   findRemoteName,
   isDoctorCommand,
   buildDoctorReport,
-  DOCTOR_PROBE_SCRIPT,
+  buildDoctorProbeArgs,
+  isShellSafeArg,
+  isOnPath,
 } from '../../lib/ai-git.js';
 
 describe('unit: ai-git', () => {
@@ -324,18 +326,53 @@ describe('unit: ai-git', () => {
       }
     });
 
-    it('never includes a token value in the report', () => {
-      const secret = 'ghp_SECRET_VALUE_123';
-      const text = buildDoctorReport({
+    it('says the token check was skipped when config is absent', () => {
+      const r = buildDoctorReport({
         ...allOk,
-        tokenEnvName: 'MY_TOKEN',
-        tokenSource: 'wrapper',
-      }).lines.join(' ');
-      assert.ok(!text.includes(secret));
+        configFound: false,
+        tokenEnvName: null,
+        tokenSource: null,
+      });
+      assert.ok(r.lines.some((l) => l.includes('check skipped, no .aiconfig.json')));
+      assert.ok(!r.lines.some((l) => l.includes('no ai_identity.git_token_env')));
     });
 
-    it('probe script contains no whitespace or quotes (safe through shell-joining wrappers)', () => {
-      assert.doesNotMatch(DOCTOR_PROBE_SCRIPT, /[\s'"]/);
+    it('names the unset secrets.run placeholder variable', () => {
+      const r = buildDoctorReport({
+        ...allOk,
+        tokenSource: null,
+        unsetPlaceholder: 'BWS_PROJECT_ID',
+      });
+      assert.equal(r.ok, false);
+      assert.ok(r.lines.some((l) => l.includes('unset environment variable BWS_PROJECT_ID')));
+    });
+
+    it('probe argv is a fixed node + script pair of shell-safe elements', () => {
+      const args = buildDoctorProbeArgs('/repo/lib/doctor-probe.js');
+      assert.deepEqual(args, ['node', '/repo/lib/doctor-probe.js']);
+      assert.ok(args.every(isShellSafeArg));
+      assert.ok(isShellSafeArg(String.raw`C:\repo\lib\doctor-probe.js`));
+    });
+
+    it('isShellSafeArg rejects shell metacharacters', () => {
+      for (const bad of ['a b', "a'b", 'a"b', 'f(x)', 'a[0]', 'a?b', 'a;b', 'a$b', 'a|b', '']) {
+        assert.equal(isShellSafeArg(bad), false, bad);
+      }
+    });
+
+    it('isOnPath finds tools via an injected existence check (posix and win32)', () => {
+      const mk = (platform, files) => ({
+        pathVar: platform === 'win32' ? 'C:/a;C:/b' : '/a:/b',
+        delimiter: platform === 'win32' ? ';' : ':',
+        platform,
+        pathext: '.EXE;.CMD',
+        exists: (f) => files.includes(f),
+        join: (d, n) => `${d}/${n}`,
+      });
+      assert.equal(isOnPath('gh', mk('linux', ['/b/gh'])), true);
+      assert.equal(isOnPath('gh', mk('linux', ['/b/gh.cmd'])), false);
+      assert.equal(isOnPath('gh', mk('win32', ['C:/b/gh.cmd'])), true);
+      assert.equal(isOnPath('bws', mk('win32', [])), false);
     });
   });
 });

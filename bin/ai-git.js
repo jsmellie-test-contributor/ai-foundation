@@ -23,13 +23,15 @@
  *
  * All arguments after the command are passed through verbatim.
  *
- * Plan: AIF-008 (doctor command). Original header: no Plan ID — small human-approved security bugfix (see chat approval
+ * No Plan ID on the original code — small human-approved security bugfix (see chat approval
  * 2026-08-23) for the push/fetch auth-injection argument-order bug.
+ *
+ * Plan: AIF-008 (Task 002) — adds the `ai-git doctor` I/O wrapper.
  */
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, delimiter } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   getIdentity,
@@ -44,7 +46,8 @@ import {
   buildDoctorReport,
   DOCTOR_TOOLS,
   DOCTOR_PROBE_ENV,
-  DOCTOR_PROBE_SCRIPT,
+  buildDoctorProbeArgs,
+  isOnPath,
 } from '../lib/ai-git.js';
 import {
   getSecretsConfig,
@@ -174,11 +177,18 @@ function runGh(command, args, identity) {
 
 // --- doctor (Plan AIF-008, Task 002) ---
 
-/** @returns {boolean} whether `tool --help` can be spawned. */
+const DOCTOR_PROBE_SCRIPT = fileURLToPath(new URL('../lib/doctor-probe.js', import.meta.url));
+
+/** @returns {boolean} whether the tool is a file on PATH (nothing is executed). */
 function toolResolves(tool) {
-  // Constant tool name + args; shell only on Windows so .cmd shims (npm bins) resolve.
-  const r = spawnSync(tool, ['--help'], { stdio: 'ignore', shell: process.platform === 'win32' });
-  return !r.error && r.status === 0;
+  return isOnPath(tool, {
+    pathVar: process.env.PATH ?? process.env.Path ?? '',
+    delimiter,
+    platform: process.platform,
+    pathext: process.env.PATHEXT,
+    exists: existsSync,
+    join,
+  });
 }
 
 /**
@@ -192,6 +202,7 @@ function runDoctor() {
   const found = findAiConfig();
   let tokenEnvName = null;
   let tokenSource = null;
+  let unsetPlaceholder = null;
   if (found) {
     tokenEnvName = getIdentity(found.config).tokenEnvName;
     if (tokenEnvName) {
@@ -199,12 +210,18 @@ function runDoctor() {
       if (process.env[tokenEnvName]) {
         tokenSource = 'env';
       } else if (run) {
-        const [cmd, ...rest] = run.map((p) => resolvePlaceholders(p, process.env));
-        const r = spawnSync(cmd, [...rest, 'node', '-e', DOCTOR_PROBE_SCRIPT], {
-          env: { ...process.env, [DOCTOR_PROBE_ENV]: tokenEnvName },
-          stdio: 'ignore',
-        });
-        if (!r.error && r.status === 0) tokenSource = 'wrapper';
+        try {
+          const [cmd, ...rest] = run.map((p) => resolvePlaceholders(p, process.env));
+          const r = spawnSync(cmd, [...rest, ...buildDoctorProbeArgs(DOCTOR_PROBE_SCRIPT)], {
+            env: { ...process.env, [DOCTOR_PROBE_ENV]: tokenEnvName },
+            stdio: 'ignore',
+          });
+          if (!r.error && r.status === 0) tokenSource = 'wrapper';
+        } catch (err) {
+          const m = /unset environment variable ([A-Z0-9_]+)/.exec(err.message);
+          if (!m) throw err;
+          unsetPlaceholder = m[1];
+        }
       }
       if (!tokenSource && allowInsecureDotenv) {
         const dotenvPath = join(found.root, '.env');
@@ -220,6 +237,7 @@ function runDoctor() {
     configFound: Boolean(found),
     tokenEnvName,
     tokenSource,
+    unsetPlaceholder,
   });
   for (const line of lines) console.log(line);
   return ok ? 0 : 1;

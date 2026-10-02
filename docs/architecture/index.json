@@ -7,14 +7,8 @@
       "title": "Introduction and Goals",
       "summary": "What ai-foundation is, who it's for, and the quality goals its design serves.",
       "lifecycle": "published",
-      "tags": [
-        "overview"
-      ],
-      "key_files": [
-        "README.md",
-        "AGENTS.md",
-        "package.json"
-      ],
+      "tags": ["overview"],
+      "key_files": ["README.md", "AGENTS.md", "package.json"],
       "last_verified": "9bfa8cc",
       "stale": false
     },
@@ -24,9 +18,7 @@
       "title": "Constraints",
       "summary": "Technical and organizational constraints the design must work within.",
       "lifecycle": "published",
-      "tags": [
-        "constraints"
-      ],
+      "tags": ["constraints"],
       "key_files": [
         "package.json",
         "package-lock.json",
@@ -45,10 +37,7 @@
       "title": "System Scope and Context",
       "summary": "Who and what ai-foundation talks to, at the C4 System Context (L1) level.",
       "lifecycle": "published",
-      "tags": [
-        "context",
-        "c4"
-      ],
+      "tags": ["context", "c4"],
       "key_files": [
         "bin/aif.js",
         "servers/dag/dag.yaml",
@@ -64,13 +53,8 @@
       "title": "Bundle resolution",
       "summary": "How `resolveBundle()` turns a `bundle.yaml` into the concrete set of agents/skills/steering/servers that get installed.",
       "lifecycle": "published",
-      "tags": [
-        "building-blocks",
-        "resolver"
-      ],
-      "key_files": [
-        "lib/resolver.js"
-      ],
+      "tags": ["building-blocks", "resolver"],
+      "key_files": ["lib/resolver.js"],
       "last_verified": "faffb74",
       "stale": false
     },
@@ -80,15 +64,8 @@
       "title": "Harness adapters",
       "summary": "The shared adapter contract every harness implements, and exactly where Claude Code and Kiro diverge — this is what portability (§1 Quality Goals) actually rests on.",
       "lifecycle": "published",
-      "tags": [
-        "building-blocks",
-        "harnesses"
-      ],
-      "key_files": [
-        "lib/harnesses/base.js",
-        "lib/harnesses/claude.js",
-        "lib/harnesses/kiro.js"
-      ],
+      "tags": ["building-blocks", "harnesses"],
+      "key_files": ["lib/harnesses/base.js", "lib/harnesses/claude.js", "lib/harnesses/kiro.js"],
       "last_verified": "5065036",
       "stale": false
     },
@@ -98,10 +75,7 @@
       "title": "Core libraries",
       "summary": "`lib/*.js`'s harness-agnostic support libraries, excluding `resolver.js` (§5.01), `lib/harnesses/*` (§5.02), and the decisions/architecture indexing pair (§5.04) — manifest tracking, snapshot diffing, project scaffolding, and shared constants that every command reuses.",
       "lifecycle": "published",
-      "tags": [
-        "building-blocks",
-        "core-libraries"
-      ],
+      "tags": ["building-blocks", "core-libraries"],
       "key_files": [
         "lib/manifest.js",
         "lib/snapshot/io.js",
@@ -125,17 +99,8 @@
       "title": "Document indexing",
       "summary": "How `aif index decisions` and `aif index architecture` each turn a directory of Markdown files into a diffable `index.json` — one shared pipeline shape, currently instantiated for two document types (ADRs and arc42 sections), two different frontmatter formats and identity/relationship rules.",
       "lifecycle": "published",
-      "tags": [
-        "building-blocks",
-        "indexing",
-        "decisions",
-        "architecture"
-      ],
-      "key_files": [
-        "lib/decisions.js",
-        "lib/architecture.js",
-        "lib/index-diff.js"
-      ],
+      "tags": ["building-blocks", "indexing", "decisions", "architecture"],
+      "key_files": ["lib/decisions.js", "lib/architecture.js", "lib/index-diff.js"],
       "last_verified": "5944c97",
       "stale": false
     },
@@ -145,10 +110,7 @@
       "title": "Command layer",
       "summary": "One file per `aif <verb>` subcommand — what each one actually resolves, reads, or writes, and which Core libraries/Harness adapters it calls straight into.",
       "lifecycle": "published",
-      "tags": [
-        "building-blocks",
-        "commands"
-      ],
+      "tags": ["building-blocks", "commands"],
       "key_files": [
         "lib/commands/install.js",
         "lib/commands/uninstall.js",
@@ -170,10 +132,7 @@
       "title": "Building Block View",
       "summary": "Level-1 whitebox of the `aif` CLI and the component directories it resolves, transforms, and installs — decomposed into black boxes, each with its responsibility and interface.",
       "lifecycle": "published",
-      "tags": [
-        "building-blocks",
-        "c4"
-      ],
+      "tags": ["building-blocks", "c4"],
       "key_files": [
         "bin/aif.js",
         "bin/ai-git.js",
@@ -197,11 +156,7 @@
       "title": "Runtime View",
       "summary": "How installing and uninstalling a bundle actually behaves at runtime, where that behavior isn't obvious from §5's static block list — specifically, shared-resource lifecycle (MCP servers, the Claude Code hook script) and freshness detection.",
       "lifecycle": "published",
-      "tags": [
-        "runtime",
-        "manifest",
-        "snapshot"
-      ],
+      "tags": ["runtime", "manifest", "snapshot"],
       "key_files": [
         "lib/manifest.js",
         "lib/commands/install.js",
@@ -217,164 +172,60 @@
       "title": "Risks and Technical Debt",
       "summary": "Known gaps and reliability risks this project accepts rather than solves, and why.",
       "lifecycle": "published",
-      "tags": [
-        "risks"
-      ],
-      "key_files": [
-        "lib/harnesses/kiro.js"
-      ],
+      "tags": ["risks"],
+      "key_files": ["lib/harnesses/kiro.js"],
       "last_verified": "863273a",
       "stale": false
     }
   ],
   "reverse_index": {
-    "README.md": [
-      "01_introduction_and_goals.md"
-    ],
-    "AGENTS.md": [
-      "01_introduction_and_goals.md"
-    ],
-    "package.json": [
-      "01_introduction_and_goals.md",
-      "02_constraints.md"
-    ],
-    "package-lock.json": [
-      "02_constraints.md"
-    ],
-    "tsconfig.json": [
-      "02_constraints.md"
-    ],
+    "README.md": ["01_introduction_and_goals.md"],
+    "AGENTS.md": ["01_introduction_and_goals.md"],
+    "package.json": ["01_introduction_and_goals.md", "02_constraints.md"],
+    "package-lock.json": ["02_constraints.md"],
+    "tsconfig.json": ["02_constraints.md"],
     "lib/harnesses/base.js": [
       "02_constraints.md",
       "05_02_harness_adapters.md",
       "05_building_blocks.md"
     ],
-    "lib/resolver.js": [
-      "02_constraints.md",
-      "05_01_bundle_resolution.md",
-      "05_building_blocks.md"
-    ],
-    "steering/engineering/git-workflow-core.md": [
-      "02_constraints.md"
-    ],
-    "steering/engineering/git-workflow-projects.md": [
-      "02_constraints.md"
-    ],
-    "bin/aif.js": [
-      "03_context.md",
-      "05_building_blocks.md"
-    ],
-    "servers/dag/dag.yaml": [
-      "03_context.md",
-      "05_building_blocks.md"
-    ],
-    "servers/gmail/auth.js": [
-      "03_context.md",
-      "05_building_blocks.md"
-    ],
-    "servers/youtrack/youtrack.yaml": [
-      "03_context.md",
-      "05_building_blocks.md"
-    ],
-    "lib/harnesses/claude.js": [
-      "05_02_harness_adapters.md"
-    ],
-    "lib/harnesses/kiro.js": [
-      "05_02_harness_adapters.md",
-      "11_risks.md"
-    ],
-    "lib/manifest.js": [
-      "05_03_core_libraries.md",
-      "06_runtime.md"
-    ],
-    "lib/snapshot/io.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/snapshot/pure.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/project-init.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/ai-git.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/secrets.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/constants.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/component-defs.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/aiconfig.js": [
-      "05_03_core_libraries.md",
-      "05_building_blocks.md"
-    ],
-    "lib/aiconfig-resolve.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/aiconfig-defaults.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/file-utils.js": [
-      "05_03_core_libraries.md",
-      "05_building_blocks.md"
-    ],
-    "lib/decisions.js": [
-      "05_04_document_indexing.md"
-    ],
-    "lib/architecture.js": [
-      "05_04_document_indexing.md"
-    ],
-    "lib/index-diff.js": [
-      "05_04_document_indexing.md"
-    ],
-    "lib/commands/install.js": [
-      "05_05_command_layer.md",
-      "06_runtime.md"
-    ],
-    "lib/commands/uninstall.js": [
-      "05_05_command_layer.md",
-      "06_runtime.md"
-    ],
-    "lib/commands/status.js": [
-      "05_05_command_layer.md"
-    ],
-    "lib/commands/list.js": [
-      "05_05_command_layer.md"
-    ],
-    "lib/commands/validate.js": [
-      "05_05_command_layer.md"
-    ],
-    "lib/commands/test.js": [
-      "05_05_command_layer.md"
-    ],
-    "lib/commands/snapshot.js": [
-      "05_05_command_layer.md",
-      "06_runtime.md"
-    ],
-    "lib/commands/index.js": [
-      "05_05_command_layer.md"
-    ],
-    "lib/commands/init.js": [
-      "05_05_command_layer.md"
-    ],
-    "lib/commands/config.js": [
-      "05_05_command_layer.md"
-    ],
-    "bin/ai-git.js": [
-      "05_building_blocks.md"
-    ],
-    "servers/dag/index.js": [
-      "05_building_blocks.md"
-    ],
-    "servers/dag/logic.js": [
-      "05_building_blocks.md"
-    ],
-    "servers/gmail/gmail.yaml": [
-      "05_building_blocks.md"
-    ]
+    "lib/resolver.js": ["02_constraints.md", "05_01_bundle_resolution.md", "05_building_blocks.md"],
+    "steering/engineering/git-workflow-core.md": ["02_constraints.md"],
+    "steering/engineering/git-workflow-projects.md": ["02_constraints.md"],
+    "bin/aif.js": ["03_context.md", "05_building_blocks.md"],
+    "servers/dag/dag.yaml": ["03_context.md", "05_building_blocks.md"],
+    "servers/gmail/auth.js": ["03_context.md", "05_building_blocks.md"],
+    "servers/youtrack/youtrack.yaml": ["03_context.md", "05_building_blocks.md"],
+    "lib/harnesses/claude.js": ["05_02_harness_adapters.md"],
+    "lib/harnesses/kiro.js": ["05_02_harness_adapters.md", "11_risks.md"],
+    "lib/manifest.js": ["05_03_core_libraries.md", "06_runtime.md"],
+    "lib/snapshot/io.js": ["05_03_core_libraries.md"],
+    "lib/snapshot/pure.js": ["05_03_core_libraries.md"],
+    "lib/project-init.js": ["05_03_core_libraries.md"],
+    "lib/ai-git.js": ["05_03_core_libraries.md"],
+    "lib/secrets.js": ["05_03_core_libraries.md"],
+    "lib/constants.js": ["05_03_core_libraries.md"],
+    "lib/component-defs.js": ["05_03_core_libraries.md"],
+    "lib/aiconfig.js": ["05_03_core_libraries.md", "05_building_blocks.md"],
+    "lib/aiconfig-resolve.js": ["05_03_core_libraries.md"],
+    "lib/aiconfig-defaults.js": ["05_03_core_libraries.md"],
+    "lib/file-utils.js": ["05_03_core_libraries.md", "05_building_blocks.md"],
+    "lib/decisions.js": ["05_04_document_indexing.md"],
+    "lib/architecture.js": ["05_04_document_indexing.md"],
+    "lib/index-diff.js": ["05_04_document_indexing.md"],
+    "lib/commands/install.js": ["05_05_command_layer.md", "06_runtime.md"],
+    "lib/commands/uninstall.js": ["05_05_command_layer.md", "06_runtime.md"],
+    "lib/commands/status.js": ["05_05_command_layer.md"],
+    "lib/commands/list.js": ["05_05_command_layer.md"],
+    "lib/commands/validate.js": ["05_05_command_layer.md"],
+    "lib/commands/test.js": ["05_05_command_layer.md"],
+    "lib/commands/snapshot.js": ["05_05_command_layer.md", "06_runtime.md"],
+    "lib/commands/index.js": ["05_05_command_layer.md"],
+    "lib/commands/init.js": ["05_05_command_layer.md"],
+    "lib/commands/config.js": ["05_05_command_layer.md"],
+    "bin/ai-git.js": ["05_building_blocks.md"],
+    "servers/dag/index.js": ["05_building_blocks.md"],
+    "servers/dag/logic.js": ["05_building_blocks.md"],
+    "servers/gmail/gmail.yaml": ["05_building_blocks.md"]
   }
 }
