@@ -166,11 +166,14 @@ Subagents have no session of their own: a `general-purpose` subagent that called
 
 A subagent (`verify-c`) subscribed to PR 85, then `verify-a` subscribed directly, and every comment, inline comment and review tried (same and different accounts, draft and ready) produced no wake. These runs lacked `ReadNotifications`, had a later subscriber in play, and the main session was disconnected. They do not show that PR comments never wake. They also did not settle whether a subagent's subscription routes to its parent. `verify-c` could not have read notifications either way.
 
-#### Open for A3
+#### Not pursued for A3
 
-1. Done in A3d: a subagent's subscription belongs to the parent session. Still open: whether `ReadNotifications` called in a subagent drains events the parent would read.
-2. Whether a CI event wakes a working subscriber, and a log check of the human-reported comment and review wakes.
-3. Cleanup is done: PRs 85 and 86, all `AIF-010-verification*` and `aif010/*` branches, and the worktrees were deleted. To rerun, recreate the agent files and settings from Setup above.
+Considered and dropped by the human (2026-10-02) as not affecting the plan:
+
+- Whether `ReadNotifications` called in a subagent drains events the parent would read.
+- Whether a CI event wakes a working subscriber, and a log check of the human-reported comment and review wakes.
+
+Cleanup is done: the throwaway PRs, all `AIF-010-verification*` and `aif010/*` branches, and the worktrees were deleted. To rerun, recreate the agent files and settings from Setup above.
 
 ## Part B: Kiro and a foreign `@claude-code-remote/...` entry (answers Q6)
 
