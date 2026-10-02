@@ -48,9 +48,9 @@ Do not skip a step or merge two steps. If an observation matches none of the lis
 | Agent       | Tools it listed         | ToolSearch result                                                                               | Call to `subscribe_pr_activity`                     |
 | ----------- | ----------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | verify-ts   | `Read` only (first run) | Not called: `ToolSearch` is not in the session's tool list, so "tool not available" (first run) | Not called: the tool was never surfaced (first run) |
-| verify-nots |                         |                                                                                                 |                                                     |
+| verify-nots | `Read` only (first run) | Not called: `ToolSearch` is not in the session's tool list, so "tool not available" (first run) | Not called: the tool was never surfaced (first run) |
 
-Observed so far: with `tools: Read, ToolSearch`, the session listed only `Read`, and `ToolSearch` was not callable even though the allowlist names it. The system prompt still named `subscribe_pr_activity` as a deferred tool, but nothing loaded it. The `verify-nots` control has not been run yet; if it also lacks `ToolSearch`, the allowlist is not what removed it.
+Observed so far: with `tools: Read, ToolSearch` (`verify-ts`) and with `tools: Read` (`verify-nots`), both sessions listed only `Read`, and neither could call `ToolSearch`. The system prompt still named `subscribe_pr_activity` as a deferred tool in both, but nothing loaded it. So listing `ToolSearch` in `tools:` did not make it available, and this run cannot show whether `ToolSearch` bypasses an allowlist; Q4 is unanswered by A1 alone unless a session that has `ToolSearch` is tested.
 
 Interpretation: if `verify-ts` can call a tool its allowlist omits, the allowlist is bypassable through `ToolSearch` and it must not be in the baseline of any restricted agent. If the call is blocked, `ToolSearch` is discovery only.
 
