@@ -137,12 +137,14 @@ Setup: base `AIF-010-verification` with `.claude/agents/verify-e.md` (main; `Rea
 4. Have the main agent subscribe itself, then dispatch `verify-g` to subscribe again. Post a second comment. Record whether the event arrives once or twice, and where.
 5. Pull the session log with `get_run_log` and compare event times to the comment times.
 
-| Check                                                                          | Result |
-| ------------------------------------------------------------------------------ | ------ |
-| `verify-g` subscribe succeeded                                                 |        |
-| `subscription.created` reached (main / subagent)                               |        |
-| Comment after `verify-g` finished woke the main session                        |        |
-| Event count after both subscribed (expected 1 if one subscription per session) |        |
+| Check                                                   | Result                                                                                                                                                   |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `verify-g` subscribe succeeded                          | Yes, 16:44:29Z (`session_01LoGczKM12CqRpRQEZ6XX3c`, branch `AIF-010-verification-A3-1`, PR 87)                                                           |
+| `subscription.created` reached (main / subagent)        | Main: queued in the main session at 16:44:29Z and read by `verify-e` with `ReadNotifications` after `verify-g` returned. No sign of a copy in `verify-g` |
+| Comment after `verify-g` finished woke the main session | Yes: a general comment (`issue_comment.created`, "General comment 1") woke it at 16:45:59Z, about 90 s after `verify-g` finished                         |
+| Event count after both subscribed                       | Not run (steps 4 and 5 skipped once the routing was clear)                                                                                               |
+
+Subagents have no session of their own: a `general-purpose` subagent that called `get_session` got the parent's `ccr.id` with `lineage.depth: 0` and no parent or child fields. So a subscription made by a subagent is a subscription of the parent session, and the subagent never wakes. Checked with `general-purpose`, not `verify-g`, which has no `get_session`. Not tested: whether `ReadNotifications` called inside a subagent drains events the parent would otherwise read.
 
 #### Earlier A3 runs on PR 85 (retracted as evidence)
 
@@ -150,10 +152,9 @@ A subagent (`verify-c`) subscribed to PR 85, then `verify-a` subscribed directly
 
 #### Open for A3
 
-1. Whether a subagent's subscription delivers to the parent or the subagent, now with `ReadNotifications` granted to both.
-2. Whether a subagent subscribing takes delivery from its parent (last subscriber wins).
-3. Whether a CI event wakes a working subscriber, and a log check of the human-reported comment and review wakes.
-4. Cleanup is done: PRs 85 and 86, all `AIF-010-verification*` and `aif010/*` branches, and the worktrees were deleted. To rerun, recreate the agent files and settings from Setup above.
+1. Done in A3d: a subagent's subscription belongs to the parent session. Still open: whether `ReadNotifications` called in a subagent drains events the parent would read.
+2. Whether a CI event wakes a working subscriber, and a log check of the human-reported comment and review wakes.
+3. Cleanup is done: PRs 85 and 86, all `AIF-010-verification*` and `aif010/*` branches, and the worktrees were deleted. To rerun, recreate the agent files and settings from Setup above.
 
 ## Part B: Kiro and a foreign `@claude-code-remote/...` entry (answers Q6)
 
