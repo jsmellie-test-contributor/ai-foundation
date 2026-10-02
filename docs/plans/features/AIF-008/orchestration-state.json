@@ -18,13 +18,13 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Blocked",
+      "status": "Implementing",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
       "pr_number": 91,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/91",
       "iterations": 0,
-      "blocked_reason": "Rebase onto main stopped mid-way (classifier denied a conflict-resolution loop); human to take over in the 002 worktree"
+      "blocked_reason": null
     },
     {
       "id": "003",
@@ -66,7 +66,7 @@
       "task_id": "002",
       "reason": "Rebase onto main stopped mid-way (classifier denied a conflict-resolution loop); human to take over in the 002 worktree",
       "raised_at": "2026-10-02T08:30:00Z",
-      "resolved": false
+      "resolved": true
     }
   ],
   "log": [
@@ -342,6 +342,20 @@
       "action": "escalation_raised",
       "task_id": "002",
       "details": "awaiting human"
+    },
+    {
+      "timestamp": "2026-10-02T09:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_unblocked",
+      "task_id": "002",
+      "details": "human requested retry"
+    },
+    {
+      "timestamp": "2026-10-02T09:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Blocked -> Implementing"
     }
   ]
 }
