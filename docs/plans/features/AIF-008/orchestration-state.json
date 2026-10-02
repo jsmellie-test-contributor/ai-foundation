@@ -29,11 +29,11 @@
     {
       "id": "003",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-008/003-rest-path-identity",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 88,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/88",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -78,6 +78,20 @@
       "action": "task_dispatched",
       "task_id": "003",
       "details": "software-engineer; AIF-008/003-rest-path-identity"
+    },
+    {
+      "timestamp": "2026-10-02T00:30:00Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "003",
+      "details": "PR #88 draft"
+    },
+    {
+      "timestamp": "2026-10-02T00:30:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
