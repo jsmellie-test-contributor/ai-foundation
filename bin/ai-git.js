@@ -30,7 +30,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, accessSync, constants } from 'node:fs';
 import { resolve, join, delimiter } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -47,6 +47,8 @@ import {
   DOCTOR_TOOLS,
   DOCTOR_PROBE_ENV,
   buildDoctorProbeArgs,
+  findUnsafeArg,
+  makeIsExecutableFile,
   isOnPath,
 } from '../lib/ai-git.js';
 import {
@@ -186,7 +188,12 @@ function toolResolves(tool) {
     delimiter,
     platform: process.platform,
     pathext: process.env.PATHEXT,
-    exists: existsSync,
+    exists: makeIsExecutableFile({
+      statSync,
+      accessSync,
+      platform: process.platform,
+      xOk: constants.X_OK,
+    }),
     join,
   });
 }
@@ -203,6 +210,7 @@ function runDoctor() {
   let tokenEnvName = null;
   let tokenSource = null;
   let unsetPlaceholder = null;
+  let unsafeProbePath = null;
   if (found) {
     tokenEnvName = getIdentity(found.config).tokenEnvName;
     if (tokenEnvName) {
@@ -212,11 +220,15 @@ function runDoctor() {
       } else if (run) {
         try {
           const [cmd, ...rest] = run.map((p) => resolvePlaceholders(p, process.env));
-          const r = spawnSync(cmd, [...rest, ...buildDoctorProbeArgs(DOCTOR_PROBE_SCRIPT)], {
-            env: { ...process.env, [DOCTOR_PROBE_ENV]: tokenEnvName },
-            stdio: 'ignore',
-          });
-          if (!r.error && r.status === 0) tokenSource = 'wrapper';
+          const probeArgs = buildDoctorProbeArgs(DOCTOR_PROBE_SCRIPT);
+          unsafeProbePath = findUnsafeArg(probeArgs);
+          if (!unsafeProbePath) {
+            const r = spawnSync(cmd, [...rest, ...probeArgs], {
+              env: { ...process.env, [DOCTOR_PROBE_ENV]: tokenEnvName },
+              stdio: 'ignore',
+            });
+            if (!r.error && r.status === 0) tokenSource = 'wrapper';
+          }
         } catch (err) {
           const m = /unset environment variable ([A-Z0-9_]+)/.exec(err.message);
           if (!m) throw err;
@@ -238,6 +250,7 @@ function runDoctor() {
     tokenEnvName,
     tokenSource,
     unsetPlaceholder,
+    unsafeProbePath,
   });
   for (const line of lines) console.log(line);
   return ok ? 0 : 1;

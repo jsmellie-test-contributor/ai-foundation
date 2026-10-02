@@ -27,16 +27,17 @@ key_files:
 
 ## Motivation
 
-The largest heterogeneous group in §5's "Core libraries" row: 12 files across 8
+The largest heterogeneous group in §5's "Core libraries" row: 13 files across 8
 unrelated responsibilities, and the group most likely to gain a new file as the
 CLI grows. Its own `key_files` list keeps the top-level §5 doc's list short
 enough that a rename or deletion there stays a meaningful signal, while these
-12 files' individual freshness stays tracked here instead of silently dropping
+13 files' individual freshness stays tracked here instead of silently dropping
 out of `aif index architecture --check` coverage. `file-utils.js`'s addition
 (splitting generic file/hash/frontmatter helpers out of `lib/harnesses/base.js`
 — see §5.02's Consumers section) and `secrets.js`'s addition (provider-agnostic
-secrets resolution for `ai-git`, per `docs/plans/secrets-resolution-plan.md`)
-are exactly the split-trigger case `steering/engineering/architecture-authoring.md`
+secrets resolution for `ai-git`, per `docs/plans/secrets-resolution-plan.md`),
+and `doctor-probe.js`'s addition (the `ai-git doctor` token probe, a tiny
+argv-safe script kept apart from `ai-git.js`'s pure logic) are exactly the split-trigger case `steering/engineering/architecture-authoring.md`
 names past 5 entries; a finer `05.0x` subsection isn't warranted yet, since these
 8 responsibilities still share nothing beyond "not `resolver.js`/harnesses/indexing"
 the way §5.01's or §5.04's content does.

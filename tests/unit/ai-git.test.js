@@ -19,6 +19,8 @@ import {
   isDoctorCommand,
   buildDoctorReport,
   buildDoctorProbeArgs,
+  findUnsafeArg,
+  makeIsExecutableFile,
   isShellSafeArg,
   isOnPath,
 } from '../../lib/ai-git.js';
@@ -373,6 +375,69 @@ describe('unit: ai-git', () => {
       assert.equal(isOnPath('gh', mk('linux', ['/b/gh.cmd'])), false);
       assert.equal(isOnPath('gh', mk('win32', ['C:/b/gh.cmd'])), true);
       assert.equal(isOnPath('bws', mk('win32', [])), false);
+    });
+
+    it('findUnsafeArg returns the first unsafe element or null', () => {
+      assert.equal(findUnsafeArg(['node', '/ok/p.js']), null);
+      assert.equal(
+        findUnsafeArg(['node', '/Program Files (x86)/p.js']),
+        '/Program Files (x86)/p.js',
+      );
+    });
+
+    it('reports an unsafe probe path distinctly, never as a plain "NOT resolved"', () => {
+      const r = buildDoctorReport({
+        ...allOk,
+        tokenSource: null,
+        unsafeProbePath: '/my dir/lib/doctor-probe.js',
+      });
+      assert.equal(r.ok, false);
+      const line = r.lines.find((l) => l.startsWith('FAIL token'));
+      assert.match(
+        line,
+        /probe path not shell-safe; token check could not run \(\/my dir\/lib\/doctor-probe\.js\)/,
+      );
+    });
+
+    describe('makeIsExecutableFile()', () => {
+      const fsFake = (kind, executable) => ({
+        statSync: () => {
+          if (kind === 'missing') throw new Error('ENOENT');
+          return { isFile: () => kind === 'file' };
+        },
+        accessSync: () => {
+          if (!executable) throw new Error('EACCES');
+        },
+        xOk: 1,
+      });
+      it('accepts an executable regular file', () => {
+        assert.equal(
+          makeIsExecutableFile({ ...fsFake('file', true), platform: 'linux' })('/a'),
+          true,
+        );
+      });
+      it('rejects a non-executable file on POSIX', () => {
+        assert.equal(
+          makeIsExecutableFile({ ...fsFake('file', false), platform: 'linux' })('/a'),
+          false,
+        );
+      });
+      it('ignores the exec bit on Windows', () => {
+        assert.equal(
+          makeIsExecutableFile({ ...fsFake('file', false), platform: 'win32' })('/a'),
+          true,
+        );
+      });
+      it('rejects a directory and a missing path', () => {
+        assert.equal(
+          makeIsExecutableFile({ ...fsFake('dir', true), platform: 'linux' })('/a'),
+          false,
+        );
+        assert.equal(
+          makeIsExecutableFile({ ...fsFake('missing', true), platform: 'linux' })('/a'),
+          false,
+        );
+      });
     });
   });
 });

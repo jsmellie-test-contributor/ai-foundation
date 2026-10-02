@@ -9,7 +9,16 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import {
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+  readFileSync,
+  existsSync,
+  mkdirSync,
+  cpSync,
+  chmodSync,
+} from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -39,7 +48,9 @@ let binDir;
 
 function makeTools(names) {
   for (const n of names) {
-    writeFileSync(join(binDir, process.platform === 'win32' ? `${n}.cmd` : n), '');
+    const f = join(binDir, process.platform === 'win32' ? `${n}.cmd` : n);
+    writeFileSync(f, '');
+    chmodSync(f, 0o755);
   }
 }
 
@@ -58,7 +69,7 @@ function wrapperRun(...mid) {
   return ['node', join(root, 'fake-wrap.js'), ...mid, '--'];
 }
 
-function runDoctor(cwd, extraEnv = {}) {
+function runDoctor(cwd, extraEnv = {}, binPath = BIN_PATH) {
   const sysPath = process.platform === 'win32' ? '' : '/bin:/usr/bin';
   const env = {
     ...process.env,
@@ -73,7 +84,7 @@ function runDoctor(cwd, extraEnv = {}) {
   delete env.BWS_PROJECT_ID;
   delete env.AIF_SECRETS_WRAPPED;
   Object.assign(env, extraEnv);
-  const r = spawnSync(process.execPath, [BIN_PATH, 'doctor'], { cwd, env, encoding: 'utf8' });
+  const r = spawnSync(process.execPath, [binPath, 'doctor'], { cwd, env, encoding: 'utf8' });
   return { code: r.status, out: r.stdout, err: r.stderr, all: `${r.stdout}\n${r.stderr}` };
 }
 
@@ -148,4 +159,37 @@ describe('integration: ai-git doctor', () => {
     assert.doesNotMatch(r.all, /\n\s+at /);
     assert.ok(!r.all.includes(SECRET));
   });
+
+  it('probe path not shell-safe (install dir with a space): explicit failure, wrapper never spawned', () => {
+    const unsafeRoot = join(root, 'my install dir');
+    cpSync(resolve(import.meta.dirname, '../../bin'), join(unsafeRoot, 'bin'), { recursive: true });
+    cpSync(resolve(import.meta.dirname, '../../lib'), join(unsafeRoot, 'lib'), { recursive: true });
+    writeConfig({ secrets: { run: wrapperRun() } });
+    const r = runDoctor(root, { FAKE_WRAP_SECRET: SECRET }, join(unsafeRoot, 'bin', 'ai-git.js'));
+    assert.equal(r.code, 1);
+    assert.match(
+      r.out,
+      /probe path not shell-safe; token check could not run \(.*my install dir.*\)/,
+    );
+    assert.doesNotMatch(r.out, /resolved via/);
+    assert.equal(existsSync(join(root, 'wrap.log')), false, 'wrapper must not be spawned');
+    assert.ok(!r.all.includes(SECRET));
+  });
+
+  it(
+    'a non-executable file or a directory on PATH does not count as the tool',
+    { skip: process.platform === 'win32' && 'POSIX exec bit' },
+    () => {
+      rmSync(join(binDir, 'gh'));
+      writeFileSync(join(binDir, 'gh'), '');
+      chmodSync(join(binDir, 'gh'), 0o644);
+      rmSync(join(binDir, 'bws'));
+      mkdirSync(join(binDir, 'bws'));
+      writeConfig();
+      const r = runDoctor(root, { [TOKEN_VAR]: SECRET });
+      assert.equal(r.code, 1);
+      assert.match(r.out, /FAIL gh: NOT found/);
+      assert.match(r.out, /FAIL bws: NOT found/);
+    },
+  );
 });
