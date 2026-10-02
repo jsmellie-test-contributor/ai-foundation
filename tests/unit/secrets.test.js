@@ -1,5 +1,7 @@
 /**
  * Unit tests for lib/secrets.js — pure logic for secrets resolution.
+ *
+ * Plan: AIF-008 (re-exec argument transport and failure policy)
  */
 
 import { describe, it } from 'node:test';
@@ -12,6 +14,11 @@ import {
   REEXEC_GUARD_ENV,
   isAlreadyWrapped,
   buildWrapperInvocation,
+  REEXEC_ARGS_ENV,
+  MAX_REEXEC_ARGS_BYTES,
+  encodeReexecArgs,
+  decodeReexecArgs,
+  describeTokenFailure,
 } from '../../lib/secrets.js';
 
 describe('unit: secrets', () => {
@@ -134,7 +141,6 @@ describe('unit: secrets', () => {
         run,
         '/usr/bin/node',
         '/repo/bin/ai-git.js',
-        ['gh-repo-view'],
         { BWS_PROJECT_ID: 'proj-123' },
       );
       assert.equal(result.command, 'bws');
@@ -145,7 +151,6 @@ describe('unit: secrets', () => {
         '--',
         '/usr/bin/node',
         '/repo/bin/ai-git.js',
-        'gh-repo-view',
       ]);
     });
 
@@ -154,11 +159,10 @@ describe('unit: secrets', () => {
         ['op', 'run', '--'],
         '/usr/bin/node',
         '/repo/bin/ai-git.js',
-        ['push'],
         {},
       );
       assert.equal(result.command, 'op');
-      assert.deepEqual(result.args, ['run', '--', '/usr/bin/node', '/repo/bin/ai-git.js', 'push']);
+      assert.deepEqual(result.args, ['run', '--', '/usr/bin/node', '/repo/bin/ai-git.js']);
     });
 
     it('throws if a placeholder in run is unresolved', () => {
@@ -168,11 +172,76 @@ describe('unit: secrets', () => {
             ['bws', 'run', '--project-id', '${MISSING}', '--'],
             '/usr/bin/node',
             '/repo/bin/ai-git.js',
-            [],
             {},
           ),
         /references unset environment variable MISSING/,
       );
+    });
+  });
+  describe('buildWrapperInvocation() argv', () => {
+    it('never includes user arguments in the wrapper argv', () => {
+      const result = buildWrapperInvocation(['bws', 'run', '--'], 'node', '/x/ai-git.js', {});
+      assert.deepEqual(result.args, ['run', '--', 'node', '/x/ai-git.js']);
+    });
+  });
+
+  describe('encodeReexecArgs() / decodeReexecArgs()', () => {
+    it('uses AIF_REEXEC_ARGS as the transport variable', () => {
+      assert.equal(REEXEC_ARGS_ENV, 'AIF_REEXEC_ARGS');
+    });
+
+    it('round-trips hostile arguments losslessly', () => {
+      const args = ['a b', 'a;echo X', '$(id)', '`id`', "it's", 'say "hi"', 'l1\nl2', '(x)', '$HOME', ''];
+      assert.deepEqual(decodeReexecArgs(encodeReexecArgs(args)), args);
+    });
+
+    it('round-trips an empty argv', () => {
+      assert.deepEqual(decodeReexecArgs(encodeReexecArgs([])), []);
+    });
+
+    it('rejects arguments over the size guard instead of truncating', () => {
+      assert.throws(
+        () => encodeReexecArgs(['x'.repeat(MAX_REEXEC_ARGS_BYTES)]),
+        /too large/,
+      );
+    });
+
+    it('accepts arguments just under the size guard', () => {
+      const encoded = encodeReexecArgs(['x'.repeat(MAX_REEXEC_ARGS_BYTES - 100)]);
+      assert.ok(Buffer.byteLength(encoded) <= MAX_REEXEC_ARGS_BYTES);
+    });
+
+    it('counts bytes, not characters, against the guard', () => {
+      assert.throws(() => encodeReexecArgs(['é'.repeat(MAX_REEXEC_ARGS_BYTES / 2)]), /too large/);
+    });
+
+    it('rejects malformed JSON on decode', () => {
+      assert.throws(() => decodeReexecArgs('{nope'), /not valid JSON/);
+    });
+
+    it('rejects non-array and non-string-element JSON on decode', () => {
+      assert.throws(() => decodeReexecArgs('{"a":1}'), /JSON array of strings/);
+      assert.throws(() => decodeReexecArgs('["a",1]'), /JSON array of strings/);
+    });
+  });
+
+  describe('describeTokenFailure()', () => {
+    it('is fatal for gh commands and names the variable', () => {
+      const r = describeTokenFailure(true, 'AI_GIT_TOKEN', null);
+      assert.equal(r.fatal, true);
+      assert.match(r.message, /^ERROR: AI_GIT_TOKEN is not set/);
+    });
+
+    it('is a non-fatal warning for push/fetch', () => {
+      const r = describeTokenFailure(false, 'AI_GIT_TOKEN', null);
+      assert.equal(r.fatal, false);
+      assert.match(r.message, /^WARNING: AI_GIT_TOKEN is not set/);
+    });
+
+    it('includes the cause on a single line', () => {
+      const r = describeTokenFailure(false, 'T', 'bws not found on PATH');
+      assert.match(r.message, /bws not found on PATH; T is not set/);
+      assert.ok(!r.message.includes('\n'));
     });
   });
 });
