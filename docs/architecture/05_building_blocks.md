@@ -2,7 +2,7 @@
 section: '05'
 title: 'Building Block View'
 lifecycle: published
-last_verified: f87df2d
+last_verified: c8ad9e0
 tags: [building-blocks, c4]
 key_files:
   - bin/aif.js
@@ -82,10 +82,10 @@ cut across that boundary and hide it.
 
 ### Entry points
 
-| Block           | Responsibility                                                                                                                                                  | Interface                                     |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `bin/aif.js`    | Parses argv, dispatches to the matching `lib/commands/*` handler.                                                                                               | `run(parsed)`, `parseArgs(argv)`              |
-| `bin/ai-git.js` | Transparent git/gh wrapper injecting AI author identity and token auth; re-execs through `secrets.run` with arguments passed as JSON in an env var, never argv. | CLI passthrough: `ai-git <command> [args...]` |
+| Block           | Responsibility                                                                                                                                                                                                                           | Interface                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `bin/aif.js`    | Parses argv, dispatches to the matching `lib/commands/*` handler.                                                                                                                                                                        | `run(parsed)`, `parseArgs(argv)`                               |
+| `bin/ai-git.js` | Transparent git/gh wrapper injecting AI author identity and token auth; re-execs through `secrets.run` with arguments passed as JSON in an env var, never argv; `ai-git doctor` reports tool, config and token resolution (yes/no only). | CLI passthrough: `ai-git <command> [args...]`, `ai-git doctor` |
 
 ### Command layer (`lib/commands/*`) — see §5.05
 
