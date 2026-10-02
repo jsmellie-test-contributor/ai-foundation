@@ -64,13 +64,13 @@ describe('unit: base/resolvePreloadSkills', () => {
 // ── tool-mapping contract ────────────────────────────────────────────────────
 
 describe('unit: base/tool resolver', () => {
-  // Two synthetic groups share the member NOTIFY, as AIF-010 Q10 requires.
+  // Two synthetic TOOLS entries share the member NOTIFY, as AIF-010 Q10 requires.
   const config = {
     toolMap: {
       read: ['Read'],
       code: UNSUPPORTED,
-      group_a: ['A1', 'NOTIFY'],
-      group_b: ['B1', 'NOTIFY'],
+      entry_a: ['A1', 'NOTIFY'],
+      entry_b: ['B1', 'NOTIFY'],
     },
     mapRef: (ref) => `native:${ref}`,
   };
@@ -96,13 +96,13 @@ describe('unit: base/tool resolver', () => {
     }
   });
 
-  it('deduplicates a tool shared by several groups', () => {
-    assert.deepEqual(resolveTools(['group_a', 'group_b'], config).tools, ['A1', 'NOTIFY', 'B1']);
+  it('deduplicates a tool shared by several entries', () => {
+    assert.deepEqual(resolveTools(['entry_a', 'entry_b'], config).tools, ['A1', 'NOTIFY', 'B1']);
   });
 
-  it('keeps a shared tool granted while either group is held', () => {
-    assert.ok(resolveTools(['group_a'], config).tools.includes('NOTIFY'));
-    assert.ok(resolveTools(['group_b'], config).tools.includes('NOTIFY'));
+  it('keeps a shared tool granted while either entry is held', () => {
+    assert.ok(resolveTools(['entry_a'], config).tools.includes('NOTIFY'));
+    assert.ok(resolveTools(['entry_b'], config).tools.includes('NOTIFY'));
   });
 
   it('collects unsupported names as dropped, once each, excluded from tools', () => {
