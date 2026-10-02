@@ -2,19 +2,19 @@
 
 ## 1. Metadata
 
-| Field               | Value                                                                    |
-| ------------------- | ------------------------------------------------------------------------ |
-| Feature ID          | AIF-010                                                                  |
-| Project             | ai-foundation                                                            |
-| Status              | Draft                                                                    |
-| Author (Agent)      | Engineering Manager                                                      |
-| Reviewed By         | Pending                                                                  |
-| Created             | 2026-10-01                                                               |
-| Last Updated        | 2026-10-01                                                               |
-| Standards           | `javascript`, `node` (per `.aiconfig.json`)                              |
-| Total Tasks         | Not yet decomposed (Draft)                                               |
-| Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md`           |
-| ADRs                | 0002 (accepted), 0004 (accepted). New ADR pending (see Section 8, Q1).   |
+| Field               | Value                                                                  |
+| ------------------- | ---------------------------------------------------------------------- |
+| Feature ID          | AIF-010                                                                |
+| Project             | ai-foundation                                                          |
+| Status              | Draft                                                                  |
+| Author (Agent)      | Engineering Manager                                                    |
+| Reviewed By         | Pending                                                                |
+| Created             | 2026-10-01                                                             |
+| Last Updated        | 2026-10-01                                                             |
+| Standards           | `javascript`, `node` (per `.aiconfig.json`)                            |
+| Total Tasks         | Not yet decomposed (Draft)                                             |
+| Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md`         |
+| ADRs                | 0002 (accepted), 0004 (accepted). New ADR pending (see Section 8, Q1). |
 
 ---
 
@@ -81,12 +81,12 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 
 ### Error States
 
-| Scenario                                                    | Expected Behaviour                                                              |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Agent lists a bare name that is not generic, group, or ref  | Install and validation fail with the offending agent and name                   |
-| Group unsupported on the target harness                     | Install succeeds; dropped-tool report names agent, group and harness            |
-| Kiro rejects an agent containing a foreign `@server/tool`   | Prevented: verification Task gates any yaml edit (Section 8, Q6); adapter drops |
-| Claude Code loads an agent whose allowlist lacks a group    | Skill degrades: reports once and names the human route rather than assuming it  |
+| Scenario                                                   | Expected Behaviour                                                              |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Agent lists a bare name that is not generic, group, or ref | Install and validation fail with the offending agent and name                   |
+| Group unsupported on the target harness                    | Install succeeds; dropped-tool report names agent, group and harness            |
+| Kiro rejects an agent containing a foreign `@server/tool`  | Prevented: verification Task gates any yaml edit (Section 8, Q6); adapter drops |
+| Claude Code loads an agent whose allowlist lacks a group   | Skill degrades: reports once and names the human route rather than assuming it  |
 
 ---
 
@@ -94,12 +94,12 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 
 ### New Components
 
-| Component                        | Type                    | Responsibility                                                                                          |
-| -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| `UNSUPPORTED` marker + resolver  | Shared module (`base.js`) | One encoding for "verified no equivalent" and a three-state resolve (mapped / unsupported / passthrough) |
-| Dropped-tool report              | Install output          | One line per agent and harness listing dropped tools                                                    |
-| Tool group names                 | Constants (`lib/constants.js`) | Harness-neutral names such as `session_info`, `pr_follow_through`; added only when an agent needs one |
-| Shared adapter contract test     | Test                    | One test run against every adapter asserting the three states and the resolved set                      |
+| Component                       | Type                           | Responsibility                                                                                           |
+| ------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `UNSUPPORTED` marker + resolver | Shared module (`base.js`)      | One encoding for "verified no equivalent" and a three-state resolve (mapped / unsupported / passthrough) |
+| Dropped-tool report             | Install output                 | One line per agent and harness listing dropped tools                                                     |
+| Tool group names                | Constants (`lib/constants.js`) | Harness-neutral names such as `session_info`, `pr_follow_through`; added only when an agent needs one    |
+| Shared adapter contract test    | Test                           | One test run against every adapter asserting the three states and the resolved set                       |
 
 ### Component Relationships
 
@@ -126,17 +126,17 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 
 ## 8. Risks & Open Questions
 
-| #  | Risk / Question                                                                                                                                                                                                                                                                                                                                                                    | Type     | Impact | Source          | Raised By | Resolved |
-| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | --------------- | --------- | -------- |
-| 1  | **Abstraction choice:** (A) generic group names mapped per adapter, (B) explicit `@server/tool` names plus an adapter filter, (C) per-harness yaml section. The brief recommends A (matches the `null`/`[]` precedent, respects ADR 0002; C conflicts with ADR 0002; B depends on Q6). This is contested and costly to reverse and no Approved ADR covers it. **Recommend dispatching Architect for an ADR.** Human: please confirm that dispatch. Task 1 (the contract) does not depend on the answer; Tasks 2+ do. | Question | H      | Brief §6        | EM        | No       |
-| 2  | **PR subscription owner:** EM only, or also Software-Engineer. Brief recommends EM only; SE gets T1 only under an explicit owner rule. Two agents must not subscribe to the same PR.                                                                                                                                                                                                | Question | M      | Brief §6        | EM        | No       |
-| 3  | **Do T3 and above exist at all?** `subagent` already grants Agent/ListAgents/SendMessage, so `session-control` (T3) likely duplicates it. Brief leans drop T3. Also whether T4 (`add_repo`, `register_repo_root`) and T5 (routines) are defined now or only when an agent needs one.                                                                                                | Question | M      | Brief §6        | EM        | No       |
-| 4  | **Can `ToolSearch` be in a universal baseline?** UNVERIFIED whether the allowlist still blocks calling a tool loaded through it. Verify first (Task 2); decide after.                                                                                                                                                                                                              | Question | H      | Brief §2, §7    | EM        | No       |
-| 5  | **Subagent inheritance:** whether subagents inherit these tools, and how wakes and `send_later` behave when called from a subagent. Affects whether T1 can sit with a subagent-dispatched EM. UNVERIFIED; Task 2 verifies before the yaml edit.                                                                                                                                     | Question | H      | Brief §7        | EM        | No       |
-| 6  | **Kiro behaviour with an unknown `@claude-code-remote/...` entry** (reports of silent rejection of agents, Kiro #11411). Must be verified before any agent yaml adds one; if group names (Q1 option A) are chosen the adapter drops them and the risk is bounded to the adapter's output, but still verify.                                                                       | Risk     | H      | Brief §4, §7    | EM        | No       |
-| 7  | **Resolution of remaining brief §7 items by verifying, not assuming:** (a) does `mapMcpToolRef` map `claude-code-remote` to `mcp__claude-code-remote__*` (its documented regex keeps hyphens; confirm by unit test); (b) does `aif validate` reject unknown bare names (repo finding: `tests/validation/tools.test.js` checks bare names against built-ins and server definitions only when server definitions exist; whether the CLI command does is unconfirmed). | Risk     | M      | Brief §7        | EM        | No       |
-| 8  | **Copilot / Kiro UNVERIFIED items** (cloud-agent self-describing tool, cancel endpoint, `mcp-servers` honoured, Kiro `--repo` agent-callable, ToolSearch analogue, `introspect` vs `get_session`, 14th Kiro Crew tool name). Only matter for a later mapping; this Feature maps Kiro and Copilot to unsupported, so these stay unverified and are recorded, not blocking.                  | Risk     | L      | Brief §7        | EM        | No       |
-| 9  | **Scope risk of the PR 83 re-run (Task 8):** needs a fresh Claude Code cloud session as EM; cannot be done in CI. Acceptance depends on a human-run check.                                                                                                                                                                                                                       | Risk     | M      | Brief §8        | EM        | No       |
+| #   | Risk / Question                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Type     | Impact | Source       | Raised By | Resolved |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | -------- |
+| 1   | **Abstraction choice:** (A) generic group names mapped per adapter, (B) explicit `@server/tool` names plus an adapter filter, (C) per-harness yaml section. The brief recommends A (matches the `null`/`[]` precedent, respects ADR 0002; C conflicts with ADR 0002; B depends on Q6). This is contested and costly to reverse and no Approved ADR covers it. **Recommend dispatching Architect for an ADR.** Human: please confirm that dispatch. Task 1 (the contract) does not depend on the answer; Tasks 2+ do. | Question | H      | Brief §6     | EM        | No       |
+| 2   | **PR subscription owner:** EM only, or also Software-Engineer. Brief recommends EM only; SE gets T1 only under an explicit owner rule. Two agents must not subscribe to the same PR.                                                                                                                                                                                                                                                                                                                                 | Question | M      | Brief §6     | EM        | No       |
+| 3   | **Do T3 and above exist at all?** `subagent` already grants Agent/ListAgents/SendMessage, so `session-control` (T3) likely duplicates it. Brief leans drop T3. Also whether T4 (`add_repo`, `register_repo_root`) and T5 (routines) are defined now or only when an agent needs one.                                                                                                                                                                                                                                 | Question | M      | Brief §6     | EM        | No       |
+| 4   | **Can `ToolSearch` be in a universal baseline?** UNVERIFIED whether the allowlist still blocks calling a tool loaded through it. Verify first (Task 2); decide after.                                                                                                                                                                                                                                                                                                                                                | Question | H      | Brief §2, §7 | EM        | No       |
+| 5   | **Subagent inheritance:** whether subagents inherit these tools, and how wakes and `send_later` behave when called from a subagent. Affects whether T1 can sit with a subagent-dispatched EM. UNVERIFIED; Task 2 verifies before the yaml edit.                                                                                                                                                                                                                                                                      | Question | H      | Brief §7     | EM        | No       |
+| 6   | **Kiro behaviour with an unknown `@claude-code-remote/...` entry** (reports of silent rejection of agents, Kiro #11411). Must be verified before any agent yaml adds one; if group names (Q1 option A) are chosen the adapter drops them and the risk is bounded to the adapter's output, but still verify.                                                                                                                                                                                                          | Risk     | H      | Brief §4, §7 | EM        | No       |
+| 7   | **Resolution of remaining brief §7 items by verifying, not assuming:** (a) does `mapMcpToolRef` map `claude-code-remote` to `mcp__claude-code-remote__*` (its documented regex keeps hyphens; confirm by unit test); (b) does `aif validate` reject unknown bare names (repo finding: `tests/validation/tools.test.js` checks bare names against built-ins and server definitions only when server definitions exist; whether the CLI command does is unconfirmed).                                                  | Risk     | M      | Brief §7     | EM        | No       |
+| 8   | **Copilot / Kiro UNVERIFIED items** (cloud-agent self-describing tool, cancel endpoint, `mcp-servers` honoured, Kiro `--repo` agent-callable, ToolSearch analogue, `introspect` vs `get_session`, 14th Kiro Crew tool name). Only matter for a later mapping; this Feature maps Kiro and Copilot to unsupported, so these stay unverified and are recorded, not blocking.                                                                                                                                            | Risk     | L      | Brief §7     | EM        | No       |
+| 9   | **Scope risk of the PR 83 re-run (Task 8):** needs a fresh Claude Code cloud session as EM; cannot be done in CI. Acceptance depends on a human-run check.                                                                                                                                                                                                                                                                                                                                                           | Risk     | M      | Brief §8     | EM        | No       |
 
 > **Not decided here:** Q1 is a genuine fork and belongs to Architect's ADR, not to this plan.
 
