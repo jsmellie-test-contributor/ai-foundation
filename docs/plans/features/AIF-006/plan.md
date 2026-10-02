@@ -6,11 +6,11 @@
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Feature ID          | AIF-006                                                                                                                                                   |
 | Project             | ai-foundation                                                                                                                                             |
-| Status              | Draft                                                                                                                                                     |
+| Status              | Approved                                                                                                                                                  |
 | Author (Agent)      | Engineering Manager                                                                                                                                       |
-| Reviewed By         | Pending                                                                                                                                                   |
+| Reviewed By         | Jeremy S (chat approval 2026-10-02)                                                                                                                       |
 | Created             | 2026-09-30 00:00                                                                                                                                          |
-| Last Updated        | 2026-10-01 00:00                                                                                                                                          |
+| Last Updated        | 2026-10-02                                                                                                                                                |
 | Standards           | `javascript`, `node` (resolver, validator and tests — real runtime code); AGENTS.md component schemas (skill, steering and agent frontmatter and prompts) |
 | Total Tasks         | {filled after decomposition}                                                                                                                              |
 | Product Requirement | None                                                                                                                                                      |
