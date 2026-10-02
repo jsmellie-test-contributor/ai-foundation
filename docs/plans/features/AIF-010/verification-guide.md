@@ -127,6 +127,23 @@ Findings: `send_message` wakes a restricted, disconnected session without `ReadN
 
 This also supports finding 1 in A3b: `verify-a` was the only subscriber to PR 86 from 14:56 to 15:10, an inline comment was posted at 15:01:42, and nothing was delivered, yet the same session was woken by `send_message` an hour later. Disconnect was therefore not what blocked PR events. Still not isolated: a PR event has not been sent to `verify-a` with the tool added.
 
+#### A3d: does a subagent's PR subscription deliver to the main session? (Q2, Q5)
+
+Setup: base `AIF-010-verification` with `.claude/agents/verify-e.md` (main; `Read`, `Agent`, `get_session`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `send_later`, `ReadNotifications`) and `.claude/agents/verify-g.md` (subagent; `Read`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `ReadNotifications`). Run branch `AIF-010-verification-A3-1` sets `"agent": "verify-e"`. Throwaway PR C: `aif010/testC` into the base, ready for review. No other session may be subscribed to it.
+
+1. Fresh cloud session on the run branch. Ask which agent it is and for its tool list. Expected: `verify-e`, with `ReadNotifications`.
+2. Dispatch `verify-g` to subscribe to the PR and finish. Record the subscribe result and whether the `subscription.created` event reaches the main session or the subagent.
+3. After `verify-g` has finished, post an inline comment on the PR. Wait 3 minutes. Record whether the main session wakes, and whether it reads the event with `ReadNotifications`.
+4. Have the main agent subscribe itself, then dispatch `verify-g` to subscribe again. Post a second comment. Record whether the event arrives once or twice, and where.
+5. Pull the session log with `get_run_log` and compare event times to the comment times.
+
+| Check                                                                          | Result |
+| ------------------------------------------------------------------------------ | ------ |
+| `verify-g` subscribe succeeded                                                 |        |
+| `subscription.created` reached (main / subagent)                               |        |
+| Comment after `verify-g` finished woke the main session                        |        |
+| Event count after both subscribed (expected 1 if one subscription per session) |        |
+
 #### Earlier A3 runs on PR 85 (retracted as evidence)
 
 A subagent (`verify-c`) subscribed to PR 85, then `verify-a` subscribed directly, and every comment, inline comment and review tried (same and different accounts, draft and ready) produced no wake. These runs lacked `ReadNotifications`, had a later subscriber in play, and the main session was disconnected. They do not show that PR comments never wake. They also did not settle whether a subagent's subscription routes to its parent. `verify-c` could not have read notifications either way.
