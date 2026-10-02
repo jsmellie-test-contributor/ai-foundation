@@ -29,7 +29,7 @@
     {
       "id": "003",
       "wave": 0,
-      "status": "Reviewing",
+      "status": "Done",
       "branch": "AIF-008/003-rest-path-identity",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
       "pr_number": 88,
@@ -113,6 +113,13 @@
       "action": "escalation_raised",
       "task_id": "002",
       "details": "awaiting human"
+    },
+    {
+      "timestamp": "2026-10-02T01:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Reviewing -> Done; PR #88 ready"
     }
   ]
 }
