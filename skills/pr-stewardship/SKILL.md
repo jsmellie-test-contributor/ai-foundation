@@ -14,7 +14,7 @@ This skill does one check-and-act pass per invocation; it does not loop or sleep
 
 - **PR number or URL** — which pull request to check
 - **Repository** — owner/name, if not already implied by the working directory's git remote
-- **GitHub access method** — always through `ai-git`; never raw `gh`/`git`, never GitHub MCP tools. Locally, `ai-git gh-*` subcommands work. In a Claude Code cloud session use `ai-git gh-api` — see "Cloud GitHub access".
+- **GitHub access method** — always through `ai-git`; never raw `gh`/`git`, never GitHub MCP tools. Locally, `ai-git gh-*` subcommands work. In a Claude Code cloud session use `ai-git gh-api` — see the Cloud GitHub access section below.
 
 ## Cloud GitHub access
 
