@@ -287,6 +287,13 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Implementing -> Reviewing; head a9b1727"
+    },
+    {
+      "timestamp": "2026-10-02T06:30:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "CI Linux test 8 fails (host gh on PATH); fix in progress, review running"
     }
   ]
 }
