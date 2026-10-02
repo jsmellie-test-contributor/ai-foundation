@@ -1,3 +1,12 @@
+// ------------------------------
+// tools.test.js
+//
+// Author: Starvoxel AI Agent - 2026-10-02
+// Plan: AIF-010
+//
+// Copyright (c) StarVoxel. All rights reserved.
+// ------------------------------
+
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { join, dirname } from 'node:path';
@@ -8,7 +17,8 @@ import {
   getAllServerToolNames,
   getServerToolMap,
 } from '../../lib/test-helpers.js';
-import { TOOLS } from '../../lib/constants.js';
+import { TOOLS, TOOL_GROUPS } from '../../lib/constants.js';
+import { isKnownToolName } from '../../lib/harnesses/base.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
@@ -16,7 +26,8 @@ const AGENTS_DIR = join(ROOT, 'agents');
 const SERVERS_DIR = join(ROOT, 'servers');
 
 // Built-in harness tools — these are provided by the harness, not by custom servers
-const BUILTIN_TOOLS = new Set(Object.values(TOOLS));
+// (generic names plus harness-neutral groups, ADR 0007)
+const BUILTIN_TOOLS = new Set([...Object.values(TOOLS), ...Object.values(TOOL_GROUPS)]);
 
 describe('tool availability', () => {
   describe('agent tool references', () => {
@@ -37,6 +48,13 @@ describe('tool availability', () => {
 
         before(() => {
           parsed = parseYaml(join(AGENTS_DIR, file));
+        });
+
+        it('every tool and approved_tool is a generic name, group, or @server/tool reference', () => {
+          const unknown = [...(parsed.tools ?? []), ...(parsed.approved_tools ?? [])].filter(
+            (t) => !isKnownToolName(t),
+          );
+          assert.deepEqual(unknown, [], `Unknown bare tool names: ${unknown.join(', ')}`);
         });
 
         it('all tools are documented in a server definition', () => {
