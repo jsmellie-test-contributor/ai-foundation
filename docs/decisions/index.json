@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T00:41:11.759Z",
+  "generated_at": "2026-10-02T00:41:41.661Z",
   "entries": [
     {
       "id": "0001",
@@ -93,10 +93,10 @@
     {
       "id": "0007",
       "title": "Harness-Neutral Groups for Platform-Provided Tools",
-      "status": "proposed",
+      "status": "accepted",
       "date": "2026-10-01",
       "path": "0007-harness-neutral-platform-tool-groups.md",
-      "decision_makers": [],
+      "decision_makers": ["Jeremy"],
       "tags": ["harness-adapters", "tools", "cross-harness", "platform-tools"],
       "supersedes": [],
       "superseded_by": [],

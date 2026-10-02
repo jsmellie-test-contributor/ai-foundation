@@ -1,7 +1,7 @@
 ---
-status: proposed
+status: accepted
 date: 2026-10-01
-decision-makers: []
+decision-makers: [Jeremy]
 tags: [harness-adapters, tools, cross-harness, platform-tools]
 links:
   supersedes: []
