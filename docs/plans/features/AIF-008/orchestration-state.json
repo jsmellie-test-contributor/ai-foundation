@@ -18,11 +18,11 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 91,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/91",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -189,6 +189,20 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Blocked -> Implementing"
+    },
+    {
+      "timestamp": "2026-10-02T02:45:00Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "002",
+      "details": "PR #91 draft"
+    },
+    {
+      "timestamp": "2026-10-02T02:45:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
