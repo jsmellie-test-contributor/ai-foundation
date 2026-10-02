@@ -1,3 +1,12 @@
+// ------------------------------
+// claude-adapter.test.js
+//
+// Author: Starvoxel AI Agent - 2026-10-02
+// Plan: AIF-010
+//
+// Copyright (c) StarVoxel. All rights reserved.
+// ------------------------------
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { homedir } from 'node:os';
@@ -15,6 +24,7 @@ import {
   detectSharedResource,
   BLOCK_COMMAND_RESOURCE,
 } from '../../lib/harnesses/claude.js';
+import { UNSUPPORTED } from '../../lib/harnesses/base.js';
 
 describe('unit: claude adapter', () => {
   describe('TARGETS', () => {
@@ -91,11 +101,12 @@ describe('unit: claude adapter', () => {
     });
 
     it('maps code to no native equivalent (verified absent, not guessed)', () => {
-      assert.deepEqual(TOOL_MAP['code'], []);
+      assert.equal(TOOL_MAP['code'], UNSUPPORTED);
     });
 
     it('never references a tool name outside the known native Claude Code surface', () => {
       for (const [generic, native] of Object.entries(TOOL_MAP)) {
+        if (native === UNSUPPORTED) continue;
         for (const name of native) {
           assert.ok(
             KNOWN_NATIVE_TOOLS.has(name),
@@ -113,12 +124,12 @@ describe('unit: claude adapter', () => {
       assert.equal(mapToolName('subagent'), 'Agent');
     });
 
-    it('passes through a tool with no native equivalent unchanged', () => {
-      assert.equal(mapToolName('code'), 'code');
+    it('returns null for a tool with no native equivalent, never the generic name', () => {
+      assert.equal(mapToolName('code'), null);
     });
 
-    it('passes through unknown names unchanged', () => {
-      assert.equal(mapToolName('some-future-tool'), 'some-future-tool');
+    it('rejects an unknown bare name', () => {
+      assert.throws(() => mapToolName('some-future-tool'), /unknown tool "some-future-tool"/);
     });
 
     it('rewrites an @server/tool MCP reference to the native name', () => {
@@ -168,8 +179,25 @@ describe('unit: claude adapter', () => {
       assert.deepEqual(mapAgentTools(['read', 'code', 'grep']), ['Read', 'Grep']);
     });
 
-    it('passes through an unrecognized generic name unchanged', () => {
-      assert.deepEqual(mapAgentTools(['some-future-tool']), ['some-future-tool']);
+    it('rejects an unrecognized bare name', () => {
+      assert.throws(() => mapAgentTools(['some-future-tool']), /unknown tool/);
+      assert.throws(() => mapAgentTools(['@dag']), /unknown tool/);
+    });
+
+    it('reports unsupported tools as dropped', () => {
+      const dropped = [];
+      mapAgentTools(['read', 'code'], dropped);
+      assert.deepEqual(dropped, ['code']);
+    });
+
+    it('maps a claude-code-remote reference to its native name', () => {
+      assert.deepEqual(mapAgentTools(['@claude-code-remote/subscribe_pr_activity']), [
+        'mcp__claude-code-remote__subscribe_pr_activity',
+      ]);
+    });
+
+    it('deduplicates repeated tools', () => {
+      assert.deepEqual(mapAgentTools(['read', 'read']), ['Read']);
     });
 
     it('rewrites @server/tool MCP references to native mcp__server__tool names', () => {

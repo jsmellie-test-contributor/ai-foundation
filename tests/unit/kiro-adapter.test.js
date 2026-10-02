@@ -1,3 +1,12 @@
+// ------------------------------
+// kiro-adapter.test.js
+//
+// Author: Starvoxel AI Agent - 2026-10-02
+// Plan: AIF-010
+//
+// Copyright (c) StarVoxel. All rights reserved.
+// ------------------------------
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -9,6 +18,7 @@ import {
   transformSteering,
   parseFrontmatter,
 } from '../../lib/harnesses/kiro.js';
+import { UNSUPPORTED } from '../../lib/harnesses/base.js';
 
 describe('unit: kiro adapter', () => {
   describe('TARGETS', () => {
@@ -42,18 +52,18 @@ describe('unit: kiro adapter', () => {
     });
 
     it('maps to Kiro-native names (identity for Kiro adapter)', () => {
-      assert.equal(TOOL_MAP['read'], 'read');
-      assert.equal(TOOL_MAP['write'], 'write');
-      assert.equal(TOOL_MAP['shell'], 'shell');
-      assert.equal(TOOL_MAP['web_search'], 'web_search');
-      assert.equal(TOOL_MAP['subagent'], 'subagent');
+      assert.deepEqual(TOOL_MAP['read'], ['read']);
+      assert.deepEqual(TOOL_MAP['write'], ['write']);
+      assert.deepEqual(TOOL_MAP['shell'], ['shell']);
+      assert.deepEqual(TOOL_MAP['web_search'], ['web_search']);
+      assert.deepEqual(TOOL_MAP['subagent'], ['subagent']);
     });
 
-    it('maps tools with no confirmed native Kiro equivalent to null', () => {
-      assert.equal(TOOL_MAP['plan'], null);
-      assert.equal(TOOL_MAP['ask_user'], null);
-      assert.equal(TOOL_MAP['task'], null);
-      assert.equal(TOOL_MAP['skill'], null);
+    it('maps tools with no confirmed native Kiro equivalent to UNSUPPORTED', () => {
+      assert.equal(TOOL_MAP['plan'], UNSUPPORTED);
+      assert.equal(TOOL_MAP['ask_user'], UNSUPPORTED);
+      assert.equal(TOOL_MAP['task'], UNSUPPORTED);
+      assert.equal(TOOL_MAP['skill'], UNSUPPORTED);
     });
   });
 
@@ -74,8 +84,8 @@ describe('unit: kiro adapter', () => {
       assert.equal(mapToolName('@git/git_status'), '@git/git_status');
     });
 
-    it('passes through unknown names unchanged', () => {
-      assert.equal(mapToolName('some-future-tool'), 'some-future-tool');
+    it('rejects an unknown bare name', () => {
+      assert.throws(() => mapToolName('some-future-tool'), /unknown tool "some-future-tool"/);
     });
   });
 
@@ -117,6 +127,12 @@ describe('unit: kiro adapter', () => {
       const result = transformAgent(withUnsupported);
       assert.deepEqual(result.tools, ['read']);
       assert.deepEqual(result.allowedTools, ['read']);
+    });
+
+    it('reports each dropped tool once through the dropped array', () => {
+      const dropped = [];
+      transformAgent({ ...agent, tools: ['read', 'plan'], approved_tools: ['plan'] }, dropped);
+      assert.deepEqual(dropped, ['plan', 'plan']);
     });
 
     it('converts skills to skill:// resources', () => {
