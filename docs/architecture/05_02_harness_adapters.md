@@ -2,7 +2,7 @@
 section: '05.02'
 title: 'Harness adapters'
 lifecycle: published
-last_verified: 52c1232
+last_verified: d2b653b
 tags: [building-blocks, harnesses]
 key_files:
   - lib/harnesses/base.js
@@ -115,9 +115,11 @@ For the adapter contract itself (picking an adapter by the `--harness` flag and
 calling its `install*`/`removeMcpSetting` functions): `lib/commands/install.js` and
 `uninstall.js` are the only callers.
 
-`base.js` itself exports only the adapter factory (`createAdapter`) and two
-skill-preload helpers (`stripSkillPrefix`, `resolvePreloadSkills`) — genuinely
-harness-adapter concepts. The generic file/hash/frontmatter helpers the adapter
+`base.js` itself exports only the adapter factory (`createAdapter`), two
+skill-preload helpers (`stripSkillPrefix`, `resolvePreloadSkills`), and the
+tool-mapping contract (see "Tool-mapping contract" above: `UNSUPPORTED`,
+`resolveTool`, `resolveTools`, `mapSingleTool`, `isMcpToolRef`, `isKnownToolName`,
+`MCP_TOOL_REF`, `UnknownToolError`) — genuinely harness-adapter concepts. The generic file/hash/frontmatter helpers the adapter
 loop needs (`parseFrontmatter`, `collectFiles`, `hashContent`, `writeToTarget`)
 live in `lib/file-utils.js` instead, since they carry no harness-specific
 behavior: `claude.js` and `kiro.js` both import them from there directly (for

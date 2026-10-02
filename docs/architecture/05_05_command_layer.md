@@ -2,7 +2,7 @@
 section: '05.05'
 title: 'Command layer'
 lifecycle: published
-last_verified: 52c1232
+last_verified: d2b653b
 tags: [building-blocks, commands]
 key_files:
   - lib/commands/install.js
