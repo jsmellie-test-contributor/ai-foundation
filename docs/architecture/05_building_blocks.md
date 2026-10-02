@@ -2,7 +2,7 @@
 section: '05'
 title: 'Building Block View'
 lifecycle: published
-last_verified: 5944c97
+last_verified: 78341c5
 tags: [building-blocks, c4]
 key_files:
   - bin/aif.js
@@ -85,7 +85,7 @@ cut across that boundary and hide it.
 | Block           | Responsibility                                                          | Interface                                     |
 | --------------- | ----------------------------------------------------------------------- | --------------------------------------------- |
 | `bin/aif.js`    | Parses argv, dispatches to the matching `lib/commands/*` handler.       | `run(parsed)`, `parseArgs(argv)`              |
-| `bin/ai-git.js` | Transparent git/gh wrapper injecting AI author identity and token auth. | CLI passthrough: `ai-git <command> [args...]` |
+| `bin/ai-git.js` | Transparent git/gh wrapper injecting AI author identity and token auth; re-execs through `secrets.run` with arguments passed as JSON in an env var, never argv. | CLI passthrough: `ai-git <command> [args...]` |
 
 ### Command layer (`lib/commands/*`) — see §5.05
 
