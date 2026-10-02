@@ -1,6 +1,6 @@
 ---
 name: 'git-workflow-core'
-version: '0.4.0'
+version: '0.5.0'
 description: 'Git workflow rules shared by every repo type — commit hygiene, ai-git usage, token handling, and PR stewardship.'
 file_patterns: []
 ---
@@ -41,6 +41,18 @@ file_patterns: []
 - Never use `git` or `gh` directly
 - `ai-git` reads `.aiconfig.json`, injects identity env vars, and authenticates push/PR operations automatically
 - If `ai-git` reports a missing prerequisite (no `.aiconfig.json`, no token env var), the agent must stop and report it to the human
+- In a Claude Code cloud session use `ai-git gh-api` (REST); `gh pr ...` and `gh repo view` are unavailable — see `skill/pr-stewardship`
+
+---
+
+### Rule: Never Supply, Infer, or Ask for a Git Identity
+
+- On a git identity error (e.g. "Author identity unknown"), use `ai-git` for the operation
+- Never supply, infer, or ask the human for a git name or email — including one visible in session context — and never set one with `git config`, `git -c user.*`, or `GIT_AUTHOR_*`/`GIT_COMMITTER_*`
+
+**Rationale:** Commits must carry the AI identity from `.aiconfig.json`, never the human's. A raw commit that fails for lack of identity is the signal to switch to `ai-git`, not to find an identity.
+
+**Exceptions:** None.
 
 ---
 
@@ -61,6 +73,7 @@ file_patterns: []
 - **Non-atomic or oversized commits:** Caught during review. A commit covering multiple logical changes, or exceeding the message-length limit without being a merge commit, is a LOW finding — the agent should have split it.
 - **Batched (non-incremental) implementation:** Caught during review. A single commit covering an entire plan/Task's implementation is a LOW finding — this is the entry `steering/engineering/core.md`: "Commit Incrementally During Implementation" points to.
 - **Raw `git`/`gh` usage instead of `ai-git`:** Mechanically blocked via `blocked_commands` on any agent holding write/shell access — see that agent's own definition. Any usage that bypasses this is a HIGH finding at review.
+- **Supplying, inferring, or asking for a git identity:** A HIGH finding at review — commits attributed to the wrong identity, or an identity requested from the human.
 - **Logging or echoing the token value:** A CRITICAL finding, not a style issue — this is credential exposure. See `steering/global/core.md`: "Security Requirements Are Never Optional".
 - **Abandoned-PR violations:** A red or conflicted PR sitting unattended with no blocker reported is a HIGH finding — the opening agent should have followed `skill/pr-stewardship`.
 

@@ -1,12 +1,12 @@
 ---
 name: 'pr-stewardship'
-version: '0.1.0'
+version: '0.2.0'
 description: 'Drives an open pull request to a green, mergeable state — checking CI, merge conflicts, and review feedback, and fixing or reporting what blocks it.'
 ---
 
 ## Purpose
 
-Checks an open pull request's CI status, merge state, and review feedback in one pass, and acts: fixes failing CI, resolves a merge conflict, responds to review comments, or reports the specific blocker to the human. Poll-based, not subscription-based — it works the same way whether the invoking agent has `gh` CLI access or only a GitHub MCP server's tools, and whether it runs as a short-lived local dispatch or a long-running cloud session.
+Checks an open pull request's CI status, merge state, and review feedback in one pass, and acts: fixes failing CI, resolves a merge conflict, responds to review comments, or reports the specific blocker to the human. Poll-based, not subscription-based — it reads and writes GitHub through `ai-git`, and works whether it runs as a short-lived local dispatch or a long-running cloud session.
 
 This skill does one check-and-act pass per invocation; it does not loop or sleep. Whoever dispatches it (a human, an orchestration skill, a scheduled re-check) decides how often to re-invoke it until the PR is done.
 
@@ -14,13 +14,26 @@ This skill does one check-and-act pass per invocation; it does not loop or sleep
 
 - **PR number or URL** — which pull request to check
 - **Repository** — owner/name, if not already implied by the working directory's git remote
-- **GitHub access method** — `ai-git gh-*` (wraps `gh`, injecting the token from `.aiconfig.json`) if `gh` is installed, otherwise the installed GitHub MCP server's tools. Either is acceptable; use whichever is available. If `blocked_commands` forbids raw `git`/`gh`, route through `ai-git` — never call them directly.
+- **GitHub access method** — always through `ai-git`; never raw `gh`/`git`, never GitHub MCP tools. Locally, `ai-git gh-*` subcommands work. In a Claude Code cloud session use `ai-git gh-api` — see the cloud table below.
+
+**Cloud table.** The cloud session proxy blocks GraphQL, so `gh pr ...` (every `ai-git gh-pr-*`, including `ai-git gh-pr-create`) and `gh repo view` (`ai-git gh-repo-view`) fail there with HTTP 403 and are unavailable. Use REST through `ai-git gh-api`, repository-scoped paths only (`repos/{owner}/{repo}/...`; non-repo paths are blocked too):
+
+| Need                                         | Call                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Mergeable state                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}` (`mergeable`, `mergeable_state`)                                          |
+| CI status                                    | `ai-git gh-api repos/{owner}/{repo}/commits/{head_sha}/check-runs`                                                       |
+| Review comments                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}/comments` (also `.../reviews`, `issues/{n}/comments`)                      |
+| Create a PR (draft)                          | `ai-git gh-api repos/{owner}/{repo}/pulls --method POST -f title=... -f head=... -f base=main -f body=... -F draft=true` |
+| Post a comment                               | `ai-git gh-api repos/{owner}/{repo}/issues/{n}/comments --method POST ...`                                               |
+| Review threads, auto-merge, ready-for-review | The proxy's `ccr/...` routes (the proxy's 403 message lists them), not GraphQL                                           |
+
+GitHub-side actions in cloud carry the proxy's identity, not the `ai-git` token's.
 
 ## Steps
 
 ### Step 1 — Check mergeable state
 
-Read the PR's mergeable state (`ai-git gh-pr-view <n> --json mergeable,mergeStateStatus`, or the MCP tool's equivalent PR-detail read). If it is not cleanly mergeable:
+Read the PR's mergeable state (locally `ai-git gh-pr-view <n> --json mergeable,mergeStateStatus`; in cloud the cloud table in Inputs). If it is not cleanly mergeable:
 
 1. Merge the base branch into the PR branch. Regenerate lockfiles or other generated files with the repo's own tooling — never by hand.
 2. Never rewrite history on a branch you did not create (no rebase, amend, or force-push — a merge commit is always safe). On a branch you created yourself, follow `steering/engineering/git-workflow-projects.md`'s branching convention instead.
@@ -57,8 +70,8 @@ If nothing needed fixing and the PR is green and mergeable, there is nothing fur
 
 ## Edge Cases
 
-- **Neither `gh`/`ai-git` nor a GitHub MCP server is available** — stop and report to the human; this skill cannot proceed without some form of GitHub read/write access.
+- **`ai-git` is unavailable or cannot resolve its token** — stop and report to the human; this skill has no other GitHub access path.
 - **CI is still running** — not a failure; report "pending" and let the caller decide when to re-check.
 - **Everything is green, only waiting on a human reviewer's approval** — say so once; do not re-push or nudge repeatedly.
-- **Suspected flaky failure** — re-run once if the access method supports it; a second failure is treated as real, not a flake.
+- **Suspected flaky failure** — re-run once if `ai-git` supports it; a second failure is treated as real, not a flake.
 - **The PR was opened by a different agent or session** — still driveable the same way; nothing in this procedure assumes the invoker created the PR.
