@@ -7,9 +7,9 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Reviewing",
+      "status": "Done",
       "branch": "AIF-008/001-reexec-arg-transport",
-      "worktree_path": "../worktrees/ai-foundation/AIF-008/001-reexec-arg-transport",
+      "worktree_path": "",
       "pr_number": 89,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/89",
       "iterations": 1,
@@ -18,18 +18,18 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Reviewing",
+      "status": "Implementing",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
       "pr_number": 91,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/91",
-      "iterations": 1,
+      "iterations": 0,
       "blocked_reason": null
     },
     {
       "id": "003",
       "wave": 0,
-      "status": "Reviewing",
+      "status": "Done",
       "branch": "AIF-008/003-rest-path-identity",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
       "pr_number": 88,
@@ -60,6 +60,12 @@
       "task_id": "002",
       "reason": "Retry denied again (git checkout -- docs); human is taking over in the 002 worktree",
       "raised_at": "2026-10-02T01:50:00Z",
+      "resolved": true
+    },
+    {
+      "task_id": "002",
+      "reason": "Rebase onto main stopped mid-way (classifier denied a conflict-resolution loop); human to take over in the 002 worktree",
+      "raised_at": "2026-10-02T08:30:00Z",
       "resolved": true
     }
   ],
@@ -245,6 +251,111 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Implementing -> Reviewing; head 2d61557"
+    },
+    {
+      "timestamp": "2026-10-02T05:00:00Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "002",
+      "details": "iteration 2; 1 MEDIUM 2 LOW + CI"
+    },
+    {
+      "timestamp": "2026-10-02T05:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "CI: typecheck TS2339; Reviewing -> Implementing"
+    },
+    {
+      "timestamp": "2026-10-02T05:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "CI: snapshot --check stale; Reviewing -> Implementing"
+    },
+    {
+      "timestamp": "2026-10-02T06:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Done; PR #89 green"
+    },
+    {
+      "timestamp": "2026-10-02T06:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Implementing -> Done; PR #88 green"
+    },
+    {
+      "timestamp": "2026-10-02T06:20:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Implementing -> Reviewing; head a9b1727"
+    },
+    {
+      "timestamp": "2026-10-02T06:30:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "CI Linux test 8 fails (host gh on PATH); fix in progress, review running"
+    },
+    {
+      "timestamp": "2026-10-02T07:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Reviewing -> Done; PR #91 ready"
+    },
+    {
+      "timestamp": "2026-10-02T08:00:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "001",
+      "details": "PR #89 merged"
+    },
+    {
+      "timestamp": "2026-10-02T08:00:00Z",
+      "agent": "engineering-manager",
+      "action": "conflict_detected",
+      "task_id": "002",
+      "details": "PR #91 dirty after #89 merge"
+    },
+    {
+      "timestamp": "2026-10-02T08:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Done -> Conflict -> Implementing"
+    },
+    {
+      "timestamp": "2026-10-02T08:30:00Z",
+      "agent": "engineering-manager",
+      "action": "task_blocked",
+      "task_id": "002",
+      "details": "rebase mid-way; denial; human takeover"
+    },
+    {
+      "timestamp": "2026-10-02T08:30:00Z",
+      "agent": "engineering-manager",
+      "action": "escalation_raised",
+      "task_id": "002",
+      "details": "awaiting human"
+    },
+    {
+      "timestamp": "2026-10-02T09:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_unblocked",
+      "task_id": "002",
+      "details": "human requested retry"
+    },
+    {
+      "timestamp": "2026-10-02T09:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Blocked -> Implementing"
     }
   ]
 }
