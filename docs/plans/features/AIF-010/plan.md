@@ -2,19 +2,19 @@
 
 ## 1. Metadata
 
-| Field               | Value                                                                  |
-| ------------------- | ---------------------------------------------------------------------- |
-| Feature ID          | AIF-010                                                                |
-| Project             | ai-foundation                                                          |
-| Status              | Draft                                                                  |
-| Author (Agent)      | Engineering Manager                                                    |
-| Reviewed By         | Pending                                                                |
-| Created             | 2026-10-01                                                             |
-| Last Updated        | 2026-10-01                                                             |
-| Standards           | `javascript`, `node` (per `.aiconfig.json`)                            |
-| Total Tasks         | Not yet decomposed (Draft)                                             |
-| Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md`         |
-| ADRs                | 0002 (accepted), 0004 (accepted). New ADR pending (see Section 8, Q1). |
+| Field               | Value                                                          |
+| ------------------- | -------------------------------------------------------------- |
+| Feature ID          | AIF-010                                                        |
+| Project             | ai-foundation                                                  |
+| Status              | Draft                                                          |
+| Author (Agent)      | Engineering Manager                                            |
+| Reviewed By         | Pending                                                        |
+| Created             | 2026-10-01                                                     |
+| Last Updated        | 2026-10-01                                                     |
+| Standards           | `javascript`, `node` (per `.aiconfig.json`)                    |
+| Total Tasks         | Not yet decomposed (Draft)                                     |
+| Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md` |
+| ADRs                | 0002 (accepted), 0004 (accepted). ADR 0007 (accepted).         |
 
 ---
 
@@ -28,7 +28,7 @@ Make agent tool grants consistent and explainable across harnesses whose tools d
 
 ## 3. Quick Summary
 
-**Open Items:** 6 open (4 High / 2 Medium / 0 Low) — see Section 8
+**Open Items:** 5 open (3 High / 2 Medium / 0 Low) — see Section 8
 
 ---
 
@@ -128,7 +128,7 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 
 | #   | Risk / Question                                                                                                                                                                                                                                                                                                           | Type     | Impact | Source       | Raised By | Resolved                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Abstraction choice:** (A) generic group names mapped per adapter, (B) explicit `@server/tool` names plus an adapter filter, (C) per-harness yaml section. The brief recommends A; C conflicts with ADR 0002; B depends on Q6. Contested and costly to reverse, no accepted ADR covers it.                               | Question | H      | Brief §6     | EM        | No. Human confirmed the Architect dispatch 2026-10-01; ADR 0007 in progress. Tasks after the shared contract wait on its acceptance.                                                                                                                                                                                                                                                                                                                                                           |
+| 1   | **Abstraction choice:** (A) generic group names mapped per adapter, (B) explicit `@server/tool` names plus an adapter filter, (C) per-harness yaml section. The brief recommends A; C conflicts with ADR 0002; B depends on Q6. Contested and costly to reverse, no accepted ADR covers it.                               | Question | H      | Brief §6     | EM        | Yes. Decision: option A, capability-named generic groups (ADR 0007, accepted by human 2026-10-01). Dependent Tasks may proceed once this plan is Approved.                                                                                                                                                                                                                                                                                                                                     |
 | 2   | **PR subscription owner:** EM only, or also Software-Engineer (SE opens the Task's draft PR and pushes corrections; EM posts the Review Report and marks it ready). Brief recommends EM only; two agents must not subscribe to the same PR. Depends on Q5 (does a subagent-held subscription deliver wakes, and to whom). | Question | M      | Brief §6     | EM        | No                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | 3   | **Tiers T3 and above.** `session-control` (spawning and controlling other, self-contained cloud sessions) is distinct from the `subagent` generic tool (in-session subagents).                                                                                                                                            | Question | L      | Brief §6     | EM        | Yes. Decision: define all groups now (session-control, repo-scope incl. `add_repo`/`register_repo_root`, routines incl. `watch_url`) and grant T3+ to no agent. **Why:** distinct capabilities, cheap to add together (human, 2026-10-01).                                                                                                                                                                                                                                                     |
 | 4   | **Can `ToolSearch` be in a universal baseline?** UNVERIFIED whether the allowlist still blocks calling a tool loaded through it.                                                                                                                                                                                          | Question | H      | Brief §2, §7 | EM        | No. Decision: verify first (human, 2026-10-01). Human-run test: `verification-guide.md` Part A.                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -148,7 +148,7 @@ Not yet decomposed. Decomposition into `tasks.json` happens only after this plan
 
 1. Shared tool-mapping contract (first, blocks all others): one `UNSUPPORTED` marker, three-state resolver in `base.js`, arrays on both adapters, bare unknown names rejected (only `@server/tool` passes through), one dropped-tool install report, one shared contract test over every adapter. Also reconciles the Claude `mapToolName` leak.
 2. Verification (parallel with 1): the human runs the Kiro and cloud-session tests in `verification-guide.md` Parts A and B (Q4, Q5, Q6); the repo checks Q7(a)(b) are already done (Section 8). Output is recorded findings, not code; gates the agent yaml edit.
-3. Architect ADR for Q1 (gated on human confirmation), then all group names (T0–T5) in `lib/constants.js`.
+3. Architect ADR for Q1 (accepted: ADR 0007), then all group names (T0–T5) in `lib/constants.js`.
 4. Claude adapter group clusters and T0 baseline; Kiro groups to unsupported.
 5. Resolved-tool-set tests per agent and harness; extend `KNOWN_NATIVE_TOOLS`.
 6. Agent yaml updates (after 3 and 2).
