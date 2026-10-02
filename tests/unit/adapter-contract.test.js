@@ -10,7 +10,7 @@
 /**
  * Shared tool-mapping contract, run against every harness adapter: each
  * adapter encodes "no native equivalent" with the one shared UNSUPPORTED
- * marker, covers every generic tool and group name, resolves the three states
+ * marker, covers every `TOOLS` name, resolves the three states
  * (mapped / unsupported / passthrough), rejects bare unknown names, dedupes,
  * and reports dropped tools. A new adapter is added to ADAPTERS below.
  */
@@ -18,13 +18,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { TOOLS, TOOL_GROUPS } from '../../lib/constants.js';
+import { TOOLS } from '../../lib/constants.js';
 import { UNSUPPORTED } from '../../lib/harnesses/base.js';
 import * as claude from '../../lib/harnesses/claude.js';
 import * as kiro from '../../lib/harnesses/kiro.js';
 
 const ADAPTERS = { claude, kiro };
-const NAMES = [...Object.values(TOOLS), ...Object.values(TOOL_GROUPS)];
+const NAMES = Object.values(TOOLS);
 
 for (const [harness, adapter] of Object.entries(ADAPTERS)) {
   describe(`contract: ${harness} adapter tool mapping`, () => {
@@ -33,7 +33,7 @@ for (const [harness, adapter] of Object.entries(ADAPTERS)) {
     const unsupported = Object.keys(TOOL_MAP).filter((k) => TOOL_MAP[k] === UNSUPPORTED);
     const mapped = Object.keys(TOOL_MAP).filter((k) => TOOL_MAP[k] !== UNSUPPORTED);
 
-    it('has an entry for every generic tool and group name', () => {
+    it('has an entry for every `TOOLS` name', () => {
       for (const name of NAMES) {
         assert.ok(Object.hasOwn(TOOL_MAP, name), `${harness} TOOL_MAP missing "${name}"`);
       }

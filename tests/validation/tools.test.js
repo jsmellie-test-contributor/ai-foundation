@@ -17,7 +17,7 @@ import {
   getAllServerToolNames,
   getServerToolMap,
 } from '../../lib/test-helpers.js';
-import { TOOLS, TOOL_GROUPS } from '../../lib/constants.js';
+import { TOOLS } from '../../lib/constants.js';
 import { isKnownToolName } from '../../lib/harnesses/base.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -26,8 +26,7 @@ const AGENTS_DIR = join(ROOT, 'agents');
 const SERVERS_DIR = join(ROOT, 'servers');
 
 // Built-in harness tools — these are provided by the harness, not by custom servers
-// (generic names plus harness-neutral groups, ADR 0007)
-const BUILTIN_TOOLS = new Set([...Object.values(TOOLS), ...Object.values(TOOL_GROUPS)]);
+const BUILTIN_TOOLS = new Set(Object.values(TOOLS));
 
 describe('tool availability', () => {
   describe('agent tool references', () => {
@@ -50,7 +49,7 @@ describe('tool availability', () => {
           parsed = parseYaml(join(AGENTS_DIR, file));
         });
 
-        it('every tool and approved_tool is a generic name, group, or @server/tool reference', () => {
+        it('every tool and approved_tool is a TOOLS name or @server/tool reference', () => {
           const unknown = [...(parsed.tools ?? []), ...(parsed.approved_tools ?? [])].filter(
             (t) => !isKnownToolName(t),
           );

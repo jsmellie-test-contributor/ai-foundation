@@ -88,7 +88,7 @@ Both adapters resolve an agent's `tools`/`approved_tools` through `base.js`'s
 reported), or **passthrough** (a well-formed `@server/tool` reference, rewritten by
 the adapter's own `mapRef`). Any other bare name throws `UnknownToolError`; `aif
 validate` rejects the same names (`isKnownToolName()`). The resolved list is
-deduplicated, so a tool shared by several groups is granted once.
+deduplicated, so a tool shared by several `TOOLS` entries is granted once.
 `installAgents()` transforms every agent before writing any, so an unknown tool fails
 the install naming the agent and tool with no partial output, and prints one
 `dropped for <harness>: ...` line per agent that lost tools. `tests/unit/adapter-contract.test.js`
