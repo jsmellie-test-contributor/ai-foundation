@@ -23,7 +23,9 @@
  *
  * All arguments after the command are passed through verbatim.
  *
- * No Plan ID — small human-approved security bugfix (see chat approval
+ * Plan: AIF-008 (re-exec argument transport and failure policy).
+ *
+ * No Plan ID for the original body — small human-approved security bugfix (see chat approval
  * 2026-08-23) for the push/fetch auth-injection argument-order bug.
  */
 
@@ -47,6 +49,11 @@ import {
   isAlreadyWrapped,
   buildWrapperInvocation,
   REEXEC_GUARD_ENV,
+  REEXEC_ARGS_ENV,
+  REEXEC_ARGS_TOO_LARGE,
+  encodeReexecArgs,
+  decodeReexecArgs,
+  describeTokenFailure,
 } from '../lib/secrets.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -207,11 +214,13 @@ Configuration:
  * @param {object} config - Parsed .aiconfig.json
  * @param {string} root - Project root (where .aiconfig.json was found)
  * @param {{ tokenEnvName: string|null }} identity
+ * @param {boolean} isGh - Whether the command is gh-* (failure policy: error vs warn)
  */
-function resolveSecrets(config, root, identity) {
+function resolveSecrets(config, root, identity, isGh) {
   if (!identity.tokenEnvName || process.env[identity.tokenEnvName]) return;
 
   const { run, allowInsecureDotenv } = getSecretsConfig(config);
+  let cause = null;
 
   if (run && !isAlreadyWrapped(process.env)) {
     // Bare "node" rather than process.execPath: some secrets-manager run
@@ -220,19 +229,39 @@ function resolveSecrets(config, root, identity) {
     // containing spaces (e.g. "C:\Program Files\nodejs\node.exe") breaks.
     // node must already be resolvable on PATH here regardless, since
     // this script itself only runs via `node ...` or a PATH-based shim.
-    const { command, args: wrapperArgs } = buildWrapperInvocation(
-      run,
-      'node',
-      __filename,
-      process.argv.slice(2),
-      process.env,
-    );
-    const result = spawnSync(command, wrapperArgs, {
-      env: { ...process.env, [REEXEC_GUARD_ENV]: '1' },
-      stdio: 'inherit',
-      cwd: process.cwd(),
-    });
-    process.exit(result.status ?? 1);
+    //
+    // The original arguments travel as JSON in REEXEC_ARGS_ENV, never in
+    // argv: such wrappers join argv into one string and run it through a
+    // shell, which would split, expand, or execute user arguments.
+    try {
+      const { command, args: wrapperArgs } = buildWrapperInvocation(
+        run,
+        'node',
+        __filename,
+        process.env,
+      );
+      const encodedArgs = encodeReexecArgs(process.argv.slice(2));
+      const result = spawnSync(command, wrapperArgs, {
+        env: { ...process.env, [REEXEC_GUARD_ENV]: '1', [REEXEC_ARGS_ENV]: encodedArgs },
+        stdio: 'inherit',
+        cwd: process.cwd(),
+      });
+      if (result.error) {
+        cause =
+          'code' in result.error && result.error.code === 'ENOENT'
+            ? `${command} not found on PATH`
+            : `secrets.run failed to start: ${result.error.message}`;
+      } else {
+        process.exit(result.status ?? 1);
+      }
+    } catch (err) {
+      // Unset placeholder variable (e.g. BWS_PROJECT_ID) or oversize args.
+      if (err.code === REEXEC_ARGS_TOO_LARGE) {
+        console.error(`ERROR: ${err.message}`);
+        process.exit(1);
+      }
+      cause = `secrets.run ${err.message}`;
+    }
   }
 
   if (allowInsecureDotenv) {
@@ -247,10 +276,38 @@ function resolveSecrets(config, root, identity) {
       }
     }
   }
+
+  // Failure policy: token still unresolved. gh-* stop; push/fetch warn
+  // and proceed. Names the variable, never a value.
+  if (!process.env[identity.tokenEnvName]) {
+    const failure = describeTokenFailure(isGh, identity.tokenEnvName, cause);
+    console.error(failure.message);
+    if (failure.fatal) process.exit(1);
+  }
+}
+
+/**
+ * Argv for this invocation. In a secrets-wrapper re-exec child the
+ * original arguments arrive as JSON in REEXEC_ARGS_ENV (see
+ * resolveSecrets); the variable is removed so git/gh don't inherit it.
+ * @returns {string[]}
+ */
+function getEffectiveArgs() {
+  const encoded = process.env[REEXEC_ARGS_ENV];
+  if (!isAlreadyWrapped(process.env) || encoded === undefined) {
+    return process.argv.slice(2);
+  }
+  delete process.env[REEXEC_ARGS_ENV];
+  try {
+    return decodeReexecArgs(encoded);
+  } catch (err) {
+    console.error(`ERROR: ${err.message}`);
+    process.exit(1);
+  }
 }
 
 function main() {
-  const args = process.argv.slice(2);
+  const args = getEffectiveArgs();
 
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     printUsage();
@@ -274,7 +331,7 @@ function main() {
   // must stay fast and must not depend on a secrets backend being
   // installed/reachable.
   if (isGhCommand(command) || needsPushAuth(command)) {
-    resolveSecrets(found.config, found.root, identity);
+    resolveSecrets(found.config, found.root, identity, isGhCommand(command));
   }
 
   // Route to git or gh
