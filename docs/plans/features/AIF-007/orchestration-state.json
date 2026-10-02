@@ -7,7 +7,7 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Done",
       "branch": "AIF-007/001-shell-aware-matcher",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/001-shell-aware-matcher",
       "pr_number": 92,
@@ -95,6 +95,13 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Done -> Implementing; PR #92 CI Validate failed"
+    },
+    {
+      "timestamp": "2026-10-02T20:50:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Done; snapshot fix 1033046, CI green"
     }
   ]
 }
