@@ -114,6 +114,19 @@ Findings:
 4. Event kinds seen delivered: `pull_request_review_comment.created` and `pull_request_review.submitted` (state `commented`). A general (issue) comment, a review submitted as "Request Changes", and CI events were never delivered to a working subscriber in these runs. They were not separately re-tested once a working subscriber existed, so whether they wake is unresolved.
 5. The desktop app's session list appears to show which session holds the subscription (a green branch icon on the subscriber, a hollow dot on the others). One observation, not confirmed.
 
+#### A3c: `send_message` reaches a restricted agent without `ReadNotifications`
+
+The default session sent a cross-session message to two sessions that had been idle and disconnected.
+
+| Receiver                                                                   | Has `ReadNotifications`? | Sent (UTC) | Arrival                                                                                                            |
+| -------------------------------------------------------------------------- | ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| `verify-a`, `session_01QgfFCVU9z3W2H5RibM5jLL`, disconnected about an hour | No                       | 15:56:55   | Inline, as a `<cross-session-message from-session=...>` user turn; fresh sandbox allocated; read with no tool call |
+| `verify-f` (Tab B)                                                         | Yes                      | 15:56:06   | Queued; fresh sandbox, then `ReadNotifications` with no user message before it                                     |
+
+Findings: `send_message` wakes a restricted, disconnected session without `ReadNotifications`. The harness appears to deliver inline when the tool is absent and through the queue when it is present (inferred from two sessions). `verify-a` could not reply because it lacks `send_message`, so a receiver needs that tool only to answer.
+
+This also supports finding 1 in A3b: `verify-a` was the only subscriber to PR 86 from 14:56 to 15:10, an inline comment was posted at 15:01:42, and nothing was delivered, yet the same session was woken by `send_message` an hour later. Disconnect was therefore not what blocked PR events. Still not isolated: a PR event has not been sent to `verify-a` with the tool added.
+
 #### Earlier A3 runs on PR 85 (retracted as evidence)
 
 A subagent (`verify-c`) subscribed to PR 85, then `verify-a` subscribed directly, and every comment, inline comment and review tried (same and different accounts, draft and ready) produced no wake. These runs lacked `ReadNotifications`, had a later subscriber in play, and the main session was disconnected. They do not show that PR comments never wake. They also did not settle whether a subagent's subscription routes to its parent. `verify-c` could not have read notifications either way.
