@@ -18,13 +18,13 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Blocked",
+      "status": "Implementing",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
-      "blocked_reason": "Agent failure: tool calls denied by auto-mode classifier mid arc42 step; local commit 15fc14a unpushed, arc42 partial"
+      "blocked_reason": null
     },
     {
       "id": "003",
@@ -54,7 +54,7 @@
       "task_id": "002",
       "reason": "Agent failure: tool calls denied by auto-mode classifier mid arc42 step; local commit 15fc14a unpushed, arc42 partial",
       "raised_at": "2026-10-02T00:45:00Z",
-      "resolved": false
+      "resolved": true
     }
   ],
   "log": [
@@ -141,6 +141,20 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Reviewing -> Done; PR #89 ready"
+    },
+    {
+      "timestamp": "2026-10-02T01:40:00Z",
+      "agent": "engineering-manager",
+      "action": "task_unblocked",
+      "task_id": "002",
+      "details": "human requested retry"
+    },
+    {
+      "timestamp": "2026-10-02T01:40:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Blocked -> Implementing"
     }
   ]
 }
