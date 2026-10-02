@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T18:00:44.468Z",
+  "generated_at": "2026-10-02T18:16:41.062Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -108,6 +108,7 @@
         "lib/snapshot/pure.js",
         "lib/project-init.js",
         "lib/ai-git.js",
+        "lib/doctor-probe.js",
         "lib/secrets.js",
         "lib/constants.js",
         "lib/component-defs.js",
@@ -116,7 +117,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-      "last_verified": "f87df2d",
+      "last_verified": "c8ad9e0",
       "stale": false
     },
     {
@@ -188,7 +189,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-      "last_verified": "f87df2d",
+      "last_verified": "c8ad9e0",
       "stale": false
     },
     {
@@ -297,6 +298,9 @@
       "05_03_core_libraries.md"
     ],
     "lib/ai-git.js": [
+      "05_03_core_libraries.md"
+    ],
+    "lib/doctor-probe.js": [
       "05_03_core_libraries.md"
     ],
     "lib/secrets.js": [

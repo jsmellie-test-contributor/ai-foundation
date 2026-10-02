@@ -2,7 +2,7 @@
 section: '05.03'
 title: 'Core libraries'
 lifecycle: published
-last_verified: f87df2d
+last_verified: c8ad9e0
 tags: [building-blocks, core-libraries]
 key_files:
   - lib/manifest.js
@@ -10,6 +10,7 @@ key_files:
   - lib/snapshot/pure.js
   - lib/project-init.js
   - lib/ai-git.js
+  - lib/doctor-probe.js
   - lib/secrets.js
   - lib/constants.js
   - lib/component-defs.js
@@ -26,16 +27,17 @@ key_files:
 
 ## Motivation
 
-The largest heterogeneous group in §5's "Core libraries" row: 12 files across 8
+The largest heterogeneous group in §5's "Core libraries" row: 13 files across 8
 unrelated responsibilities, and the group most likely to gain a new file as the
 CLI grows. Its own `key_files` list keeps the top-level §5 doc's list short
 enough that a rename or deletion there stays a meaningful signal, while these
-12 files' individual freshness stays tracked here instead of silently dropping
+13 files' individual freshness stays tracked here instead of silently dropping
 out of `aif index architecture --check` coverage. `file-utils.js`'s addition
 (splitting generic file/hash/frontmatter helpers out of `lib/harnesses/base.js`
 — see §5.02's Consumers section) and `secrets.js`'s addition (provider-agnostic
-secrets resolution for `ai-git`, per `docs/plans/secrets-resolution-plan.md`)
-are exactly the split-trigger case `steering/engineering/architecture-authoring.md`
+secrets resolution for `ai-git`, per `docs/plans/secrets-resolution-plan.md`),
+and `doctor-probe.js`'s addition (the `ai-git doctor` token probe, a tiny
+argv-safe script kept apart from `ai-git.js`'s pure logic) are exactly the split-trigger case `steering/engineering/architecture-authoring.md`
 names past 5 entries; a finer `05.0x` subsection isn't warranted yet, since these
 8 responsibilities still share nothing beyond "not `resolver.js`/harnesses/indexing"
 the way §5.01's or §5.04's content does.
@@ -47,7 +49,7 @@ the way §5.01's or §5.04's content does.
 | `manifest.js`                                                  | Tracks every file `aif install` writes, per bundle/server/hook, in `.installs.yaml` — what `uninstall` reads to know what to remove.                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `readManifest()`/`writeManifest()`, `get/set/removeEntry()`                                                                                                                            |
 | `snapshot/io.js` + `snapshot/pure.js`                          | Builds and diffs source-file-hash snapshots per bundle/server/hook to detect drift between installed output and current source.                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `buildSnapshot()`, `diffSnapshot()`, `isFreshnessCurrent()`                                                                                                                            |
 | `project-init.js`                                              | Validates project name/shortname, generates `.aiconfig.json` content, applies template placeholder substitution.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `buildAiConfig()`, `applyProjectConfig()`                                                                                                                                              |
-| `ai-git.js`                                                    | Pure logic behind the `ai-git` CLI: identity resolution, env injection, gh-command detection and auth-arg construction.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `getIdentity()`, `buildGitEnv()`, `buildGhEnv()`                                                                                                                                       |
+| `ai-git.js`                                                    | Pure logic behind the `ai-git` CLI: identity resolution, env injection, gh-command detection, auth-arg construction, and the pure `ai-git doctor` report (its wrapper token probe is the argv-safe, transport-independent `doctor-probe.js`).                                                                                                                                                                                                                                                                                                                                           | `getIdentity()`, `buildGitEnv()`, `buildGhEnv()`, `buildDoctorReport()`                                                                                                                |
 | `secrets.js`                                                   | Pure logic behind provider-agnostic secrets resolution for `ai-git`: reads `secrets.run`/`secrets.allow_insecure_dotenv` out of a parsed `.aiconfig.json`, resolves `${VAR}` placeholders, parses `.env`-format text, builds a re-exec-through-wrapper invocation with a fixed argv, encodes/decodes the original arguments as JSON for transport in `AIF_REEXEC_ARGS` (with a size guard; wrappers shell-join argv, so user arguments never travel in it), and describes the unresolved-token failure policy. Never resolves a secret value itself — that's the wrapper command's job. | `getSecretsConfig()`, `resolvePlaceholders()`, `parseDotenv()`, `buildWrapperInvocation()`, `isAlreadyWrapped()`, `encodeReexecArgs()`, `decodeReexecArgs()`, `describeTokenFailure()` |
 | `constants.js` / `component-defs.js`                           | Shared constants (canonical tool names, source directories, CLI command list) and JSDoc-only `AgentDef`/`ServerDef` type shapes — no runtime behavior, just a single owner for both.                                                                                                                                                                                                                                                                                                                                                                                                    | `TOOLS`, `SOURCE_DIRS`, `COMMANDS`                                                                                                                                                     |
 | `aiconfig.js` / `aiconfig-resolve.js` / `aiconfig-defaults.js` | Resolves a `.aiconfig.json` field to its configured value or documented default, without ever writing a default back to disk. `aiconfig-defaults.js` owns the default table (some entries derive from another field's resolved value, e.g. `paths.decisions` nesting under `paths.knowledge`); `aiconfig-resolve.js` is the pure merge logic against a plain object; `aiconfig.js` is the I/O layer that reads `.aiconfig.json` off disk and also finds a project root by walking up for the file.                                                                                      | `getConfigValue()`, `getConfigPath()`, `findProjectRoot()`, `resolveConfigValue()`                                                                                                     |
