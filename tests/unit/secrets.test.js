@@ -137,12 +137,9 @@ describe('unit: secrets', () => {
   describe('buildWrapperInvocation()', () => {
     it('builds command and args, resolving placeholders in run', () => {
       const run = ['bws', 'run', '--project-id', '${BWS_PROJECT_ID}', '--'];
-      const result = buildWrapperInvocation(
-        run,
-        '/usr/bin/node',
-        '/repo/bin/ai-git.js',
-        { BWS_PROJECT_ID: 'proj-123' },
-      );
+      const result = buildWrapperInvocation(run, '/usr/bin/node', '/repo/bin/ai-git.js', {
+        BWS_PROJECT_ID: 'proj-123',
+      });
       assert.equal(result.command, 'bws');
       assert.deepEqual(result.args, [
         'run',
@@ -191,7 +188,18 @@ describe('unit: secrets', () => {
     });
 
     it('round-trips hostile arguments losslessly', () => {
-      const args = ['a b', 'a;echo X', '$(id)', '`id`', "it's", 'say "hi"', 'l1\nl2', '(x)', '$HOME', ''];
+      const args = [
+        'a b',
+        'a;echo X',
+        '$(id)',
+        '`id`',
+        "it's",
+        'say "hi"',
+        'l1\nl2',
+        '(x)',
+        '$HOME',
+        '',
+      ];
       assert.deepEqual(decodeReexecArgs(encodeReexecArgs(args)), args);
     });
 
@@ -200,10 +208,7 @@ describe('unit: secrets', () => {
     });
 
     it('rejects arguments over the size guard instead of truncating', () => {
-      assert.throws(
-        () => encodeReexecArgs(['x'.repeat(MAX_REEXEC_ARGS_BYTES)]),
-        /too large/,
-      );
+      assert.throws(() => encodeReexecArgs(['x'.repeat(MAX_REEXEC_ARGS_BYTES)]), /too large/);
     });
 
     it('accepts arguments just under the size guard', () => {
