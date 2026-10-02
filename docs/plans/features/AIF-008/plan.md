@@ -30,7 +30,7 @@ Make `ai-git` and `gh` reliably usable in Claude Code cloud sessions, with `bws`
 
 ## 3. Quick Summary
 
-**Open Items:** 0 open (0 High / 0 Medium / 0 Low) — see Section 8
+**Open Items:** 1 open (0 High / 0 Medium / 1 Low) — see Section 8
 
 **Verified facts this plan rests on** (cloud session, 2026-09-30 and 2026-10-01):
 
@@ -161,6 +161,7 @@ Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from p
 | 7   | `npm link --ignore-scripts` in SessionStart is validated locally but not in a real cloud session.                                                                                                                                                 | Risk     | M      | Test         | Agent     | Yes — validated 2026-10-02 in a real cloud container: `npm link --ignore-scripts` put `ai-git` and `aif` in `/opt/node22/bin` and `ai-git` ran from another directory. The SessionStart-hook run itself is exercised in `AIF-005`'s acceptance session.                                                                                                                                                                                             |
 | 8   | The `gh` release download is verified at runtime but not in the Setup stage (docs say release-asset requests reach only repositories attached to the session; the runtime test for `cli/cli` succeeded).                                          | Risk     | M      | Docs         | Agent     | Accepted — human 2026-10-02: no separate Setup-stage test. The runtime result stands, `bws` was verified in the Setup stage in the spike (A2), and a failure would show in `AIF-005`'s acceptance session.                                                                                                                                                                                                                                          |
 | 9   | Whether `git push` through the proxy works from an `ai-git` worktree branch (docs: push works only against the session's current working branch) and whether the proxy also replaces the `extraheader` credential `ai-git` adds for `github.com`. | Question | M      | Docs         | Agent     | Yes — tested 2026-10-02: from an `ai-git` worktree branch, `ai-git commit` was authored by the AI identity and `ai-git push -u origin <new branch>` succeeded through the proxy, so the docs' "current working branch only" limit did not apply to a new branch. The recorded pusher identity was not determined. The proxy blocks deleting a remote branch, both via REST (403) and `git push --delete`, so test branches must be deleted by hand. |
+| 10  | Under a shell-joining wrapper such as `bws run`, the `ai-git` script path (`__filename`) is placed in argv unquoted, so an install path containing spaces breaks the re-exec. Not an injection vector (the value is the install path, not user input); no spaces on the cloud Linux target. Found in Task 001 review (PR #89). | Question | L | Review | Principal-Engineer | No — open. Proposed handling: Task 004's README recipe states the no-spaces-in-path assumption; any quoting or launch change needs a human or Architect decision (row 4 rejected per-platform quoting). |
 
 ---
 

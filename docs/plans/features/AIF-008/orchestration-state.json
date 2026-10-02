@@ -7,7 +7,7 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Reviewing",
+      "status": "Done",
       "branch": "AIF-008/001-reexec-arg-transport",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/001-reexec-arg-transport",
       "pr_number": 89,
@@ -134,6 +134,13 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Implementing -> Reviewing"
+    },
+    {
+      "timestamp": "2026-10-02T01:30:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Reviewing -> Done; PR #89 ready"
     }
   ]
 }
