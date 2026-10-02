@@ -7,9 +7,9 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-010/001-tool-mapping-contract",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/001-tool-mapping-contract",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -68,6 +68,13 @@
       "action": "wave_started",
       "task_id": null,
       "details": "wave 0: 001"
+    },
+    {
+      "timestamp": "2026-10-02T17:27:10.353Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "001",
+      "details": "software-engineer; AIF-010/001-tool-mapping-contract"
     }
   ]
 }
