@@ -18,13 +18,13 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Blocked",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
-      "blocked_reason": null
+      "blocked_reason": "Retry denied again (git checkout -- docs); human is taking over in the 002 worktree"
     },
     {
       "id": "003",
@@ -55,6 +55,12 @@
       "reason": "Agent failure: tool calls denied by auto-mode classifier mid arc42 step; local commit 15fc14a unpushed, arc42 partial",
       "raised_at": "2026-10-02T00:45:00Z",
       "resolved": true
+    },
+    {
+      "task_id": "002",
+      "reason": "Retry denied again (git checkout -- docs); human is taking over in the 002 worktree",
+      "raised_at": "2026-10-02T01:50:00Z",
+      "resolved": false
     }
   ],
   "log": [
@@ -155,6 +161,20 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Blocked -> Implementing"
+    },
+    {
+      "timestamp": "2026-10-02T01:50:00Z",
+      "agent": "engineering-manager",
+      "action": "task_blocked",
+      "task_id": "002",
+      "details": "retry denied; human takeover"
+    },
+    {
+      "timestamp": "2026-10-02T01:50:00Z",
+      "agent": "engineering-manager",
+      "action": "escalation_raised",
+      "task_id": "002",
+      "details": "awaiting human"
     }
   ]
 }
