@@ -20,13 +20,13 @@ This skill does one check-and-act pass per invocation; it does not loop or sleep
 
 The cloud session proxy blocks GraphQL, so `gh pr ...` (`ai-git gh-pr-*`) and `gh repo view` (`ai-git gh-repo-view`) fail there with HTTP 403 and are unavailable. Use REST through `ai-git gh-api`, repository-scoped paths only (`repos/{owner}/{repo}/...`; non-repo paths are blocked too):
 
-| Need | Call |
-| --- | --- |
-| Mergeable state | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}` (`mergeable`, `mergeable_state`) |
-| CI status | `ai-git gh-api repos/{owner}/{repo}/commits/{head_sha}/check-runs` |
-| Review comments | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}/comments` (also `.../reviews`, `issues/{n}/comments`) |
-| Post a comment | `ai-git gh-api repos/{owner}/{repo}/issues/{n}/comments --method POST ...` |
-| Review threads, auto-merge, ready-for-review | The proxy's `ccr/...` routes (the proxy's 403 message lists them), not GraphQL |
+| Need                                         | Call                                                                                                |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Mergeable state                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}` (`mergeable`, `mergeable_state`)                     |
+| CI status                                    | `ai-git gh-api repos/{owner}/{repo}/commits/{head_sha}/check-runs`                                  |
+| Review comments                              | `ai-git gh-api repos/{owner}/{repo}/pulls/{n}/comments` (also `.../reviews`, `issues/{n}/comments`) |
+| Post a comment                               | `ai-git gh-api repos/{owner}/{repo}/issues/{n}/comments --method POST ...`                          |
+| Review threads, auto-merge, ready-for-review | The proxy's `ccr/...` routes (the proxy's 403 message lists them), not GraphQL                      |
 
 GitHub-side actions in cloud carry the proxy's identity, not the `ai-git` token's.
 
