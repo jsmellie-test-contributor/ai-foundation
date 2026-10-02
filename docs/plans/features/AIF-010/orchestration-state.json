@@ -7,12 +7,12 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Done",
+      "status": "Implementing",
       "branch": "AIF-010/001-tool-mapping-contract",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/001-tool-mapping-contract",
       "pr_number": 90,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/90",
-      "iterations": 1,
+      "iterations": 2,
       "blocked_reason": null
     },
     {
@@ -117,6 +117,13 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Reviewing -> Done; PR 90 approved iter 1"
+    },
+    {
+      "timestamp": "2026-10-02T21:13:57.381Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "001",
+      "details": "iteration 2; human: drop TOOL_GROUPS, rebase"
     }
   ]
 }
