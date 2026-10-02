@@ -6,9 +6,9 @@
 | ------------------- | ----------------------------------------------------- |
 | Feature ID          | AIF-008                                               |
 | Project             | ai-foundation                                         |
-| Status              | Draft                                                 |
+| Status              | Approved                                              |
 | Author (Agent)      | Claude Code session (standalone; no dispatched agent) |
-| Reviewed By         | Pending                                               |
+| Reviewed By         | Jeremy S (chat approval 2026-10-02)                   |
 | Created             | 2026-09-30                                            |
 | Last Updated        | 2026-10-02                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)           |
