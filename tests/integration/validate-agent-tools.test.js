@@ -59,7 +59,7 @@ describe('integration: validate schema — agent tool names', () => {
     repo = withAgent({ tools: ['read', 'raed'] });
     const { code, output } = validateSchema(repo);
     assert.equal(code, 1);
-    assert.match(output, /a.yaml: unknown tool 'raed' in tools/);
+    assert.match(output, /a\.yaml: unknown tool 'raed' in tools/);
   });
 
   it('rejects a bare typo in approved_tools', () => {

@@ -132,7 +132,7 @@ describe('unit: kiro adapter', () => {
     it('reports each dropped tool once through the dropped array', () => {
       const dropped = [];
       transformAgent({ ...agent, tools: ['read', 'plan'], approved_tools: ['plan'] }, dropped);
-      assert.deepEqual(dropped, ['plan', 'plan']);
+      assert.deepEqual(dropped, ['plan']);
     });
 
     it('converts skills to skill:// resources', () => {

@@ -184,6 +184,21 @@ describe('unit: claude adapter', () => {
       assert.throws(() => mapAgentTools(['@dag']), /unknown tool/);
     });
 
+    it('reports a tool in both tools and approved_tools dropped once', () => {
+      const dropped = [];
+      transformAgent(
+        {
+          name: 'a',
+          description: 'd',
+          prompt: 'p',
+          tools: ['read', 'code'],
+          approved_tools: ['code'],
+        },
+        dropped,
+      );
+      assert.deepEqual(dropped, ['code']);
+    });
+
     it('reports unsupported tools as dropped', () => {
       const dropped = [];
       mapAgentTools(['read', 'code'], dropped);
