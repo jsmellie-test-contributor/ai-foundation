@@ -29,12 +29,12 @@
     {
       "id": "003",
       "wave": 0,
-      "status": "Done",
+      "status": "Implementing",
       "branch": "AIF-008/003-rest-path-identity",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
       "pr_number": 88,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/88",
-      "iterations": 1,
+      "iterations": 0,
       "blocked_reason": null
     },
     {
@@ -377,6 +377,20 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Reviewing -> Done; PR #91 ready, clean"
+    },
+    {
+      "timestamp": "2026-10-02T10:10:00Z",
+      "agent": "engineering-manager",
+      "action": "conflict_detected",
+      "task_id": "003",
+      "details": "PR #88 dirty after #89 merge"
+    },
+    {
+      "timestamp": "2026-10-02T10:10:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Done -> Conflict -> Implementing"
     }
   ]
 }
