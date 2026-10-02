@@ -1,0 +1,30 @@
+{
+  "feature_id": "AIF-008",
+  "tasks": [
+    {
+      "id": "001",
+      "title": "Re-exec argument transport and failure policy (secrets.js, bin/ai-git.js)",
+      "depends_on": []
+    },
+    {
+      "id": "002",
+      "title": "ai-git doctor command with pure checks and tests",
+      "depends_on": []
+    },
+    {
+      "id": "003",
+      "title": "REST cloud GitHub path and identity guard rails (pr-stewardship, steering, EM/SE prompts)",
+      "depends_on": []
+    },
+    {
+      "id": "004",
+      "title": "README Claude Code Cloud recipe, session-start.sh (npm link, doctor) and test",
+      "depends_on": ["001", "002"]
+    },
+    {
+      "id": "005",
+      "title": "arc42 updates (5.03, 5) and aif index architecture --check",
+      "depends_on": ["001", "002", "003", "004"]
+    }
+  ]
+}

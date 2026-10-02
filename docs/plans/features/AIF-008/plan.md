@@ -12,7 +12,7 @@
 | Created             | 2026-09-30                                            |
 | Last Updated        | 2026-10-02                                            |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)           |
-| Total Tasks         | Pending approval                                      |
+| Total Tasks         | 5                                                     |
 | Product Requirement | None                                                  |
 | ADRs                | None (see Section 8, question 1)                      |
 
@@ -166,7 +166,7 @@ Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from p
 
 ## 9. Task Decomposition
 
-Pending approval. Sizing intent: about five Tasks, code first so they can be verified locally before any cloud step — (1) re-exec argument transport and failure policy in `secrets.js`/`bin/ai-git.js`, including an integration test with a fake wrapper that shell-joins its argv and injection cases; (2) `ai-git doctor` with pure checks and tests; (3) REST path: `skill/pr-stewardship` and steering rewrite, the identity rule in `git-workflow-core.md` and the engineering-manager and software-engineer prompts, version bumps; (4) README "Claude Code Cloud" and exact Setup text (`npm install -g`, `gh`, `bws`, `GIT_CONFIG_GLOBAL=/dev/null`), `scripts/session-start.sh` (`npm link`, `ai-git doctor`) and its test; (5) arc42 updates, with `aif index architecture --check` as the final local step. Tasks 1 and 2 precede 4; 3 runs in parallel; 5 is last. Cloud verification is executed in `AIF-005`'s consolidated session. Decomposed with `tasks.json` and `dag-validate` only after `Status: Approved` is committed.
+Decomposed into 5 Tasks in 3 waves (`tasks.json`, passes `dag-validate`). Wave 0: 001, 002, 003 in parallel (001 and 002 both touch `bin/ai-git.js`; expect a merge-order conflict there); wave 1: 004; wave 2: 005. Code first so Tasks can be verified locally before any cloud step — (1) re-exec argument transport and failure policy in `secrets.js`/`bin/ai-git.js`, including an integration test with a fake wrapper that shell-joins its argv and injection cases; (2) `ai-git doctor` with pure checks and tests; (3) REST path: `skill/pr-stewardship` and steering rewrite, the identity rule in `git-workflow-core.md` and the engineering-manager and software-engineer prompts, version bumps; (4) README "Claude Code Cloud" and exact Setup text (`npm install -g`, `gh`, `bws`, `GIT_CONFIG_GLOBAL=/dev/null`), `scripts/session-start.sh` (`npm link`, `ai-git doctor`) and its test; (5) arc42 updates, with `aif index architecture --check` as the final local step. Cloud verification is executed in `AIF-005`'s consolidated session.
 
 ---
 

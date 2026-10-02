@@ -1,0 +1,17 @@
+{
+  "feature_id": "AIF-008",
+  "status": "In Progress",
+  "current_wave": 0,
+  "total_waves": 3,
+  "tasks": [
+    { "id": "001", "wave": 0, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
+    { "id": "002", "wave": 0, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
+    { "id": "003", "wave": 0, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
+    { "id": "004", "wave": 1, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null },
+    { "id": "005", "wave": 2, "status": "Ready", "branch": "", "worktree_path": "", "pr_number": null, "pr_url": null, "iterations": 0, "blocked_reason": null }
+  ],
+  "escalations": [],
+  "log": [
+    { "timestamp": "2026-10-02T00:00:00Z", "agent": "engineering-manager", "action": "wave_started", "task_id": null, "details": "wave 0: 001,002,003" }
+  ]
+}
