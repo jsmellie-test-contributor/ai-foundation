@@ -29,7 +29,7 @@
     {
       "id": "003",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Done",
       "branch": "AIF-008/003-rest-path-identity",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
       "pr_number": 88,
@@ -391,6 +391,13 @@
       "action": "task_status_changed",
       "task_id": "003",
       "details": "Done -> Conflict -> Implementing"
+    },
+    {
+      "timestamp": "2026-10-02T11:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Implementing -> Done; PR #88 clean, green"
     }
   ]
 }
