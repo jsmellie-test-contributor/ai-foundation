@@ -18,7 +18,7 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
       "pr_number": 91,
@@ -280,6 +280,13 @@
       "action": "task_status_changed",
       "task_id": "003",
       "details": "Implementing -> Done; PR #88 green"
+    },
+    {
+      "timestamp": "2026-10-02T06:20:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Implementing -> Reviewing; head a9b1727"
     }
   ]
 }
