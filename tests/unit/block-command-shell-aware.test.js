@@ -320,6 +320,7 @@ describe('unit: block-command shell-aware / dynamic command words', () => {
     '/usr/bin/g?t log',
     '{git,x} log',
     '/usr/bin/g*t',
+    "$'\\x67it' log",
     'g=git; $g log',
     'GIT=/usr/bin/git; $GIT log',
     'bash -c "$x"',
@@ -336,10 +337,6 @@ describe('unit: block-command shell-aware / dynamic command words', () => {
       assert.equal(r.type, 'dynamic', cmd);
       assert.ok(r.word.length > 0);
     }
-  });
-
-  it('blocks an ANSI-C quoted escape command word by pattern', () => {
-    assertBlocked(["$'\x67it' lo\x67"]);
   });
 
   it('matchesBlockedCommand returns the dynamic reason string', () => {
