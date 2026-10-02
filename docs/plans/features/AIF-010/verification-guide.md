@@ -72,38 +72,58 @@ Interpretation: `verify-b` succeeding means subagents inherit the parent's tools
 
 Observed (run on `AIF-010-verification-A2-1`): `verify-b` did not inherit `get_session` from its parent, and `verify-c` had it only because its own `tools:` listed it. So each subagent needs its own grant. Both `verify-a` and `verify-c` reported the same session (`session_01G2b7mm2knuthNsbJZiQYwD`, origin `desktop_app`), and `get_session`'s `turn_handoff.tools` field lists a different tool set (Bash, Write, Edit, Agent, and others) from what the agent can call.
 
-### A3: where do wakes go when a subagent subscribes? (Q5, feeds Q2)
+### A3: how do PR and `send_later` wakes reach a restricted agent? (Q5, feeds Q2)
 
-1. With `verify-a` as the main agent (as in A2), ask it to dispatch `verify-c` with: "Call subscribe_pr_activity for PR `<number>`, report the raw result, then finish." Let `verify-c` finish and return.
-2. As a human, add a comment on the PR, then wait 2 minutes.
-3. Fill in:
+The original A3 plan (a subagent subscribes, a human comments, watch where the wake goes) could not be read until the wake path itself was understood. The runs below established that path. The subagent-routing question is still open and is listed at the end.
 
-| Observation                                                    | Result (run on `AIF-010-verification-A3-1`, PR 85)                                                                                                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Did `verify-c`'s subscribe call succeed?                       | Yes: "Subscribed to activity on #85. Comments, CI status changes, reviews, and other PR events will now be delivered into this conversation as `<wake reason="external-event">` envelopes." |
-| Did a `<wake>` arrive in the main (`verify-a`) session?        | No, nothing after 2 minutes. A `subscription.created` event did arrive in the main session at subscribe time, before the comment.                                                           |
-| Did anything arrive anywhere else? Describe.                   | No, nothing woke anywhere after 2 minutes.                                                                                                                                                  |
-| After `verify-c` finished, did the subscription still deliver? | No (nothing woke after the PR comment). Not distinguishable yet from "subagent subscriptions never deliver"; step 4 is the control.                                                         |
+How to read results: use `RemoteTrigger` `get_run_log` with the cloud session ID. It returns timestamped events and does not depend on the UI, which lagged badly. Wake messages carry their own fire time in a system reminder or a `current-time` attribute.
 
-Observed (step 1-3): a subagent's subscribe call succeeds and its `subscription.created` event reaches the main session, but a later PR comment produced no wake. Step 4 (main agent subscribing directly) is needed to tell "subagent-owned subscriptions do not wake" apart from "comments do not wake at all in this setup".
+#### A3a: `send_later` reaches a restricted agent
 
-4. Repeat with `verify-a` subscribing directly (ask it to call `subscribe_pr_activity` itself), add another PR comment, and record whether the wake arrives.
+Branch `AIF-010-verification-A3-2`, main agent `verify-a` (tools: `Read`, `Agent`, `get_session`, `subscribe_pr_activity`, `unsubscribe_pr_activity`, `send_later`). Asked to schedule a wake and then left idle.
 
-   Result: no wake for a general PR comment from the session owner's account, with `verify-a` subscribed directly. Further event types were then tried, each waiting 2 minutes. PR 85 was a draft throughout.
+| Test | Scheduled for (UTC) | Fired    | Delivered to the session    | Agent replied |
+| ---- | ------------------- | -------- | --------------------------- | ------------- |
+| 1    | 14:26:00            | 14:26:39 | 14:26:39.446 as a user turn | 14:26:41      |
+| 2    | 14:38:00            | 14:38:23 | 14:38:23.620 as a user turn | 14:38:25      |
 
-   | Actor                         | Event type                           | Wake |
-   | ----------------------------- | ------------------------------------ | ---- |
-   | Same account as session owner | General (issue) comment              | No   |
-   | Same account as session owner | Inline comment on `scratch/dummy.js` | No   |
-   | Same account as session owner | Review                               | No   |
-   | Different account             | General (issue) comment              | No   |
-   | Different account             | Inline comment                       | No   |
-   | Same account as session owner | Review, "Request Changes"            | No   |
-   | Different account             | Review, "Comment"                    | No   |
+Result: `send_later` wakes work for a restricted agent, with no extra tools. The only delay is server fire jitter of 23 to 39 seconds, matching the warning shown when scheduling a routine. Delivery into the session is immediate. The earlier impression of a late wake was the UI, not the session. The wake text includes "This task fired at ... UTC", so an agent without `Bash` can read the time. The agent said it could not, and was wrong.
 
-   Observed: no PR event type from either account produced a wake, in a subagent-subscribed run or a main-agent-subscribed run. Only `subscription.created` (at subscribe time) was ever delivered. So the wake path was not working in this setup, and A3 cannot yet say anything about subagent routing. Draft state was then ruled out: with the PR marked ready for review, a further comment and review still produced no wake. Untested: whether the session was still active, and whether the GitHub app delivers PR webhooks for this repo.
+#### A3b: PR events need `ReadNotifications` and go to the last subscriber
 
-5. Ask `verify-a` to call `unsubscribe_pr_activity` for the PR and record the outcome. Close the throwaway PR and delete the branch.
+PR 86 (`aif010/testB` into `AIF-010-verification`, not a draft). `subscription.created` arrives as an ordinary user turn. Every later PR event arrives as a queued notification that the agent must read with `ReadNotifications`.
+
+| Session (agent)                     | Subscribed (UTC)        | Last subscriber at event time? | Event                             | Woke?                                    |
+| ----------------------------------- | ----------------------- | ------------------------------ | --------------------------------- | ---------------------------------------- |
+| `verify-a` (no `ReadNotifications`) | 14:56:42                | yes (only one)                 | comments, reviews, 15:01 to 15:12 | No; session also showed `disconnected`   |
+| default agent                       | 15:10:13                | yes                            | inline comment, 15:12:47          | Yes, via `ReadNotifications`             |
+| `verify-e`                          | 15:30:39                | no (`verify-f` 2 s later)      | inline comment, 15:33:46          | No                                       |
+| `verify-f`                          | 15:30:41                | yes                            | inline comment, 15:33:46          | Yes                                      |
+| default agent                       | 15:37:19 (resubscribed) | yes                            | inline comment, 15:38:27          | Yes                                      |
+| `verify-f`                          | (15:30:41)              | no                             | inline comment, 15:38:27          | No                                       |
+| `verify-e`                          | 15:40:53 (resubscribed) | yes                            | inline comment, 15:42:35          | Yes                                      |
+| `verify-e`, disconnected            | (15:40:53)              | yes                            | inline comment, 15:49:21          | Yes, after a fresh sandbox was allocated |
+
+Agents: `verify-e` is `verify-a` plus `ReadNotifications`. `verify-f` is `verify-e` plus `ToolSearch`, which was named in its `tools:` but never callable. The `verify-f` tools line is therefore not a separate result.
+
+Findings:
+
+1. A restricted agent needs `ReadNotifications` in its `tools:`. `verify-e` with it, and no `ToolSearch`, woke on a PR event. Whether `verify-a` without it fails for that reason alone is not isolated: it was also not the last subscriber and was disconnected. The tool is listed as core and callable in the default session, not deferred.
+2. Only the most recent subscriber to a PR received events. Subscribing again moves delivery to the new session, and the earlier session goes silent, including a session that is still live. `subscribe_pr_activity` returns the same text either way, and each call queues a new `subscription.created`. Inferred from the table above, not from documentation.
+3. A disconnected session is woken by a PR event. Tab A had been idle with no messages and was reported disconnected before the comment (by the human, from the session list). The log shows "Allocating sandbox" at 15:49:21 and then `ReadNotifications` with no user message before it. Sessions go disconnected after roughly 13 minutes idle.
+4. Event kinds seen delivered: `pull_request_review_comment.created` and `pull_request_review.submitted` (state `commented`). A general (issue) comment, a review submitted as "Request Changes", and CI events were never delivered to a working subscriber in these runs. They were not separately re-tested once a working subscriber existed, so whether they wake is unresolved.
+5. The desktop app's session list appears to show which session holds the subscription (a green branch icon on the subscriber, a hollow dot on the others). One observation, not confirmed.
+
+#### Earlier A3 runs on PR 85 (retracted as evidence)
+
+A subagent (`verify-c`) subscribed to PR 85, then `verify-a` subscribed directly, and every comment, inline comment and review tried (same and different accounts, draft and ready) produced no wake. These runs lacked `ReadNotifications`, had a later subscriber in play, and the main session was disconnected. They do not show that PR comments never wake. They also did not settle whether a subagent's subscription routes to its parent. `verify-c` could not have read notifications either way.
+
+#### Open for A3
+
+1. Whether a subagent's subscription delivers to the parent or the subagent, now with `ReadNotifications` granted to both.
+2. Whether a subagent subscribing takes delivery from its parent (last subscriber wins).
+3. Whether an issue comment or a "Request Changes" review wakes a working subscriber.
+4. Close PR 85 and PR 86 and delete the throwaway branches when finished.
 
 ## Part B: Kiro and a foreign `@claude-code-remote/...` entry (answers Q6)
 
@@ -150,8 +170,8 @@ Interpretation: a foreign agent that is missing from the list, listed with no to
 Run after the implementation Tasks are merged. Use a throwaway PR in a repo the session can access.
 
 1. On the merged code run `node bin/aif.js install -B engineering -H claude`, then the same with `-H kiro`. Record the install output. Expected: the Kiro run lists a dropped line for every group, and the Claude run drops none of the groups the EM holds.
-2. Open `~/.claude/agents/engineering-manager.md` and record its `tools:` line. Confirm it contains `mcp__claude-code-remote__subscribe_pr_activity`, `mcp__claude-code-remote__unsubscribe_pr_activity`, `mcp__claude-code-remote__send_later`, `mcp__claude-code-remote__get_session` and `mcp__claude-code-remote__read_documentation`. Confirm the T0 pair also appears in at least one other installed agent.
-3. Start a fresh Claude Code cloud session as `engineering-manager` on the repo and open the throwaway PR.
+2. Open `~/.claude/agents/engineering-manager.md` and record its `tools:` line. Confirm it contains `mcp__claude-code-remote__subscribe_pr_activity`, `mcp__claude-code-remote__unsubscribe_pr_activity`, `mcp__claude-code-remote__send_later`, `mcp__claude-code-remote__get_session` and `mcp__claude-code-remote__read_documentation`, and that `ReadNotifications` is present (A3 found PR event wakes are read through it). Confirm the T0 pair also appears in at least one other installed agent.
+3. Start a fresh Claude Code cloud session as `engineering-manager` on the repo and open the throwaway PR. Make sure no other session is subscribed to that PR (A3 found only the most recent subscriber receives events).
 4. Ask the EM: "Subscribe to activity on PR `<number>`." Record whether the call succeeds.
 5. As a human, add the following in order, waiting 2 minutes after each: an issue comment, an inline review comment, a review. Record each wake.
 6. Ask the EM: "Schedule a check-in on this PR in 5 minutes using `send_later`." Wait and record whether it wakes.
