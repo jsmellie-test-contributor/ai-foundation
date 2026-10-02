@@ -1,0 +1,10 @@
+{
+  "feature_id": "AIF-010",
+  "tasks": [
+    { "id": "001", "title": "Shared tool-mapping contract: UNSUPPORTED marker, three-state resolver, dropped-tool install report, unknown bare names rejected, shared adapter contract test", "depends_on": [] },
+    { "id": "002", "title": "Tool group names T0-T5 in lib/constants.js; Claude adapter group clusters and T0 baseline; Kiro groups mapped to unsupported", "depends_on": ["001"] },
+    { "id": "003", "title": "Resolved-tool-set tests per agent and harness (incl. shared-member dedupe such as ReadNotifications); extend KNOWN_NATIVE_TOOLS", "depends_on": ["002"] },
+    { "id": "004", "title": "Agent yaml updates: T0 baseline for every agent, T1/T2 for engineering-manager, with stated grant reasons", "depends_on": ["003"] },
+    { "id": "005", "title": "Graceful-degradation edits to skill/pr-stewardship (and task-orchestration if needed) plus 05_02_harness_adapters.md doc update", "depends_on": ["003"] }
+  ]
+}

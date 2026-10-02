@@ -12,7 +12,7 @@
 | Created             | 2026-10-01                                                     |
 | Last Updated        | 2026-10-02                                                     |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                    |
-| Total Tasks         | Not yet decomposed (Draft)                                     |
+| Total Tasks         | 5 (see `tasks.json`)                                           |
 | Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md` |
 | ADRs                | 0002 (accepted), 0004 (accepted). ADR 0007 (accepted).         |
 
@@ -147,21 +147,15 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 
 ## 9. Task Decomposition
 
-Not yet decomposed. Decomposition into `tasks.json` happens only after this plan is `Approved`. Expected shape, for review only (the brief's suggested decomposition, refined):
+Decomposed into `tasks.json` (5 Tasks, 4 waves, validated). Verification (former Task 2) is done by the human (Section 8) and the PR 83 re-run (former Task 8) is a human step per `verification-guide.md` Part C, so neither is a dispatched Task.
 
-1. Shared tool-mapping contract (first, blocks all others): one `UNSUPPORTED` marker, three-state resolver in `base.js`, arrays on both adapters, bare unknown names rejected (only `@server/tool` passes through), one dropped-tool install report, deduplication of a tool shared by several groups, one shared contract test over every adapter. Also reconciles the Claude `mapToolName` leak.
-2. Verification (parallel with 1): the human runs the Kiro and cloud-session tests in `verification-guide.md` Parts A and B (Q4, Q5, Q6); the repo checks Q7(a)(b) are already done (Section 8). Output is recorded findings, not code; gates the agent yaml edit.
-3. Architect ADR for Q1 (accepted: ADR 0007), then all group names (T0–T5) in `lib/constants.js`.
-4. Claude adapter group clusters and T0 baseline; Kiro groups to unsupported.
-5. Resolved-tool-set tests per agent and harness (including a tool shared by two groups, such as `ReadNotifications`); extend `KNOWN_NATIVE_TOOLS`.
-6. Agent yaml updates (after 3 and 2).
-7. Graceful-degradation edits to `skill/pr-stewardship` (and `skill/task-orchestration` if needed). Includes the Doc-Update step for `docs/architecture/05_02_harness_adapters.md` (`key_files` and mapping description) per the Doc-Update Acceptance Gate, in the same Task as the code it describes.
-8. PR 83 scenario re-run: human runs `verification-guide.md` Part C.
+1. 001 Shared tool-mapping contract (blocks all others).
+2. 002 Group names T0-T5, Claude clusters and T0 baseline, Kiro unsupported (depends on 001).
+3. 003 Resolved-tool-set tests, `KNOWN_NATIVE_TOOLS` (depends on 002).
+4. 004 Agent yaml updates (depends on 003).
+5. 005 Skill graceful degradation and `05_02_harness_adapters.md` Doc-Update (depends on 003).
 
-Parallelization notes:
-
-- Task 1 and the verification spike can run together; the rest follow the ADR and spike results.
-- Tasks 4 and 5 both touch adapter files and tests; likely sequential to avoid file overlap.
+Parallelization: 004 and 005 run in parallel in the last wave; the rest are sequential because they share adapter files and tests.
 
 ---
 
