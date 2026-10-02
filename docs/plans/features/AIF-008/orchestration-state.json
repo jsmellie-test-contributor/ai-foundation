@@ -7,11 +7,11 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-008/001-reexec-arg-transport",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/001-reexec-arg-transport",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 89,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/89",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -120,6 +120,20 @@
       "action": "task_status_changed",
       "task_id": "003",
       "details": "Reviewing -> Done; PR #88 ready"
+    },
+    {
+      "timestamp": "2026-10-02T01:15:00Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "001",
+      "details": "PR #89 draft"
+    },
+    {
+      "timestamp": "2026-10-02T01:15:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
