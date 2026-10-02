@@ -101,7 +101,7 @@ Observed (step 1-3): a subagent's subscribe call succeeds and its `subscription.
    | Same account as session owner | Review, "Request Changes"            | No   |
    | Different account             | Review, "Comment"                    | No   |
 
-   Observed: no PR event type from either account produced a wake, in a subagent-subscribed run or a main-agent-subscribed run. Only `subscription.created` (at subscribe time) was ever delivered. So the wake path was not working in this setup, and A3 cannot yet say anything about subagent routing. Untested: marking the PR ready for review, then commenting (draft state), and which session owns the subscription.
+   Observed: no PR event type from either account produced a wake, in a subagent-subscribed run or a main-agent-subscribed run. Only `subscription.created` (at subscribe time) was ever delivered. So the wake path was not working in this setup, and A3 cannot yet say anything about subagent routing. Draft state was then ruled out: with the PR marked ready for review, a further comment and review still produced no wake. Untested: whether the session was still active, and whether the GitHub app delivers PR webhooks for this repo.
 
 5. Ask `verify-a` to call `unsubscribe_pr_activity` for the PR and record the outcome. Close the throwaway PR and delete the branch.
 
