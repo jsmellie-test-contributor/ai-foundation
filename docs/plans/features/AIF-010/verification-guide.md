@@ -8,7 +8,7 @@ Do not skip a step or merge two steps. If an observation matches none of the lis
 
 ### Setup
 
-1. Create a scratch repo you can attach to a Claude Code cloud session. On a branch `aif010-verify`, make a one-line change and open a draft PR to the default branch. Note the PR number.
+1. Use a repo you can attach to a Claude Code cloud session. Branch a verification base branch (for example `AIF-010-verification`), then a feature branch off it (for example `aif010/testA`). On the feature branch, add a dummy script (for example `scratch/dummy.js`) and open a draft PR into the base branch. Note the PR number.
 2. Create `.claude/agents/verify-a.md`:
 
    ```
@@ -17,32 +17,46 @@ Do not skip a step or merge two steps. If an observation matches none of the lis
    description: Verification agent A
    tools: Read, Agent, mcp__claude-code-remote__get_session, mcp__claude-code-remote__subscribe_pr_activity, mcp__claude-code-remote__unsubscribe_pr_activity
    ---
+   I am verify-a. If asked which agent I am, I answer "verify-a".
    Follow the user's instructions exactly and report each tool call's raw outcome (success, error text, or "tool not available").
    ```
 
-3. Create `.claude/agents/verify-b.md` (subagent, no claude-code-remote tools): same format, `name: verify-b`, `tools: Read`.
+3. Create `.claude/agents/verify-b.md` (subagent, no claude-code-remote tools): same format, `name: verify-b`, `tools: Read`. Every agent file has an identity line in its prompt (`I am verify-<name>. If asked which agent I am, I answer "verify-<name>".`), so a session can be asked which agent loaded.
 4. Create `.claude/agents/verify-c.md` (subagent, explicit grants): `name: verify-c`, `tools: Read, mcp__claude-code-remote__get_session, mcp__claude-code-remote__subscribe_pr_activity`.
 5. Create `.claude/agents/verify-ts.md`: `name: verify-ts`, `tools: Read, ToolSearch`.
 6. Create `.claude/agents/verify-nots.md` (control): `name: verify-nots`, `tools: Read`.
-7. Commit and push these to the default branch, then start a fresh Claude Code cloud session on the repo.
+7. Commit and push these to the base branch.
+8. Cloud sessions have no agent picker or `--agent` flag. Select the main agent with `.claude/settings.json` on the base branch (commit and push it):
+
+   ```
+   {
+     "agent": "verify-ts"
+   }
+   ```
+
+   Change the value between runs (`verify-ts`, `verify-nots`, `verify-a`) and push each time. The setting is read at session start, so start a fresh cloud session on the base branch after every change. If a session does not see the latest commit, push an empty commit or use a new branch cut from the base branch.
+
+9. In each fresh session, first ask "Which agent are you?" and confirm the answer matches the setting before running the test. If it names a different agent, stop and record what it said.
 
 ### A1: does the allowlist block a tool loaded through `ToolSearch`? (Q4)
 
-1. Run agent `verify-ts` as the main agent (for example `claude --agent verify-ts`, or the agent picker).
+1. Set `"agent": "verify-ts"` in `.claude/settings.json` (see Setup step 8), start a fresh session, and confirm its identity.
 2. Ask: "List the tools you can call, by exact name. Then call ToolSearch with the query `subscribe_pr_activity` and report the result. If a tool by that name was returned or loaded, call it for PR `<number>` of this repo and report the raw outcome."
-3. Repeat steps 1-2 with `verify-nots`.
+3. Repeat steps 1-2 with `verify-nots` (set `"agent": "verify-nots"`, push, start a fresh session).
 4. Fill in:
 
-| Agent       | Tools it listed | ToolSearch result | Call to `subscribe_pr_activity` |
-| ----------- | --------------- | ----------------- | ------------------------------- |
-| verify-ts   |                 |                   |                                 |
-| verify-nots |                 |                   |                                 |
+| Agent       | Tools it listed         | ToolSearch result                                                                               | Call to `subscribe_pr_activity`                     |
+| ----------- | ----------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| verify-ts   | `Read` only (first run) | Not called: `ToolSearch` is not in the session's tool list, so "tool not available" (first run) | Not called: the tool was never surfaced (first run) |
+| verify-nots |                         |                                                                                                 |                                                     |
+
+Observed so far: with `tools: Read, ToolSearch`, the session listed only `Read`, and `ToolSearch` was not callable even though the allowlist names it. The system prompt still named `subscribe_pr_activity` as a deferred tool, but nothing loaded it. The `verify-nots` control has not been run yet; if it also lacks `ToolSearch`, the allowlist is not what removed it.
 
 Interpretation: if `verify-ts` can call a tool its allowlist omits, the allowlist is bypassable through `ToolSearch` and it must not be in the baseline of any restricted agent. If the call is blocked, `ToolSearch` is discovery only.
 
 ### A2: does a subagent inherit these tools? (Q5)
 
-1. Run agent `verify-a` as the main agent.
+1. Set `"agent": "verify-a"` in `.claude/settings.json`, start a fresh session, and confirm its identity.
 2. Ask: "Dispatch subagent `verify-b`. Tell it to list its tools by exact name, then call `get_session` with no id. Report its answer verbatim."
 3. Ask: "Dispatch subagent `verify-c` the same way." Record the result.
 4. Ask `verify-a` itself: "Call get_session with no id. Report the result."
@@ -58,7 +72,7 @@ Interpretation: `verify-b` succeeding means subagents inherit the parent's tools
 
 ### A3: where do wakes go when a subagent subscribes? (Q5, feeds Q2)
 
-1. Run `verify-a` as the main agent. Ask it to dispatch `verify-c` with: "Call subscribe_pr_activity for PR `<number>`, report the raw result, then finish." Let `verify-c` finish and return.
+1. With `verify-a` as the main agent (as in A2), ask it to dispatch `verify-c` with: "Call subscribe_pr_activity for PR `<number>`, report the raw result, then finish." Let `verify-c` finish and return.
 2. As a human, add a comment on the PR, then wait 2 minutes.
 3. Fill in:
 
