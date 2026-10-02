@@ -82,10 +82,10 @@ cut across that boundary and hide it.
 
 ### Entry points
 
-| Block           | Responsibility                                                          | Interface                                     |
-| --------------- | ----------------------------------------------------------------------- | --------------------------------------------- |
-| `bin/aif.js`    | Parses argv, dispatches to the matching `lib/commands/*` handler.       | `run(parsed)`, `parseArgs(argv)`              |
-| `bin/ai-git.js` | Transparent git/gh wrapper injecting AI author identity and token auth. | CLI passthrough: `ai-git <command> [args...]` |
+| Block           | Responsibility                                                                                                                     | Interface                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `bin/aif.js`    | Parses argv, dispatches to the matching `lib/commands/*` handler.                                                                  | `run(parsed)`, `parseArgs(argv)`                               |
+| `bin/ai-git.js` | Transparent git/gh wrapper injecting AI author identity and token auth; `ai-git doctor` reports tool, config and token resolution. | CLI passthrough: `ai-git <command> [args...]`, `ai-git doctor` |
 
 ### Command layer (`lib/commands/*`) — see §5.05
 
