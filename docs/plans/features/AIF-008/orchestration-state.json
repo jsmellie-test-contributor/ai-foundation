@@ -9,7 +9,7 @@
       "wave": 0,
       "status": "Done",
       "branch": "AIF-008/001-reexec-arg-transport",
-      "worktree_path": "../worktrees/ai-foundation/AIF-008/001-reexec-arg-transport",
+      "worktree_path": "",
       "pr_number": 89,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/89",
       "iterations": 1,
@@ -18,12 +18,12 @@
     {
       "id": "002",
       "wave": 0,
-      "status": "Done",
+      "status": "Implementing",
       "branch": "AIF-008/002-doctor-command",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
       "pr_number": 91,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/91",
-      "iterations": 2,
+      "iterations": 0,
       "blocked_reason": null
     },
     {
@@ -301,6 +301,27 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Reviewing -> Done; PR #91 ready"
+    },
+    {
+      "timestamp": "2026-10-02T08:00:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "001",
+      "details": "PR #89 merged"
+    },
+    {
+      "timestamp": "2026-10-02T08:00:00Z",
+      "agent": "engineering-manager",
+      "action": "conflict_detected",
+      "task_id": "002",
+      "details": "PR #91 dirty after #89 merge"
+    },
+    {
+      "timestamp": "2026-10-02T08:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Done -> Conflict -> Implementing"
     }
   ]
 }
