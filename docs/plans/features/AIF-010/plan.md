@@ -10,7 +10,7 @@
 | Author (Agent)      | Engineering Manager                                            |
 | Reviewed By         | Pending                                                        |
 | Created             | 2026-10-01                                                     |
-| Last Updated        | 2026-10-01                                                     |
+| Last Updated        | 2026-10-02                                                     |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                    |
 | Total Tasks         | Not yet decomposed (Draft)                                     |
 | Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md` |
@@ -76,6 +76,7 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 - Source agent yamls stay harness-neutral (ADR 0002): no per-harness fields.
 - The harness-neutral baseline is the 13 existing generic names, which map to every harness. Groups are additive and may resolve to unsupported.
 - Group members are granted all together or not at all (for example the three PR follow-through tools).
+- A tool may belong to more than one group (for example `ReadNotifications`, which PR follow-through needs and which scheduled wakes may also use; see Section 8, Q10). The resolved tool list is deduplicated, and a tool stays granted while any group the agent holds includes it.
 - Tier-to-agent baseline is the brief's table, subject to the Section 8 decisions: T0 all agents; T1/T2 `engineering-manager`; nobody holds T3/T4/T5 by default (groups exist, no grants).
 - Only an adapter-verified "unsupported" is silent-safe; an unknown name is never guessed.
 
@@ -138,6 +139,8 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 | 8   | **Copilot / Kiro UNVERIFIED items** from the brief.                                                                                                                                                                                                                                                                       | Risk     | L      | Brief §7     | EM        | Not needed for this Feature (human, 2026-10-01). This Feature maps Kiro and Copilot to unsupported.                                                                                                                                                                                                                                                                                                                                                                                            |
 | 9   | **PR 83 re-run** needs a fresh Claude Code cloud session as EM and cannot run in CI.                                                                                                                                                                                                                                      | Risk     | M      | Brief §8     | EM        | No. Decision: human runs it using `verification-guide.md` Part C.                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
+| 10 | **`ReadNotifications` is required for PR wakes, and may sit in several groups.** Verification (`verification-guide.md` A3) showed PR events after `subscription.created` arrive as queued notifications read with `ReadNotifications`; a restricted agent that held it woke live and from a disconnected state. `send_later` wakes arrived as ordinary user turns without it, so it is not shown to be needed there; whether other scheduled or routine wakes need it is untested. Any group that delivers wakes (`pr_follow_through`, scheduling, routines) may need it, so the group maps must dedupe a shared member. Also: only the most recent subscriber to a PR receives events, which bears on Q2 and Q5. | Question | H | A3 findings | Human | No. Decision: `ReadNotifications` is added to the PR follow-through group and to any other wake-delivering group once its need is verified. Task 1 resolver dedupes shared members; Task 5 tests a tool shared by two groups is granted once and stays granted while either group is held. |
+
 > **Not decided here:** Q1 is a genuine fork and belongs to Architect's ADR, not to this plan.
 
 ---
@@ -146,11 +149,11 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 
 Not yet decomposed. Decomposition into `tasks.json` happens only after this plan is `Approved`. Expected shape, for review only (the brief's suggested decomposition, refined):
 
-1. Shared tool-mapping contract (first, blocks all others): one `UNSUPPORTED` marker, three-state resolver in `base.js`, arrays on both adapters, bare unknown names rejected (only `@server/tool` passes through), one dropped-tool install report, one shared contract test over every adapter. Also reconciles the Claude `mapToolName` leak.
+1. Shared tool-mapping contract (first, blocks all others): one `UNSUPPORTED` marker, three-state resolver in `base.js`, arrays on both adapters, bare unknown names rejected (only `@server/tool` passes through), one dropped-tool install report, deduplication of a tool shared by several groups, one shared contract test over every adapter. Also reconciles the Claude `mapToolName` leak.
 2. Verification (parallel with 1): the human runs the Kiro and cloud-session tests in `verification-guide.md` Parts A and B (Q4, Q5, Q6); the repo checks Q7(a)(b) are already done (Section 8). Output is recorded findings, not code; gates the agent yaml edit.
 3. Architect ADR for Q1 (accepted: ADR 0007), then all group names (T0–T5) in `lib/constants.js`.
 4. Claude adapter group clusters and T0 baseline; Kiro groups to unsupported.
-5. Resolved-tool-set tests per agent and harness; extend `KNOWN_NATIVE_TOOLS`.
+5. Resolved-tool-set tests per agent and harness (including a tool shared by two groups, such as `ReadNotifications`); extend `KNOWN_NATIVE_TOOLS`.
 6. Agent yaml updates (after 3 and 2).
 7. Graceful-degradation edits to `skill/pr-stewardship` (and `skill/task-orchestration` if needed). Includes the Doc-Update step for `docs/architecture/05_02_harness_adapters.md` (`key_files` and mapping description) per the Doc-Update Acceptance Gate, in the same Task as the code it describes.
 8. PR 83 scenario re-run: human runs `verification-guide.md` Part C.
