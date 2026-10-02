@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T17:48:43.851Z",
+  "generated_at": "2026-10-02T17:58:48.829Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -116,7 +116,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-      "last_verified": "238aba9",
+      "last_verified": "a80fd61",
       "stale": false
     },
     {
@@ -188,7 +188,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-      "last_verified": "238aba9",
+      "last_verified": "a80fd61",
       "stale": false
     },
     {
