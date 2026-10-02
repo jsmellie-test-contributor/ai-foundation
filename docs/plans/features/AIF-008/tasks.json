@@ -19,12 +19,10 @@
     {
       "id": "004",
       "title": "README Claude Code Cloud recipe, session-start.sh (npm link, doctor) and test",
-      "depends_on": ["001", "002"]
-    },
-    {
-      "id": "005",
-      "title": "arc42 updates (5.03, 5) and aif index architecture --check",
-      "depends_on": ["001", "002", "003", "004"]
+      "depends_on": [
+        "001",
+        "002"
+      ]
     }
   ]
 }

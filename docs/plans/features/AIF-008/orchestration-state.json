@@ -2,7 +2,7 @@
   "feature_id": "AIF-008",
   "status": "In Progress",
   "current_wave": 0,
-  "total_waves": 3,
+  "total_waves": 2,
   "tasks": [
     {
       "id": "001",
@@ -40,17 +40,6 @@
     {
       "id": "004",
       "wave": 1,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
-      "pr_number": null,
-      "pr_url": null,
-      "iterations": 0,
-      "blocked_reason": null
-    },
-    {
-      "id": "005",
-      "wave": 2,
       "status": "Ready",
       "branch": "",
       "worktree_path": "",
