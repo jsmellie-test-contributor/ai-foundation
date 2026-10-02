@@ -88,6 +88,21 @@ Observed (run on `AIF-010-verification-A2-1`): `verify-b` did not inherit `get_s
 Observed (step 1-3): a subagent's subscribe call succeeds and its `subscription.created` event reaches the main session, but a later PR comment produced no wake. Step 4 (main agent subscribing directly) is needed to tell "subagent-owned subscriptions do not wake" apart from "comments do not wake at all in this setup".
 
 4. Repeat with `verify-a` subscribing directly (ask it to call `subscribe_pr_activity` itself), add another PR comment, and record whether the wake arrives.
+
+   Result: no wake for a general PR comment from the session owner's account, with `verify-a` subscribed directly. Further event types were then tried, each waiting 2 minutes. PR 85 was a draft throughout.
+
+   | Actor                         | Event type                           | Wake |
+   | ----------------------------- | ------------------------------------ | ---- |
+   | Same account as session owner | General (issue) comment              | No   |
+   | Same account as session owner | Inline comment on `scratch/dummy.js` | No   |
+   | Same account as session owner | Review                               | No   |
+   | Different account             | General (issue) comment              | No   |
+   | Different account             | Inline comment                       | No   |
+   | Same account as session owner | Review, "Request Changes"            | No   |
+   | Different account             | Review, "Comment"                    | No   |
+
+   Observed: no PR event type from either account produced a wake, in a subagent-subscribed run or a main-agent-subscribed run. Only `subscription.created` (at subscribe time) was ever delivered. So the wake path was not working in this setup, and A3 cannot yet say anything about subagent routing. Untested: marking the PR ready for review, then commenting (draft state), and which session owns the subscription.
+
 5. Ask `verify-a` to call `unsubscribe_pr_activity` for the PR and record the outcome. Close the throwaway PR and delete the branch.
 
 ## Part B: Kiro and a foreign `@claude-code-remote/...` entry (answers Q6)
