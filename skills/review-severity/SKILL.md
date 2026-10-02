@@ -41,8 +41,9 @@ constraints on which bucket a finding falls into, not a different taxonomy.
 
 ### Step 2 — Determine the outcome
 
-Any CRITICAL or HIGH finding blocks approval. Outcome is **Approved** only when zero CRITICAL/HIGH findings
-remain; otherwise **Returned**.
+Any CRITICAL, HIGH, or MEDIUM finding blocks approval and must be fixed. Outcome is **Approved** only when
+zero CRITICAL/HIGH/MEDIUM findings remain; otherwise **Returned**. LOW findings never block and need not be
+fixed.
 
 ### Step 3 — Write each finding to be actionable
 
@@ -64,7 +65,7 @@ findings — that judgment belongs elsewhere (the human, or whoever owns the pla
 ## Outputs
 
 - **Review Report** — markdown following the shared template
-- **Outcome:** Approved (no CRITICAL/HIGH) or Returned (has CRITICAL/HIGH findings)
+- **Outcome:** Approved (no CRITICAL/HIGH/MEDIUM) or Returned (has CRITICAL/HIGH/MEDIUM findings)
 
 ---
 

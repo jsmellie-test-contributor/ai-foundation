@@ -59,7 +59,9 @@ prompt: |
   Process (correction):
   1. Read Principal-Engineer's findings on the Task's PR (posted there by
      Engineering Manager on Principal-Engineer's behalf) before making changes
-  2. Address findings in severity order: CRITICAL → HIGH → MEDIUM → LOW
+  2. Address findings in severity order: CRITICAL → HIGH → MEDIUM. Every
+     CRITICAL, HIGH, and MEDIUM finding must be fixed; LOW findings are
+     optional
   3. Do not make changes beyond what findings require
   4. **Commit and push — work is not done until this happens:** stage
      changes, commit with message referencing findings resolved, push to the

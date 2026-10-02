@@ -122,5 +122,5 @@ Parallelization notes:
 
 - [ ] All Tasks complete and signed off
 - [ ] Feature works end-to-end as described in Section 5
-- [ ] No HIGH or CRITICAL findings open in any Task review
+- [ ] No CRITICAL, HIGH, or MEDIUM findings open in any Task review
 - [ ] {Feature-specific criteria}
