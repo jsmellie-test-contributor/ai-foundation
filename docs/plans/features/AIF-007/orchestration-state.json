@@ -7,9 +7,9 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-007/001-shell-aware-matcher",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/001-shell-aware-matcher",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -46,6 +46,13 @@
       "action": "wave_started",
       "task_id": null,
       "details": "wave 0 of 2"
+    },
+    {
+      "timestamp": "2026-10-02T18:17:00Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "001",
+      "details": "software-engineer; AIF-007/001-shell-aware-matcher"
     }
   ]
 }
