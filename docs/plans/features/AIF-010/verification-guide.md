@@ -54,6 +54,20 @@ Observed so far: with `tools: Read, ToolSearch` (`verify-ts`) and with `tools: R
 
 Interpretation: if `verify-ts` can call a tool its allowlist omits, the allowlist is bypassable through `ToolSearch` and it must not be in the baseline of any restricted agent. If the call is blocked, `ToolSearch` is discovery only.
 
+#### A1b: `ToolSearch` with a large allowlist (Q4, second attempt)
+
+A1 never surfaced `ToolSearch` as callable. The theory is that deferral only starts when the granted MCP tool list is large, so a short list never needs `ToolSearch`. This run grants 41 read-only tools plus `ToolSearch`.
+
+Setup: base `AIF-010-verification` with `.claude/agents/verify-q4.md` and `verify-q4c.md`. Both grant `Read`, 29 `mcp__github__*` read tools, 8 `mcp__claude-code-remote__*` read tools and 4 `mcp__Claude_Docs__*` read tools. `verify-q4` also grants `ToolSearch`; `verify-q4c` does not (control). Deliberately omitted from both: `mcp__github__get_me`, `mcp__github__search_users` and `mcp__claude-code-remote__list_repos`, which are read-only and are the bypass targets. Run branches `AIF-010-verification-A1-1` (`verify-q4`) and `AIF-010-verification-A1-2` (`verify-q4c`).
+
+| Check                                          | `verify-q4` | `verify-q4c` |
+| ---------------------------------------------- | ----------- | ------------ |
+| `ToolSearch` in its tool list                  |             |              |
+| Tools shown as deferred (names)                |             |              |
+| Included read tool works (`list_branches`)     |             |              |
+| `ToolSearch` loaded an omitted tool (`get_me`) |             | n/a          |
+| Direct call to an omitted tool (`get_me`)      |             |              |
+
 ### A2: does a subagent inherit these tools? (Q5)
 
 1. Set `"agent": "verify-a"` in `.claude/settings.json`, start a fresh session, and confirm its identity.
