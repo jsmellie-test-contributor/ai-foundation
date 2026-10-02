@@ -7,11 +7,11 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-007/001-shell-aware-matcher",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/001-shell-aware-matcher",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 92,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/92",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -53,6 +53,20 @@
       "action": "task_dispatched",
       "task_id": "001",
       "details": "software-engineer; AIF-007/001-shell-aware-matcher"
+    },
+    {
+      "timestamp": "2026-10-02T18:40:00Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "001",
+      "details": "draft PR #92"
+    },
+    {
+      "timestamp": "2026-10-02T18:40:30Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
