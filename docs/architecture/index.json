@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T21:16:10.137Z",
+  "generated_at": "2026-10-02T21:22:32.699Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -36,7 +36,7 @@
         "steering/engineering/git-workflow-core.md",
         "steering/engineering/git-workflow-projects.md"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     },
     {
@@ -89,7 +89,7 @@
         "lib/harnesses/claude.js",
         "lib/harnesses/kiro.js"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     },
     {
@@ -117,7 +117,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     },
     {
@@ -162,7 +162,7 @@
         "lib/commands/init.js",
         "lib/commands/config.js"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     },
     {
@@ -189,7 +189,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     },
     {
@@ -209,7 +209,7 @@
         "lib/commands/uninstall.js",
         "lib/commands/snapshot.js"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     },
     {
@@ -224,7 +224,7 @@
       "key_files": [
         "lib/harnesses/kiro.js"
       ],
-      "last_verified": "d261fa3",
+      "last_verified": "abf05d1",
       "stale": false
     }
   ],
