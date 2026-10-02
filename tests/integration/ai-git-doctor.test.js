@@ -19,7 +19,7 @@ import {
   cpSync,
   chmodSync,
 } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { isShellSafeArg } from '../../lib/ai-git.js';
@@ -39,7 +39,9 @@ const joined = rest.join(' ');
 writeFileSync(process.env.FAKE_WRAP_LOG, joined);
 const env = { ...process.env };
 if (process.env.FAKE_WRAP_SECRET) env[process.env.FAKE_WRAP_VAR] = process.env.FAKE_WRAP_SECRET;
-const r = spawnSync(joined, { shell: true, env, stdio: 'inherit' });
+// Hermetic PATH has no node: run the probe's leading node by absolute path.
+const cmd = joined.replace(/^node /, JSON.stringify(process.execPath) + ' ');
+const r = spawnSync(cmd, { shell: true, env, stdio: 'inherit' });
 process.exit(r.status ?? 1);
 `;
 
@@ -66,16 +68,14 @@ function writeConfig(extra = {}, identity = {}) {
 }
 
 function wrapperRun(...mid) {
-  return ['node', join(root, 'fake-wrap.js'), ...mid, '--'];
+  return [process.execPath, join(root, 'fake-wrap.js'), ...mid, '--'];
 }
 
 function runDoctor(cwd, extraEnv = {}, binPath = BIN_PATH) {
-  const sysPath = process.platform === 'win32' ? '' : '/bin:/usr/bin';
   const env = {
     ...process.env,
-    PATH: [binDir, dirname(process.execPath), sysPath]
-      .filter(Boolean)
-      .join(process.platform === 'win32' ? ';' : ':'),
+    // Hermetic: only the fixture dir, so host-installed gh/bws/ai-git never count.
+    PATH: binDir,
     FAKE_WRAP_LOG: join(root, 'wrap.log'),
     FAKE_WRAP_VAR: TOKEN_VAR,
     ...extraEnv,
