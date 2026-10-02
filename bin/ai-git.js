@@ -50,6 +50,7 @@ import {
   buildWrapperInvocation,
   REEXEC_GUARD_ENV,
   REEXEC_ARGS_ENV,
+  REEXEC_ARGS_TOO_LARGE,
   encodeReexecArgs,
   decodeReexecArgs,
   describeTokenFailure,
@@ -255,7 +256,7 @@ function resolveSecrets(config, root, identity, isGh) {
       }
     } catch (err) {
       // Unset placeholder variable (e.g. BWS_PROJECT_ID) or oversize args.
-      if (/too large/.test(err.message)) {
+      if (err.code === REEXEC_ARGS_TOO_LARGE) {
         console.error(`ERROR: ${err.message}`);
         process.exit(1);
       }

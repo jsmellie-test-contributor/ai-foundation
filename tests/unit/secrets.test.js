@@ -15,6 +15,7 @@ import {
   isAlreadyWrapped,
   buildWrapperInvocation,
   REEXEC_ARGS_ENV,
+  REEXEC_ARGS_TOO_LARGE,
   MAX_REEXEC_ARGS_BYTES,
   encodeReexecArgs,
   decodeReexecArgs,
@@ -208,7 +209,9 @@ describe('unit: secrets', () => {
     });
 
     it('rejects arguments over the size guard instead of truncating', () => {
-      assert.throws(() => encodeReexecArgs(['x'.repeat(MAX_REEXEC_ARGS_BYTES)]), /too large/);
+      assert.throws(() => encodeReexecArgs(['x'.repeat(MAX_REEXEC_ARGS_BYTES)]), {
+        code: REEXEC_ARGS_TOO_LARGE,
+      });
     });
 
     it('accepts arguments just under the size guard', () => {
@@ -217,7 +220,9 @@ describe('unit: secrets', () => {
     });
 
     it('counts bytes, not characters, against the guard', () => {
-      assert.throws(() => encodeReexecArgs(['é'.repeat(MAX_REEXEC_ARGS_BYTES / 2)]), /too large/);
+      assert.throws(() => encodeReexecArgs(['é'.repeat(MAX_REEXEC_ARGS_BYTES / 2)]), {
+        code: REEXEC_ARGS_TOO_LARGE,
+      });
     });
 
     it('rejects malformed JSON on decode', () => {
