@@ -41,17 +41,24 @@ Also settled in conversation: `ai-git`/`aif` installed by npm (no launcher, shar
 | AIF-006            | Kiro Task moved out; stale text fixed; landing order after 008 and 007; path-traversal criterion added.                                                                                                                                                                                                                                                   | Section 3 AIF-006 rows                         |
 | AIF-007            | Returned to Draft; amended (secrets wrappers, `ai-git` allowed, identity-setting forms blocked, block message, arc42 `key_files`, agent count).                                                                                                                                                                                                           | Section 7 AIF-007 rows                         |
 
+### Resolved on 2026-10-02
+
+| #   | Item                                                            | Value                                                                                                                                                                          |
+| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| O1  | `npm link` in a cloud session                                   | Validated in a real cloud container; the SessionStart-hook run is exercised in the acceptance session.                                                                         |
+| O2  | `gh` and `bws` downloads in the Setup stage                     | Accepted without a separate test (human): runtime result and the spike's `bws` Setup verification stand.                                                                       |
+| O3  | Push from a worktree branch; credential replaced?               | A new branch pushed from an `ai-git` worktree succeeds through the proxy with the AI-identity author. Pusher identity not determined. The proxy blocks remote branch deletion. |
+| O4  | `aif install` from the global package; user-level `attribution` | `aif install` verified (files, manifest in the package directory, freshness on re-run, hook runs). User-level `attribution` is an acceptance-session check.                    |
+| O5  | Commit-author hook                                              | Build nothing now; open a follow-up Feature only if the configured-environment acceptance test shows the steering rule is not enough (human).                                  |
+| O6  | `bws` 2.1.0 sha256                                              | `ba8233c3a4aee5d43e3c73bbd04d99e9bc5aba13bbbfd06d89b073abe732b860` (linux x86_64 zip), verified against the release checksum file.                                             |
+| O7  | AIF-007 and the other plans back to Approved                    | Human approved all four plans on 2026-10-02; each is its own `Approved` commit. AIF-007 keeps its `tasks.json` (3 Tasks), re-confirmed with the plan.                          |
+
 ### Still open
 
-| #   | Item                                                                                                                                                                         | Owner                               |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| O1  | `npm link --ignore-scripts` in SessionStart in a real cloud session (AIF-008 risk 7).                                                                                        | AIF-005 acceptance                  |
-| O2  | `gh` and `bws` downloads in the Setup stage, not only at runtime (AIF-008 risk 8).                                                                                           | Human runs the Setup test           |
-| O3  | `git push` through the proxy from an `ai-git` worktree branch; whether the proxy replaces the `extraheader` credential (AIF-008 risk 9).                                     | AIF-005 acceptance                  |
-| O4  | User-level `attribution` from the Setup helper, and `aif install` from the globally installed package (AIF-005 risks 25 and 26).                                             | AIF-005 acceptance                  |
-| O5  | Whether the identity steering rule alone is enough in an aif-installed environment, or the optional commit-author hook is needed.                                            | AIF-005 configured-environment test |
-| O6  | The `bws` 2.1.0 sha256 for the Setup text.                                                                                                                                   | AIF-008 implementing Task           |
-| O7  | AIF-007 returns to Approved only on your re-confirmation after the amendment. `status-vocabulary.md` does not define Approved to Draft; this was a human-directed exception. | Human                               |
+| #   | Item                                                                                                    | Owner              |
+| --- | ------------------------------------------------------------------------------------------------------- | ------------------ |
+| O8  | User-level `attribution` from the Setup helper, and `aif install` repeated on the real cloud path.      | AIF-005 acceptance |
+| O9  | Delete the throwaway remote branch `claude/push-test-1790937029` (the proxy blocks deletion from here). | Human              |
 
 ## Summary
 
