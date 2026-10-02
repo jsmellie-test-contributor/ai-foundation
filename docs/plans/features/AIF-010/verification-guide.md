@@ -205,11 +205,13 @@ Exact Kiro CLI/IDE commands are not documented in this repo. Use whichever you n
 4. Ask it to read any file with `read`. Does a basic tool still work?
 5. Fill in:
 
-| Agent                       | Listed? | Warning/error text (exact) | Tools it reported | `read` works? |
-| --------------------------- | ------- | -------------------------- | ----------------- | ------------- |
-| verify-kiro-control         |         |                            |                   |               |
-| verify-kiro-foreign         |         |                            |                   |               |
-| verify-kiro-foreign-allowed |         |                            |                   |               |
+| Agent                       | Listed? | Warning/error text (exact) | Tools it reported | `read` works?           |
+| --------------------------- | ------- | -------------------------- | ----------------- | ----------------------- |
+| verify-kiro-control         | Yes     | None reported              | `grep`, `read`    | Yes (read `sample.txt`) |
+| verify-kiro-foreign         | Yes     | None reported              | `grep`, `read`    | Yes (read `sample.txt`) |
+| verify-kiro-foreign-allowed | Yes     | None reported              | `grep`, `read`    | Yes (read `sample.txt`) |
+
+Observed (2026-10-02): all three agents were listed, and the human noted no warning or error. Each reported exactly `grep` and `read` and read `sample.txt`, so the unknown `@claude-code-remote/subscribe_pr_activity` entry was silently ignored, whether it appeared in `tools` only or also in `allowedTools`. Limits: the output looks like the Kiro CLI, so the IDE was not covered (the guide asks for both if used); the Kiro version, the commands used and the Kiro log lines were not recorded.
 
 6. Check Kiro's log or output panel for lines naming these agent files and copy any relevant ones here.
 
