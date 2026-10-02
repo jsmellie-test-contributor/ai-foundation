@@ -7,7 +7,7 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-010/001-tool-mapping-contract",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/001-tool-mapping-contract",
       "pr_number": 90,
@@ -103,6 +103,13 @@
       "action": "review_loop",
       "task_id": "001",
       "details": "iteration 1; fix M1,M2,L1-L3 on PR 90"
+    },
+    {
+      "timestamp": "2026-10-02T18:21:37.662Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Reviewing (iter 1); PR 90 rebased"
     }
   ]
 }
