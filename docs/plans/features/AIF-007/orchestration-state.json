@@ -7,7 +7,7 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Reviewing",
+      "status": "Done",
       "branch": "AIF-007/001-shell-aware-matcher",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/001-shell-aware-matcher",
       "pr_number": 92,
@@ -81,6 +81,13 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Implementing -> Reviewing; fixes d603d72"
+    },
+    {
+      "timestamp": "2026-10-02T19:45:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Reviewing -> Done; PR #92 ready-for-review"
     }
   ]
 }
