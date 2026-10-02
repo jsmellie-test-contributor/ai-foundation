@@ -111,7 +111,7 @@ Findings:
 1. A restricted agent needs `ReadNotifications` in its `tools:`. `verify-e` with it, and no `ToolSearch`, woke on a PR event. Whether `verify-a` without it fails for that reason alone is not isolated: it was also not the last subscriber and was disconnected. The tool is listed as core and callable in the default session, not deferred.
 2. Only the most recent subscriber to a PR received events. Subscribing again moves delivery to the new session, and the earlier session goes silent, including a session that is still live. `subscribe_pr_activity` returns the same text either way, and each call queues a new `subscription.created`. Inferred from the table above, not from documentation.
 3. A disconnected session is woken by a PR event. Tab A had been idle with no messages and was reported disconnected before the comment (by the human, from the session list). The log shows "Allocating sandbox" at 15:49:21 and then `ReadNotifications` with no user message before it. Sessions go disconnected after roughly 13 minutes idle.
-4. Event kinds seen delivered: `pull_request_review_comment.created` and `pull_request_review.submitted` (state `commented`). A general (issue) comment, a review submitted as "Request Changes", and CI events were never delivered to a working subscriber in these runs. They were not separately re-tested once a working subscriber existed, so whether they wake is unresolved.
+4. Event kinds seen delivered: `pull_request_review_comment.created` and `pull_request_review.submitted` (state `commented`). The human reports that every kind of comment woke a working subscriber in their testing, general (issue) comments included. That report is not checked against a log here: the logs read in these runs show only the two kinds above. Not tested with a working subscriber: a review submitted as "Request Changes", and CI events.
 5. The desktop app's session list appears to show which session holds the subscription (a green branch icon on the subscriber, a hollow dot on the others). One observation, not confirmed.
 
 #### A3c: `send_message` reaches a restricted agent without `ReadNotifications`
@@ -135,7 +135,7 @@ A subagent (`verify-c`) subscribed to PR 85, then `verify-a` subscribed directly
 
 1. Whether a subagent's subscription delivers to the parent or the subagent, now with `ReadNotifications` granted to both.
 2. Whether a subagent subscribing takes delivery from its parent (last subscriber wins).
-3. Whether an issue comment or a "Request Changes" review wakes a working subscriber.
+3. Whether a "Request Changes" review or a CI event wakes a working subscriber, and a log check of the human-reported general-comment wake.
 4. Close PR 85 and PR 86 and delete the throwaway branches when finished.
 
 ## Part B: Kiro and a foreign `@claude-code-remote/...` entry (answers Q6)
