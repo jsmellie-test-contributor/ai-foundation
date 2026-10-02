@@ -103,11 +103,11 @@ cut across that boundary and hide it.
 
 ### Harness adapters (`lib/harnesses/*`) — see §5.02
 
-| Block       | Responsibility                                                                                                                         | Interface                                                               |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `base.js`   | Shared install orchestration every adapter reuses: read source → transform → write → return a manifest-ready record. Adapter-agnostic. | `createAdapter(config)`, `stripSkillPrefix()`, `resolvePreloadSkills()` |
-| `claude.js` | Claude Code adapter: agent/steering transforms, native-tool-cluster `TOOL_MAP`, shared block-command hook install.                     | `transformAgent()`, `transformSteering()`, `TOOL_MAP`, `TARGETS`        |
-| `kiro.js`   | Kiro adapter: same `createAdapter` contract, Kiro's own JSON agent format and steering inclusion rules.                                | `transformAgent()`, `transformSteering()`, `TOOL_MAP`, `TARGETS`        |
+| Block       | Responsibility                                                                                                                                                                                                         | Interface                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `base.js`   | Shared install orchestration every adapter reuses: read source → transform → write → return a manifest-ready record, plus the shared tool-mapping contract (`UNSUPPORTED`, `resolveTools()`; §5.02). Adapter-agnostic. | `createAdapter(config)`, `stripSkillPrefix()`, `resolvePreloadSkills()`, `resolveTools()`, `UNSUPPORTED` |
+| `claude.js` | Claude Code adapter: agent/steering transforms, native-tool-cluster `TOOL_MAP`, shared block-command hook install.                                                                                                     | `transformAgent()`, `transformSteering()`, `TOOL_MAP`, `TARGETS`                                         |
+| `kiro.js`   | Kiro adapter: same `createAdapter` contract, Kiro's own JSON agent format and steering inclusion rules.                                                                                                                | `transformAgent()`, `transformSteering()`, `TOOL_MAP`, `TARGETS`                                         |
 
 ### MCP servers (`servers/*`)
 

@@ -2,7 +2,7 @@
 section: '06'
 title: 'Runtime View'
 lifecycle: published
-last_verified: 11b4da8
+last_verified: 52c1232
 tags: [runtime, manifest, snapshot]
 key_files:
   - lib/manifest.js
