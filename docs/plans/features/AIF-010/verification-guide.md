@@ -62,13 +62,15 @@ Interpretation: if `verify-ts` can call a tool its allowlist omits, the allowlis
 4. Ask `verify-a` itself: "Call get_session with no id. Report the result."
 5. Fill in:
 
-| Agent                                                 | Tools it reported | `get_session` outcome |
-| ----------------------------------------------------- | ----------------- | --------------------- |
-| verify-a (main, has the tool)                         |                   |                       |
-| verify-b (subagent, `Read` only, parent has the tool) |                   |                       |
-| verify-c (subagent, tool listed explicitly)           |                   |                       |
+| Agent                                                 | Tools it reported                                                                                | `get_session` outcome                                                                                    |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| verify-a (main, has the tool)                         | Not asked (not recorded)                                                                         | Succeeded: returned session id, title, status, source repo and branch, model, tags, `turn_handoff.tools` |
+| verify-b (subagent, `Read` only, parent has the tool) | `Read` only; deferred tools "may exist" but none surfaced                                        | Not called: "tool not available"                                                                         |
+| verify-c (subagent, tool listed explicitly)           | `Read`, `mcp__claude-code-remote__get_session`, `mcp__claude-code-remote__subscribe_pr_activity` | Succeeded: same session details as verify-a                                                              |
 
 Interpretation: `verify-b` succeeding means subagents inherit the parent's tools regardless of their own list. `verify-c` succeeding while `verify-b` fails means each subagent needs its own grant.
+
+Observed (run on `AIF-010-verification-A2-1`): `verify-b` did not inherit `get_session` from its parent, and `verify-c` had it only because its own `tools:` listed it. So each subagent needs its own grant. Both `verify-a` and `verify-c` reported the same session (`session_01G2b7mm2knuthNsbJZiQYwD`, origin `desktop_app`), and `get_session`'s `turn_handoff.tools` field lists a different tool set (Bash, Write, Edit, Agent, and others) from what the agent can call.
 
 ### A3: where do wakes go when a subagent subscribes? (Q5, feeds Q2)
 
