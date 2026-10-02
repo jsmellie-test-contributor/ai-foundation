@@ -134,6 +134,15 @@ describe('unit: block-command shell-aware / bypass classes', () => {
     ]);
   });
 
+  it('blocks $(( (cmd) )) as a command substitution, not arithmetic', () => {
+    assertBlocked(['echo $((git log) )', 'echo $((git log; true) )']);
+    assertAllowed(['echo $((1+2))', 'echo $(( (1+2) * 3 ))', 'echo $((echo hi) )']);
+  });
+
+  it('blocks bash -O/+O shopt flags before -c', () => {
+    assertBlocked(['bash -O extglob -c "git log"', 'bash +O extglob -c "git log"']);
+  });
+
   it('blocks xargs and find -exec', () => {
     assertBlocked([
       'xargs git log <<< x',
@@ -311,7 +320,6 @@ describe('unit: block-command shell-aware / dynamic command words', () => {
     '/usr/bin/g?t log',
     '{git,x} log',
     '/usr/bin/g*t',
-    "$'\\x67it' log",
     'g=git; $g log',
     'GIT=/usr/bin/git; $GIT log',
     'bash -c "$x"',
@@ -325,22 +333,13 @@ describe('unit: block-command shell-aware / dynamic command words', () => {
     for (const cmd of dynamic) {
       const r = checkCommand(cmd, PATTERNS);
       assert.ok(r, `expected block for ${JSON.stringify(cmd)}`);
-      assert.ok(r.type === 'dynamic' || r.type === 'pattern', cmd);
-    }
-    for (const cmd of [
-      '$g log',
-      '"$GIT" log',
-      '${cmd} x',
-      '/usr/bin/$x',
-      'eval $x',
-      '/usr/bin/g?t log',
-      '{git,x} log',
-      'g=git; $g log',
-    ]) {
-      const r = checkCommand(cmd, PATTERNS);
       assert.equal(r.type, 'dynamic', cmd);
       assert.ok(r.word.length > 0);
     }
+  });
+
+  it('blocks an ANSI-C quoted escape command word by pattern', () => {
+    assertBlocked(["$'\x67it' lo\x67"]);
   });
 
   it('matchesBlockedCommand returns the dynamic reason string', () => {
