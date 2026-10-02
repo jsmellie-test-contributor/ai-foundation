@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T00:32:43.945Z",
+  "generated_at": "2026-10-02T00:41:11.759Z",
   "entries": [
     {
       "id": "0001",
@@ -92,12 +92,12 @@
     },
     {
       "id": "0007",
-      "title": "Harness-Neutral Tool Groups for Claude-Only Capabilities",
+      "title": "Harness-Neutral Groups for Platform-Provided Tools",
       "status": "proposed",
       "date": "2026-10-01",
-      "path": "0007-harness-neutral-tool-groups.md",
+      "path": "0007-harness-neutral-platform-tool-groups.md",
       "decision_makers": [],
-      "tags": ["harness-adapters", "tools", "cross-harness", "claude-code-remote"],
+      "tags": ["harness-adapters", "tools", "cross-harness", "platform-tools"],
       "supersedes": [],
       "superseded_by": [],
       "affects": [
