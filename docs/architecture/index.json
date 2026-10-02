@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "generated_at": "2026-10-02T18:16:41.062Z",
-=======
-  "generated_at": "2026-10-02T18:19:27.754Z",
->>>>>>> 87eccd4 (AIF-010: re-verify arc42 docs after rebase onto main)
+  "generated_at": "2026-10-02T21:16:10.137Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -40,11 +36,7 @@
         "steering/engineering/git-workflow-core.md",
         "steering/engineering/git-workflow-projects.md"
       ],
-<<<<<<< HEAD
-      "last_verified": "4beaa45",
-=======
-      "last_verified": "8b85e6a",
->>>>>>> 87eccd4 (AIF-010: re-verify arc42 docs after rebase onto main)
+      "last_verified": "d261fa3",
       "stale": false
     },
     {
@@ -97,7 +89,7 @@
         "lib/harnesses/claude.js",
         "lib/harnesses/kiro.js"
       ],
-      "last_verified": "8b85e6a",
+      "last_verified": "d261fa3",
       "stale": false
     },
     {
@@ -125,11 +117,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-<<<<<<< HEAD
-      "last_verified": "c8ad9e0",
-=======
-      "last_verified": "8b85e6a",
->>>>>>> 87eccd4 (AIF-010: re-verify arc42 docs after rebase onto main)
+      "last_verified": "d261fa3",
       "stale": false
     },
     {
@@ -174,7 +162,7 @@
         "lib/commands/init.js",
         "lib/commands/config.js"
       ],
-      "last_verified": "8b85e6a",
+      "last_verified": "d261fa3",
       "stale": false
     },
     {
@@ -201,11 +189,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-<<<<<<< HEAD
-      "last_verified": "c8ad9e0",
-=======
-      "last_verified": "8b85e6a",
->>>>>>> 87eccd4 (AIF-010: re-verify arc42 docs after rebase onto main)
+      "last_verified": "d261fa3",
       "stale": false
     },
     {
@@ -225,7 +209,7 @@
         "lib/commands/uninstall.js",
         "lib/commands/snapshot.js"
       ],
-      "last_verified": "8b85e6a",
+      "last_verified": "d261fa3",
       "stale": false
     },
     {
@@ -240,7 +224,7 @@
       "key_files": [
         "lib/harnesses/kiro.js"
       ],
-      "last_verified": "8b85e6a",
+      "last_verified": "d261fa3",
       "stale": false
     }
   ],
