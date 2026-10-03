@@ -40,13 +40,13 @@
     {
       "id": "004",
       "wave": 1,
-      "status": "Blocked",
+      "status": "Implementing",
       "branch": "AIF-008/004-cloud-recipe-session-start",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/004-cloud-recipe-session-start",
       "pr_number": 94,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/94",
       "iterations": 2,
-      "blocked_reason": "Plan deviation: SessionStart now runs npm install (network); plan Section 5 forbids it; needs human decision"
+      "blocked_reason": null
     }
   ],
   "escalations": [
@@ -72,7 +72,7 @@
       "task_id": "004",
       "reason": "Plan deviation: SessionStart now runs npm install (network); plan Section 5 forbids it; needs human decision",
       "raised_at": "2026-10-02T14:30:00Z",
-      "resolved": false
+      "resolved": true
     }
   ],
   "log": [
@@ -481,6 +481,20 @@
       "action": "escalation_raised",
       "task_id": "004",
       "details": "awaiting human decision"
+    },
+    {
+      "timestamp": "2026-10-02T15:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_unblocked",
+      "task_id": "004",
+      "details": "human chose npm ci in SessionStart"
+    },
+    {
+      "timestamp": "2026-10-02T15:00:00Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "004",
+      "details": "iteration 2; 1 HIGH 1 MEDIUM 1 LOW"
     }
   ]
 }
