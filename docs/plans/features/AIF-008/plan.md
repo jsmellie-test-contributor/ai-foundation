@@ -174,7 +174,7 @@ Decomposed into 4 Tasks in 2 waves (`tasks.json`, passes `dag-validate`). Wave 0
 ## 10. Acceptance Criteria
 
 - [ ] All Tasks complete and signed off
-- [ ] `ai-git` and `aif` resolve on PATH after the documented npm install in a clean environment, and after `npm link --ignore-scripts` in this repo's SessionStart
+- [ ] `ai-git` and `aif` resolve on PATH after the documented npm install in a clean environment, and after `npm ci --ignore-scripts --omit=dev` plus `npm link --ignore-scripts` in this repo's SessionStart
 - [ ] `ai-git push` and `ai-git gh-*` with arguments containing spaces, quotes, parentheses, `$`, `;`, backticks and newlines behave identically with and without the secrets wrapper, and nothing in an argument is ever executed (integration test with a shell-joining fake wrapper)
 - [ ] With `bws` missing or `BWS_PROJECT_ID` unset, the failure policy holds: `push`/`fetch` warn and proceed, `gh-*` error, one explicit line, no stack trace, no silent exit; no output ever contains a token value
 - [ ] `ai-git doctor` reports tool presence, config found and token resolved (yes or no) and never prints a token
