@@ -17,7 +17,7 @@ const REPO_ROOT = resolve(import.meta.dirname, '../..');
 
 // The hook is a Bash script, so the suite needs a `bash` on PATH (Git Bash on
 // Windows). Skip, rather than fail, where there is none.
-const HAS_BASH = !spawnSync('bash', ['-c', 'true']).error;
+const HAS_BASH = spawnSync('bash', ['-c', 'true']).status === 0;
 
 describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }, () => {
   let dir;
@@ -65,7 +65,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     const result = run({ CLAUDE_CODE_REMOTE: 'true' });
     assert.equal(result.status, 0);
     assert.deepEqual(calls(), [
-      'npm install --ignore-scripts --no-save --no-audit --no-fund',
+      'npm ci --ignore-scripts --omit=dev --no-audit --no-fund',
       'npm link --ignore-scripts',
       'ai-git doctor',
     ]);
@@ -75,7 +75,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     const result = run({ CLAUDE_CODE_REMOTE: 'true', AIF_BUNDLES: 'engineering,generic' });
     assert.equal(result.status, 0);
     assert.deepEqual(calls(), [
-      'npm install --ignore-scripts --no-save --no-audit --no-fund',
+      'npm ci --ignore-scripts --omit=dev --no-audit --no-fund',
       'npm link --ignore-scripts',
       'node bin/aif.js install -B engineering,generic -H claude',
       'ai-git doctor',
@@ -85,7 +85,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
   it('only installs its own dependencies, with --ignore-scripts', () => {
     run({ CLAUDE_CODE_REMOTE: 'true', AIF_BUNDLES: 'engineering' });
     for (const call of calls().filter((c) => c.startsWith('npm '))) {
-      assert.match(call, /^npm (install|link) --ignore-scripts/);
+      assert.match(call, /^npm (ci|link) --ignore-scripts/);
       assert.doesNotMatch(call, / -g( |$)|--global/);
     }
   });
@@ -104,7 +104,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     assert.equal(result.status, 0);
     assert.match(result.stderr, /npm link failed/);
     assert.deepEqual(calls(), [
-      'npm install --ignore-scripts --no-save --no-audit --no-fund',
+      'npm ci --ignore-scripts --omit=dev --no-audit --no-fund',
       'npm link --ignore-scripts',
       'node bin/aif.js install -B engineering -H claude',
       'ai-git doctor',
@@ -138,7 +138,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     stub('npm', 1);
     const result = run({ CLAUDE_CODE_REMOTE: 'true' });
     assert.equal(result.status, 0);
-    assert.match(result.stderr, /npm install failed/);
+    assert.match(result.stderr, /npm ci failed/);
     assert.match(result.stderr, /npm link failed/);
     assert.match(result.stderr, /ai-git doctor reported problems/);
   });
