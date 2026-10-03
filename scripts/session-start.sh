@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
 # Cloud SessionStart hook (Plan AIF-008, Task 004).
 #
-# Runs only in Claude Code cloud sessions. Puts ai-git and aif on PATH with
-# `npm link --ignore-scripts`, installs the bundles named in AIF_BUNDLES, then
-# runs `ai-git doctor` to report (never fix) whether ai-git, gh, bws and the
-# token resolve. It never installs anything from the network beyond what
-# `npm link` fetches for this repo's own dependencies; gh and bws come from
-# the environment's Setup script (see README, "Claude Code Cloud").
+# Runs only in Claude Code cloud sessions. Installs this repo's own npm
+# dependencies (`npm install --ignore-scripts`: `npm link` alone does not
+# provide them, so `aif` would fail on its first import), puts ai-git and aif
+# on PATH with `npm link --ignore-scripts`, installs the bundles named in
+# AIF_BUNDLES, then runs `ai-git doctor` to report (never fix) whether ai-git,
+# gh, bws and the token resolve. It downloads nothing else: gh and bws come
+# from the environment's Setup script (see README, "Claude Code Cloud").
 # Every step warns on failure and the hook still exits 0.
 set -euo pipefail
 
 [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] || exit 0
 
-cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}"
+project_dir="${CLAUDE_PROJECT_DIR:-}"
+if [ -z "$project_dir" ]; then
+  project_dir="$(git rev-parse --show-toplevel 2>/dev/null)" || project_dir=""
+fi
+if [ -z "$project_dir" ] || ! cd "$project_dir" 2>/dev/null; then
+  echo "WARNING: cannot enter the project directory (CLAUDE_PROJECT_DIR='${CLAUDE_PROJECT_DIR:-}'); skipping session start" >&2
+  exit 0
+fi
+
+npm install --ignore-scripts --no-save --no-audit --no-fund \
+  || echo "WARNING: npm install failed; aif may be missing dependencies" >&2
 
 npm link --ignore-scripts \
   || echo "WARNING: npm link failed; ai-git and aif may not be on PATH" >&2
