@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T01:11:46.893Z",
+  "generated_at": "2026-10-03T01:13:58.034Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -36,7 +36,7 @@
         "steering/engineering/git-workflow-core.md",
         "steering/engineering/git-workflow-projects.md"
       ],
-      "last_verified": "38b6404",
+      "last_verified": "01c23e1",
       "stale": false
     },
     {
@@ -90,7 +90,7 @@
         "lib/harnesses/kiro.js",
         "lib/constants.js"
       ],
-      "last_verified": "38b6404",
+      "last_verified": "01c23e1",
       "stale": false
     },
     {
@@ -118,7 +118,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-      "last_verified": "38b6404",
+      "last_verified": "01c23e1",
       "stale": false
     },
     {
@@ -190,7 +190,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-      "last_verified": "38b6404",
+      "last_verified": "01c23e1",
       "stale": false
     },
     {
@@ -225,7 +225,7 @@
       "key_files": [
         "lib/harnesses/kiro.js"
       ],
-      "last_verified": "38b6404",
+      "last_verified": "01c23e1",
       "stale": false
     }
   ],

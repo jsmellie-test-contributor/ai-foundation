@@ -2,7 +2,7 @@
 section: '11'
 title: 'Risks and Technical Debt'
 lifecycle: published
-last_verified: 38b6404
+last_verified: 01c23e1
 tags: [risks]
 key_files:
   - lib/harnesses/kiro.js
