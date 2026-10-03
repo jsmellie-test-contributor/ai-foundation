@@ -1,7 +1,7 @@
 {
   "feature_id": "AIF-008",
   "status": "In Progress",
-  "current_wave": 0,
+  "current_wave": 1,
   "total_waves": 2,
   "tasks": [
     {
@@ -20,7 +20,7 @@
       "wave": 0,
       "status": "Done",
       "branch": "AIF-008/002-doctor-command",
-      "worktree_path": "../worktrees/ai-foundation/AIF-008/002-doctor-command",
+      "worktree_path": "",
       "pr_number": 91,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/91",
       "iterations": 0,
@@ -31,7 +31,7 @@
       "wave": 0,
       "status": "Done",
       "branch": "AIF-008/003-rest-path-identity",
-      "worktree_path": "../worktrees/ai-foundation/AIF-008/003-rest-path-identity",
+      "worktree_path": "",
       "pr_number": 88,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/88",
       "iterations": 0,
@@ -40,9 +40,9 @@
     {
       "id": "004",
       "wave": 1,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-008/004-cloud-recipe-session-start",
+      "worktree_path": "../worktrees/ai-foundation/AIF-008/004-cloud-recipe-session-start",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -398,6 +398,41 @@
       "action": "task_status_changed",
       "task_id": "003",
       "details": "Implementing -> Done; PR #88 clean, green"
+    },
+    {
+      "timestamp": "2026-10-02T12:00:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "002",
+      "details": "PR #91 merged"
+    },
+    {
+      "timestamp": "2026-10-02T12:00:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "003",
+      "details": "PR #88 merged"
+    },
+    {
+      "timestamp": "2026-10-02T12:00:00Z",
+      "agent": "engineering-manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 0"
+    },
+    {
+      "timestamp": "2026-10-02T12:00:00Z",
+      "agent": "engineering-manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 1: 004"
+    },
+    {
+      "timestamp": "2026-10-02T12:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "004",
+      "details": "software-engineer; AIF-008/004-cloud-recipe-session-start"
     }
   ]
 }
