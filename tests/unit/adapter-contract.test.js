@@ -74,6 +74,13 @@ for (const [harness, adapter] of Object.entries(ADAPTERS)) {
       }
     });
 
+    it('resolves every `TOOLS` name through the full agent path without throwing', () => {
+      const dropped = [];
+      const result = transformAgent({ ...baseAgent, tools: NAMES, approved_tools: NAMES }, dropped);
+      assert.deepEqual(dropped.toSorted(), unsupported.toSorted());
+      assert.ok(result);
+    });
+
     it('lists a repeated name without reporting it dropped', () => {
       const dropped = [];
       transformAgent({ ...baseAgent, tools: ['read', 'read'], approved_tools: ['read'] }, dropped);

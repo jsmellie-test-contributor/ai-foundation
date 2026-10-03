@@ -67,6 +67,68 @@ describe('unit: kiro adapter', () => {
     });
   });
 
+  describe('platform-tool groups', () => {
+    const GROUPS = [
+      'session_info',
+      'pr_follow_through',
+      'repo_list',
+      'session_control',
+      'repo_scope',
+      'routines',
+    ];
+
+    it('maps every group to UNSUPPORTED', () => {
+      for (const group of GROUPS) assert.equal(TOOL_MAP[group], UNSUPPORTED, group);
+    });
+
+    it('drops each group from the agent and reports it', () => {
+      const dropped = [];
+      const result = transformAgent(
+        {
+          name: 'a',
+          description: 'd',
+          prompt: 'p',
+          tools: ['read', ...GROUPS],
+          approved_tools: GROUPS,
+        },
+        dropped,
+      );
+      assert.deepEqual(result.tools, ['read']);
+      assert.deepEqual(result.allowedTools, []);
+      assert.deepEqual(dropped, GROUPS);
+    });
+  });
+
+  describe('foreign @claude-code-remote refs', () => {
+    const base = { name: 'a', description: 'd', prompt: 'p' };
+
+    it('drops and reports the reference instead of passing it through', () => {
+      const dropped = [];
+      const result = transformAgent(
+        {
+          ...base,
+          tools: ['read', '@claude-code-remote/subscribe_pr_activity'],
+          approved_tools: ['@claude-code-remote/subscribe_pr_activity'],
+        },
+        dropped,
+      );
+      assert.deepEqual(result.tools, ['read']);
+      assert.deepEqual(result.allowedTools, []);
+      assert.deepEqual(dropped, ['@claude-code-remote/subscribe_pr_activity']);
+      assert.equal(mapToolName('@claude-code-remote/send_later'), null);
+    });
+
+    it('keeps passthrough for servers this framework installs', () => {
+      const dropped = [];
+      const result = transformAgent(
+        { ...base, tools: ['@dag/dag-validate'], approved_tools: [] },
+        dropped,
+      );
+      assert.deepEqual(result.tools, ['@dag/dag-validate']);
+      assert.deepEqual(dropped, []);
+    });
+  });
+
   describe('mapToolName()', () => {
     it('maps standard tool names through the map', () => {
       assert.equal(mapToolName('read'), 'read');
