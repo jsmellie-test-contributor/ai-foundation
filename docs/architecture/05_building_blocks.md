@@ -2,7 +2,7 @@
 section: '05'
 title: 'Building Block View'
 lifecycle: published
-last_verified: 01c23e1
+last_verified: 5d7038b
 tags: [building-blocks, c4]
 key_files:
   - bin/aif.js
