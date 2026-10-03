@@ -29,11 +29,11 @@
     {
       "id": "003",
       "wave": 1,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-007/003-arc42-update",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/003-arc42-update",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 96,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/96",
       "iterations": 0,
       "blocked_reason": null
     }
@@ -193,6 +193,20 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Reviewing -> Done; PR #95 ready, CI green"
+    },
+    {
+      "timestamp": "2026-10-03T03:50:00Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "003",
+      "details": "draft PR #96"
+    },
+    {
+      "timestamp": "2026-10-03T03:50:10Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
