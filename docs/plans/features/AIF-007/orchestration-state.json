@@ -18,11 +18,11 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-007/002-cli-integration-tests",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/002-cli-integration-tests",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 95,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/95",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -172,6 +172,20 @@
       "action": "task_dispatched",
       "task_id": "003",
       "details": "software-engineer; AIF-007/003-arc42-update"
+    },
+    {
+      "timestamp": "2026-10-03T03:10:00Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "002",
+      "details": "draft PR #95"
+    },
+    {
+      "timestamp": "2026-10-03T03:10:10Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
