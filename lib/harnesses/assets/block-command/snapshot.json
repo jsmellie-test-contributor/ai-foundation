@@ -1,8 +1,8 @@
 {
   "hook": "block-command",
-  "computed_at": "2026-10-02T21:18:22.152Z",
+  "computed_at": "2026-10-03T01:07:55.198Z",
   "sources": {
     "lib/harnesses/assets/block-command/cli.js": "sha256:2360ad6bfedce6d17a0887a32e7ff28d3afea9e07eaeb609c0ddbc3cf68029c4",
-    "lib/harnesses/assets/block-command/logic.js": "sha256:ef1feb6b562de2348de26b68e73e70f0da1f9247937e8fc972b327ab78786191"
+    "lib/harnesses/assets/block-command/logic.js": "sha256:030e198fba496af0cd95217ec53f72ee020302d813ce7544b3d00319ebc8284c"
   }
 }
