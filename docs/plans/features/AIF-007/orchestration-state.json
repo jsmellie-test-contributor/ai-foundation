@@ -1,7 +1,7 @@
 {
   "feature_id": "AIF-007",
   "status": "In Progress",
-  "current_wave": 0,
+  "current_wave": 1,
   "total_waves": 2,
   "tasks": [
     {
@@ -9,7 +9,7 @@
       "wave": 0,
       "status": "Done",
       "branch": "AIF-007/001-shell-aware-matcher",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/001-shell-aware-matcher",
+      "worktree_path": "",
       "pr_number": 92,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/92",
       "iterations": 3,
@@ -18,9 +18,9 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-007/002-cli-integration-tests",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/002-cli-integration-tests",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -29,9 +29,9 @@
     {
       "id": "003",
       "wave": 1,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-007/003-arc42-update",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/003-arc42-update",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -137,6 +137,41 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Reviewing -> Done; PR #92 ready, CI green"
+    },
+    {
+      "timestamp": "2026-10-03T02:45:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "001",
+      "details": "PR #92 merged; branch deleted"
+    },
+    {
+      "timestamp": "2026-10-03T02:45:10Z",
+      "agent": "engineering-manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 0"
+    },
+    {
+      "timestamp": "2026-10-03T02:45:20Z",
+      "agent": "engineering-manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 1 of 2"
+    },
+    {
+      "timestamp": "2026-10-03T02:46:00Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "002",
+      "details": "software-engineer; AIF-007/002-cli-integration-tests"
+    },
+    {
+      "timestamp": "2026-10-03T02:46:01Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "003",
+      "details": "software-engineer; AIF-007/003-arc42-update"
     }
   ]
 }
