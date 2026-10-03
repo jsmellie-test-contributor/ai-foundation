@@ -191,9 +191,16 @@ Set these in the environment's **Environment variables**, never in the script:
 #### SessionStart hook
 
 `.claude/settings.json` runs `scripts/session-start.sh` at session start. In cloud
-sessions only (`CLAUDE_CODE_REMOTE=true`) it runs `npm link --ignore-scripts`,
-`aif install` for `AIF_BUNDLES`, and `ai-git doctor`. It reports and never
-installs from the network, and every step warns on failure instead of aborting.
+sessions only (`CLAUDE_CODE_REMOTE=true`) it runs, in order:
+
+1. `npm install --ignore-scripts`: this repo's own dependencies, which `aif` needs (`npm link` alone does not install them).
+2. `npm link --ignore-scripts`: puts `ai-git` and `aif` on PATH.
+3. `aif install -B $AIF_BUNDLES -H claude`, only if `AIF_BUNDLES` is set.
+4. `ai-git doctor`: report only.
+
+The only network use is step 1 fetching this repo's npm dependencies; `gh`, `bws` and
+the pinned package come from the Setup script, never from SessionStart. Every step
+warns on failure instead of aborting, and the hook always exits 0.
 
 #### Verification checklist
 
