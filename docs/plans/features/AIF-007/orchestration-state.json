@@ -18,7 +18,7 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Reviewing",
+      "status": "Done",
       "branch": "AIF-007/002-cli-integration-tests",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/002-cli-integration-tests",
       "pr_number": 95,
@@ -186,6 +186,13 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Implementing -> Reviewing"
+    },
+    {
+      "timestamp": "2026-10-03T03:30:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Reviewing -> Done; PR #95 ready, CI green"
     }
   ]
 }
