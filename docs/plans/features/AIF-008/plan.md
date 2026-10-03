@@ -51,7 +51,7 @@ Make `ai-git` and `gh` reliably usable in Claude Code cloud sessions, with `bws`
 
 ### In Scope
 
-- **`ai-git` and `aif` on PATH by a normal npm install**, not a bespoke launcher: the cloud Setup text installs the pinned package with `npm install -g github:starvoxel/ai-foundation#<ref> --ignore-scripts`; this repo's own SessionStart hook runs `npm link --ignore-scripts`. `AIF-005` composes the Setup text; this Feature supplies and verifies the `ai-git`, `gh` and `bws` lines.
+- **`ai-git` and `aif` on PATH by a normal npm install**, not a bespoke launcher: the cloud Setup text installs the pinned package with `npm install -g github:starvoxel/ai-foundation#<ref> --ignore-scripts`; this repo's own SessionStart hook runs `npm ci --ignore-scripts --omit=dev --no-audit --no-fund` (this repo's lockfile-pinned production dependencies, which `npm link` does not provide) and then `npm link --ignore-scripts`. `AIF-005` composes the Setup text; this Feature supplies and verifies the `ai-git`, `gh` and `bws` lines.
 - **Fix the `bws` re-exec argument transport**: the original arguments travel as JSON in an environment variable (for example `AIF_REEXEC_ARGS`) with a fixed argv, with a size guard (about 100 KiB; Linux caps one environment string at 128 KiB). The re-exec guard variable is retained. This is a security requirement, not polish.
 - **Failure policy when the token cannot be resolved**: `push`/`fetch` warn on stderr (naming the variable, never a value) and proceed; `gh-*` stop with an error naming the variable; `bws` missing or `BWS_PROJECT_ID` unset produces one explicit line and a non-zero exit where the command cannot proceed, never a stack trace or a silent exit.
 - **Add `ai-git doctor`**: reports whether `ai-git`, `gh` and `bws` resolve, whether `.aiconfig.json` is found, and whether the token resolves (yes or no, never a value). SessionStart and the Setup log call it; it is also the acceptance checker.
@@ -85,7 +85,7 @@ In a cloud session started from an environment with `BWS_PROJECT_ID`, `BWS_ACCES
 
 ### Data Flow
 
-Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from pinned, checksummed release binaries, installs the pinned package with `npm install -g … --ignore-scripts` (`ai-git` and `aif` on PATH) → environment variables (set by the human) include `GIT_CONFIG_GLOBAL=/dev/null` → SessionStart (this repo): `npm link --ignore-scripts`, `aif install`, `ai-git doctor` → agent calls `ai-git …` → for `push`/`fetch`/`gh-*` with no token in the environment, `ai-git` re-execs itself through `secrets.run` (`bws run … -- node <ai-git> …`) with the original arguments in an environment variable and nothing from the user in argv → the child resolves the token, parses the arguments, and runs `git` or `gh`.
+Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from pinned, checksummed release binaries, installs the pinned package with `npm install -g … --ignore-scripts` (`ai-git` and `aif` on PATH) → environment variables (set by the human) include `GIT_CONFIG_GLOBAL=/dev/null` → SessionStart (this repo): `npm ci --ignore-scripts --omit=dev --no-audit --no-fund`, `npm link --ignore-scripts`, `aif install`, `ai-git doctor` → agent calls `ai-git …` → for `push`/`fetch`/`gh-*` with no token in the environment, `ai-git` re-execs itself through `secrets.run` (`bws run … -- node <ai-git> …`) with the original arguments in an environment variable and nothing from the user in argv → the child resolves the token, parses the arguments, and runs `git` or `gh`.
 
 ### Business Rules
 
@@ -94,7 +94,7 @@ Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from p
 - The token is never logged, echoed or written to disk; warnings and `doctor` name the variable, never a value.
 - Failure policy: `push`/`fetch` warn and proceed; `gh-*` hard-error; missing `bws` or unset `BWS_PROJECT_ID` is one explicit line, never a stack trace or silent exit.
 - `BWS_ACCESS_TOKEN` is the one credential in the environment. It is scoped strictly to what the session needs (today the `ai-git` credentials) and that scope is revisited if the licence situation changes.
-- Setup text downloads pinned versions only, verifies a hardcoded sha256, and uses `npm … --ignore-scripts`; the SessionStart verification only reports and never installs from the network.
+- Setup text downloads pinned versions only, verifies a hardcoded sha256, and uses `npm … --ignore-scripts`; the SessionStart hook downloads nothing except this repo's own lockfile-pinned production dependencies (`npm ci --ignore-scripts --omit=dev`, failing on lockfile drift) and otherwise only links, installs agents and reports; it never downloads `gh`, `bws` or any other package.
 - In cloud, GitHub API work uses REST through `ai-git gh-api`; GraphQL-backed `gh` subcommands are not used.
 
 ### Error States
@@ -125,7 +125,7 @@ Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from p
 
 ### Component Relationships
 
-`bin/ai-git.js` calls `lib/secrets.js` for the re-exec and `lib/ai-git.js` for pure logic; `doctor` reuses `getSecretsConfig` and `getIdentity`. `scripts/session-start.sh` runs `npm link`, `aif install` and `ai-git doctor`. `skills/pr-stewardship/SKILL.md` and the engineering steering name the GitHub access method.
+`bin/ai-git.js` calls `lib/secrets.js` for the re-exec and `lib/ai-git.js` for pure logic; `doctor` reuses `getSecretsConfig` and `getIdentity`. `scripts/session-start.sh` runs `npm ci`, `npm link`, `aif install` and `ai-git doctor`. `skills/pr-stewardship/SKILL.md` and the engineering steering name the GitHub access method.
 
 ### Integration Points
 
@@ -142,7 +142,7 @@ Setup script (pre-checkout, cached, run as root): installs `bws` and `gh` from p
 
 - The token must never appear in logs, warnings, process arguments or files. Arguments must never be interpreted by a shell: the `bws run` injection result (`a;echo X` executed) makes the environment-variable transport a security requirement with its own tests (`;`, `$( )`, backticks, quotes, newlines).
 - `BWS_ACCESS_TOKEN` is an environment variable readable by anyone who can use the environment and by the agent; it is scoped strictly to what the session needs and revisited if the licence situation changes.
-- Setup-script downloads (done by the human) are pinned by version with a hardcoded sha256 and installed with `--ignore-scripts`, because the script runs as root.
+- Setup-script downloads (done by the human) are pinned by version with a hardcoded sha256 and installed with `--ignore-scripts`, because the script runs as root. The SessionStart hook's only network step is `npm ci --ignore-scripts --omit=dev` against this repo's lockfile (human decision 2026-10-02, after Task 004 showed `npm link` alone leaves `aif install` without its `yaml` dependency).
 - Identity: an agent must never supply, infer or ask for a git identity; the environment-level `GIT_CONFIG_GLOBAL=/dev/null` makes an accidental raw commit fail but does not stop a deliberate `git -c user.*` or `GIT_AUTHOR_*` command, which is why `AIF-007` blocks raw `git`.
 - No security requirement is optional or deferrable (`steering/global/core.md`: "Security Requirements Are Never Optional").
 
