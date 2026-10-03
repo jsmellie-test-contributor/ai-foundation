@@ -20,7 +20,7 @@
       "wave": 1,
       "status": "Done",
       "branch": "AIF-007/002-cli-integration-tests",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/002-cli-integration-tests",
+      "worktree_path": "",
       "pr_number": 95,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/95",
       "iterations": 0,
@@ -29,13 +29,13 @@
     {
       "id": "003",
       "wave": 1,
-      "status": "Blocked",
+      "status": "Implementing",
       "branch": "AIF-007/003-arc42-update",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/003-arc42-update",
       "pr_number": 96,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/96",
       "iterations": 1,
-      "blocked_reason": "Review MEDIUM-0: fix needs PR #95 merged first, then rebase and re-verify 5.02"
+      "blocked_reason": null
     }
   ],
   "escalations": [
@@ -43,7 +43,7 @@
       "task_id": "003",
       "reason": "Merge PR #95 (task 002) before task 003 can be fixed: 5.02 last_verified must follow merged cli.js",
       "raised_at": "2026-10-03T04:10:00Z",
-      "resolved": false
+      "resolved": true
     }
   ],
   "log": [
@@ -235,6 +235,27 @@
       "action": "escalation_raised",
       "task_id": "003",
       "details": "merge PR #95 first"
+    },
+    {
+      "timestamp": "2026-10-03T17:10:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "002",
+      "details": "PR #95 merged; branch deleted"
+    },
+    {
+      "timestamp": "2026-10-03T17:10:10Z",
+      "agent": "engineering-manager",
+      "action": "wave_rebase",
+      "task_id": "003",
+      "details": "rebased onto main after PR #95"
+    },
+    {
+      "timestamp": "2026-10-03T17:10:20Z",
+      "agent": "engineering-manager",
+      "action": "task_unblocked",
+      "task_id": "003",
+      "details": "PR #95 merged; Implementing iteration 1"
     }
   ]
 }
