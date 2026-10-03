@@ -1,3 +1,12 @@
+// ------------------------------
+// tools.test.js
+//
+// Author: Starvoxel AI Agent - 2026-10-02
+// Plan: AIF-010
+//
+// Copyright (c) StarVoxel. All rights reserved.
+// ------------------------------
+
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { join, dirname } from 'node:path';
@@ -9,6 +18,7 @@ import {
   getServerToolMap,
 } from '../../lib/test-helpers.js';
 import { TOOLS } from '../../lib/constants.js';
+import { isKnownToolName } from '../../lib/harnesses/base.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
@@ -37,6 +47,13 @@ describe('tool availability', () => {
 
         before(() => {
           parsed = parseYaml(join(AGENTS_DIR, file));
+        });
+
+        it('every tool and approved_tool is a TOOLS name or @server/tool reference', () => {
+          const unknown = [...(parsed.tools ?? []), ...(parsed.approved_tools ?? [])].filter(
+            (t) => !isKnownToolName(t),
+          );
+          assert.deepEqual(unknown, [], `Unknown bare tool names: ${unknown.join(', ')}`);
         });
 
         it('all tools are documented in a server definition', () => {

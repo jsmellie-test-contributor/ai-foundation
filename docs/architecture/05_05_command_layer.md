@@ -2,7 +2,7 @@
 section: '05.05'
 title: 'Command layer'
 lifecycle: published
-last_verified: 2b14d2e
+last_verified: abf05d1
 tags: [building-blocks, commands]
 key_files:
   - lib/commands/install.js
@@ -72,18 +72,18 @@ list past what keeps a rename or deletion there a meaningful signal.
 
 ## Contained Building Blocks
 
-| Block          | Responsibility                                                                                                                     | Interface                                                                           |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `install.js`   | Resolves a bundle via `resolver.js`, writes its components through the target harness adapter, records the result in the manifest. | `runInstall(parsed, repoRoot)`                                                      |
-| `uninstall.js` | Removes previously-installed files using the manifest's recorded file list; per-harness settings cleanup (e.g. MCP entries).       | `runUninstall(parsed, repoRoot)`                                                    |
-| `status.js`    | Reports what's installed vs. current source state (staleness) for a project.                                                       | `runStatus(parsed, repoRoot)`                                                       |
-| `list.js`      | Lists available bundles/agents/skills/servers in this repo. No `standards` target.                                                 | `runList(parsed, repoRoot)`                                                         |
-| `validate.js`  | Schema, cross-reference, and bundle-resolution integrity checks (`aif validate`).                                                  | `runValidate(parsed, repoRoot)`                                                     |
-| `test.js`      | Thin wrapper invoking this repo's own `node:test` suite.                                                                           | `runTest(parsed, repoRoot)`                                                         |
-| `snapshot.js`  | Builds/reads per-bundle, per-server, and per-hook source-hash snapshots.                                                           | `runSnapshot(parsed, repoRoot)`                                                     |
-| `index.js`     | Generates the decisions and architecture indexes (`aif index decisions\|architecture`).                                            | `runIndex(parsed, repoRoot)`, `resolveDecisionsPath()`, `resolveArchitecturePath()` |
-| `init.js`      | Scaffolds a new project from `projects/_template/`, interactively or via flags.                                                    | `runInit(parsed, repoRoot)`, `promptForConfig()`                                    |
-| `config.js`    | Resolves a single `.aiconfig.json` field to its configured value or documented default (`aif config <key>`).                       | `runConfig(parsed, cwd)`                                                            |
+| Block          | Responsibility                                                                                                                                                                            | Interface                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `install.js`   | Resolves a bundle via `resolver.js`, writes its components through the target harness adapter (an unknown agent tool name fails the install, exit 1), records the result in the manifest. | `runInstall(parsed, repoRoot)`                                                      |
+| `uninstall.js` | Removes previously-installed files using the manifest's recorded file list; per-harness settings cleanup (e.g. MCP entries).                                                              | `runUninstall(parsed, repoRoot)`                                                    |
+| `status.js`    | Reports what's installed vs. current source state (staleness) for a project.                                                                                                              | `runStatus(parsed, repoRoot)`                                                       |
+| `list.js`      | Lists available bundles/agents/skills/servers in this repo. No `standards` target.                                                                                                        | `runList(parsed, repoRoot)`                                                         |
+| `validate.js`  | Schema (including agent `tools`/`approved_tools` names: a `TOOLS` name or `@server/tool` reference), cross-reference, and bundle-resolution integrity checks (`aif validate`).            | `runValidate(parsed, repoRoot)`                                                     |
+| `test.js`      | Thin wrapper invoking this repo's own `node:test` suite.                                                                                                                                  | `runTest(parsed, repoRoot)`                                                         |
+| `snapshot.js`  | Builds/reads per-bundle, per-server, and per-hook source-hash snapshots.                                                                                                                  | `runSnapshot(parsed, repoRoot)`                                                     |
+| `index.js`     | Generates the decisions and architecture indexes (`aif index decisions\|architecture`).                                                                                                   | `runIndex(parsed, repoRoot)`, `resolveDecisionsPath()`, `resolveArchitecturePath()` |
+| `init.js`      | Scaffolds a new project from `projects/_template/`, interactively or via flags.                                                                                                           | `runInit(parsed, repoRoot)`, `promptForConfig()`                                    |
+| `config.js`    | Resolves a single `.aiconfig.json` field to its configured value or documented default (`aif config <key>`).                                                                              | `runConfig(parsed, cwd)`                                                            |
 
 ## Consumers
 
