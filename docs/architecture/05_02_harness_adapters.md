@@ -9,6 +9,8 @@ key_files:
   - lib/harnesses/claude.js
   - lib/harnesses/kiro.js
   - lib/constants.js
+  - lib/harnesses/assets/block-command/logic.js
+  - lib/harnesses/assets/block-command/cli.js
 ---
 
 > The shared adapter contract every harness implements, and exactly where Claude
@@ -60,7 +62,37 @@ behind the portability quality goal (§1), not just a convention.
 | Subagent dispatch                      | `subagent` → `['Agent', 'ListAgents', 'SendMessage']`                                                                                                                                                                                                                                                                                                                                                                                                   | `subagent` → `'subagent'` (identity mapping)                                                                                                                           |
 | Skill preloading                       | Honors `preload_skills` via `resolvePreloadSkills()` (shared, `base.js`) — full content for listed skills goes into the subagent's frontmatter at install time                                                                                                                                                                                                                                                                                          | Ignored — Kiro always resources the full `skills` list regardless, via the shared `stripSkillPrefix` helper                                                            |
 | Shared resources                       | `detectSharedResource()` + `installSharedResources()` install a shared `block-command` hook script once, referenced by every agent that needs it, instead of duplicating it per agent                                                                                                                                                                                                                                                                   | No shared-resource mechanism (not yet needed for anything Kiro installs)                                                                                               |
+| `blocked_commands` enforcement         | A `PreToolUse` hook on the `Bash` tool runs the installed `block-command` script (see "The `block-command` hook")                                                                                                                                                                                                                                                                                                                                       | Emitted as a shell `deny` permission rule in the agent JSON; its matching semantics are unverified and unchanged                                                       |
 | MCP settings removal                   | `removeMcpSetting(serverName)` edits `~/.claude.json`                                                                                                                                                                                                                                                                                                                                                                                                   | `removeMcpSetting(serverName)` edits `.kiro/settings/mcp.json`                                                                                                         |
+
+### The `block-command` hook
+
+> Claude Code only. Added by AIF-007; replaces a start-of-string glob match that compound commands, pipes, env prefixes, absolute paths and wrappers all bypassed.
+
+Claude Code subagent frontmatter has no permissions field, so `transformAgent()` emits a `PreToolUse` hook (matcher `Bash`) for any agent with a non-empty `blocked_commands`. `buildHookCommand()` runs `node ~/.claude/scripts/block-command/cli.js "<pattern>"...`, and `installBlockCommandResource()` copies exactly `logic.js` and `cli.js` there, so both files must stay dependency-free with no build step.
+
+`cli.js` is the thin I/O wrapper: it reads the hook payload from stdin, takes `tool_input.command`, and exits 2 with a message on stderr when `logic.js` reports a match, otherwise 0. `logic.js` is pure and has no I/O. A hand-written, zero-dependency tokenizer splits the command line into simple commands, normalizes each, and applies every `blocked_commands` glob to each one:
+
+- **Splitting.** Compound commands (`;`, `&&`, `||`, `&`, newlines), pipes, subshells and groups, and control-flow bodies each yield their own simple commands. The glob semantics are unchanged (`*` matches any sequence); additionally a trailing ` *` matches the bare command, so `git *` blocks plain `git`.
+- **Normalization.** Leading `VAR=value` assignments are stripped, then wrapper commands and their own flags (`env`, `sudo`, `doas`, `nohup`, `time`, `timeout`, `flock`, `xargs`, `nice`, `command`, `exec` and similar), then the executable is reduced to its basename and quoting or escaping of the command word is removed (`"git"`, `\git` and `gi""t` all read as `git`). Commands that only mention a blocked word (`echo "git status"`, `grep git README.md`, `git-lfs`) are not matches.
+- **Secrets-manager wrappers.** `bws run`, `op run` and `doppler run` are unwrapped after their own flags, so `bws run -- git log` is blocked while `bws run -- ai-git push` runs.
+- **Re-entry.** The hook recurses into `bash|sh|zsh|dash|ksh|ash -c`, `eval` with a literal argument, `find -exec`, command substitution, process substitution, and heredoc bodies that are subject to expansion. A quoted heredoc body is data and is not matched.
+- **Dynamic command words block.** If the executable cannot be named statically (`$g log`, `"$GIT" log`, `$(echo git) log`, an unquoted glob or brace pattern, `eval` of a non-literal argument), the line is blocked for any agent with at least one blocked pattern, and the message asks for a literal command word. A variable used as a path prefix with a literal basename (`$HOME/.local/bin/tool`) is allowed.
+- **Failure behaviour.** The parser never throws: unbalanced constructs are treated as literal text, nesting beyond fixed limits stops parsing at that point, and any internal error or malformed payload fails open (exit 0).
+- **Block message.** Names the matched pattern (or the dynamic-word reason), says to use `ai-git`, and says an agent must never supply, infer or ask for a git identity.
+
+The hook is workflow discipline, not a security boundary.
+
+**Residual gaps** (allowed or unverified by design, since command text alone cannot close them):
+
+- Interpreters that call the blocked tool internally (`python -c`, `node -e`), scripts and build tools (`make`, `npm run x`, a repo script), and shell functions or aliases defined in earlier commands.
+- Scripts fed to a shell on stdin or via process substitution: `printf 'git log' | sh` and `bash <(echo git log)` are allowed. Running a script file (`bash x.sh`) is likewise not inspected.
+- Windows naming is not normalized: only `/` splits a path and no `.exe` suffix is stripped, so `git.exe` does not match `git *` and a backslash is read as an escape rather than a path separator.
+- Parsing of `[[ ]]`, `case` and array assignments is best-effort and can produce a missed or extra match.
+- The shell list (`bash`, `sh`, `zsh`, `dash`, `ksh`, `ash`; not fish, csh, tcsh or busybox) and the wrapper list (not `su -c`, `ssh`, `parallel`, `strace`, `nsenter`, `runuser`, `systemd-run` and others) are fixed, non-exhaustive sets.
+- The `secrets.run` prefix from `.aiconfig.json` is not passed to the hook, because `buildHookCommand()` passes only the patterns. The built-in `bws`, `op` and `doppler` handling works without it, but a custom wrapper outside those would slip through.
+- Fail-open: input crafted so the parser misreads what bash runs is allowed.
+- Kiro's `deny` rules are unchanged and unverified.
 
 ### Steering frontmatter scoping
 
