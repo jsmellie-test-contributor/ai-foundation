@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T21:22:32.699Z",
+  "generated_at": "2026-10-03T01:11:26.798Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -37,7 +37,7 @@
         "steering/engineering/git-workflow-projects.md"
       ],
       "last_verified": "abf05d1",
-      "stale": false
+      "stale": true
     },
     {
       "path": "03_context.md",
@@ -87,9 +87,10 @@
       "key_files": [
         "lib/harnesses/base.js",
         "lib/harnesses/claude.js",
-        "lib/harnesses/kiro.js"
+        "lib/harnesses/kiro.js",
+        "lib/constants.js"
       ],
-      "last_verified": "abf05d1",
+      "last_verified": "1edd9c0",
       "stale": false
     },
     {
@@ -118,7 +119,7 @@
         "lib/file-utils.js"
       ],
       "last_verified": "abf05d1",
-      "stale": false
+      "stale": true
     },
     {
       "path": "05_04_document_indexing.md",
@@ -190,7 +191,7 @@
         "servers/youtrack/youtrack.yaml"
       ],
       "last_verified": "abf05d1",
-      "stale": false
+      "stale": true
     },
     {
       "path": "06_runtime.md",
@@ -225,7 +226,7 @@
         "lib/harnesses/kiro.js"
       ],
       "last_verified": "abf05d1",
-      "stale": false
+      "stale": true
     }
   ],
   "reverse_index": {
@@ -284,6 +285,10 @@
       "05_02_harness_adapters.md",
       "11_risks.md"
     ],
+    "lib/constants.js": [
+      "05_02_harness_adapters.md",
+      "05_03_core_libraries.md"
+    ],
     "lib/manifest.js": [
       "05_03_core_libraries.md",
       "06_runtime.md"
@@ -304,9 +309,6 @@
       "05_03_core_libraries.md"
     ],
     "lib/secrets.js": [
-      "05_03_core_libraries.md"
-    ],
-    "lib/constants.js": [
       "05_03_core_libraries.md"
     ],
     "lib/component-defs.js": [
