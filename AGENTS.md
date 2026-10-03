@@ -67,7 +67,7 @@ A named persona with a defined role, prompt, tools, and skills.
 
 Fields: `name`, `version`, `domain`, `description`, `prompt`, `tools`, `approved_tools`, optional `skills`, optional `preload_skills`, optional `blocked_commands`
 
-`blocked_commands`: array of shell command glob patterns (using `*` as wildcard) that the agent is forbidden from executing directly. Each harness adapter translates these into its native denial format (e.g. Kiro `permissions.rules` deny, Claude Code `Bash()` deny rules).
+`blocked_commands`: array of shell command glob patterns (using `*` as wildcard) that the agent is forbidden from executing directly. Each pattern is matched against every simple command in a command line (compound commands, pipes, subshells, wrappers such as `sudo` or `env`, `bash -c` and env-var prefixes included), not only the start of the string; a trailing ` *` also matches the bare command. Each harness adapter translates these into its native denial format: Kiro emits `permissions.rules` deny entries, and Claude Code installs a `PreToolUse` hook on the Bash tool (see `docs/architecture/05_02_harness_adapters.md`). This is workflow discipline, not a security boundary.
 
 ### Skill
 
