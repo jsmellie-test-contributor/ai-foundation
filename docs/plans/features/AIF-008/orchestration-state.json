@@ -40,12 +40,12 @@
     {
       "id": "004",
       "wave": 1,
-      "status": "Reviewing",
+      "status": "Implementing",
       "branch": "AIF-008/004-cloud-recipe-session-start",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/004-cloud-recipe-session-start",
       "pr_number": 94,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/94",
-      "iterations": 0,
+      "iterations": 1,
       "blocked_reason": null
     }
   ],
@@ -447,6 +447,13 @@
       "action": "task_status_changed",
       "task_id": "004",
       "details": "Implementing -> Reviewing"
+    },
+    {
+      "timestamp": "2026-10-02T13:30:00Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "004",
+      "details": "iteration 1; 2 MEDIUM 3 LOW; PR #94"
     }
   ]
 }
