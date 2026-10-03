@@ -18,12 +18,12 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Done",
+      "status": "Implementing",
       "branch": "AIF-010/002-tool-groups-claude-kiro",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/002-tool-groups-claude-kiro",
       "pr_number": 93,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/93",
-      "iterations": 1,
+      "iterations": 2,
       "blocked_reason": null
     },
     {
@@ -208,6 +208,13 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Implementing -> Done; PR 93 ready"
+    },
+    {
+      "timestamp": "2026-10-03T16:57:35.286Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "002",
+      "details": "iteration 2; human confirmed routines names"
     }
   ]
 }
