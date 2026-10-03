@@ -29,7 +29,7 @@
     {
       "id": "003",
       "wave": 1,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-007/003-arc42-update",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/003-arc42-update",
       "pr_number": 96,
@@ -256,6 +256,13 @@
       "action": "task_unblocked",
       "task_id": "003",
       "details": "PR #95 merged; Implementing iteration 1"
+    },
+    {
+      "timestamp": "2026-10-03T17:40:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Implementing -> Reviewing; fixes 8343ef8"
     }
   ]
 }
