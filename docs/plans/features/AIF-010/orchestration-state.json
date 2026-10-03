@@ -1,7 +1,7 @@
 {
   "feature_id": "AIF-010",
   "status": "In Progress",
-  "current_wave": 0,
+  "current_wave": 1,
   "total_waves": 4,
   "tasks": [
     {
@@ -9,7 +9,7 @@
       "wave": 0,
       "status": "Done",
       "branch": "AIF-010/001-tool-mapping-contract",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/001-tool-mapping-contract",
+      "worktree_path": "",
       "pr_number": 90,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/90",
       "iterations": 3,
@@ -18,9 +18,9 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-010/002-tool-groups-claude-kiro",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/002-tool-groups-claude-kiro",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -152,6 +152,34 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Reviewing -> Done; PR 90 approved iter 3"
+    },
+    {
+      "timestamp": "2026-10-03T01:07:21.655Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "001",
+      "details": "PR 90 merged"
+    },
+    {
+      "timestamp": "2026-10-03T01:07:21.656Z",
+      "agent": "engineering-manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 0"
+    },
+    {
+      "timestamp": "2026-10-03T01:07:21.656Z",
+      "agent": "engineering-manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 1: 002"
+    },
+    {
+      "timestamp": "2026-10-03T01:07:21.656Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "002",
+      "details": "software-engineer; AIF-010/002-tool-groups-claude-kiro"
     }
   ]
 }
