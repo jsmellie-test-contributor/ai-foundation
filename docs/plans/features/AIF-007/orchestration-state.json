@@ -7,12 +7,12 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Done",
+      "status": "Implementing",
       "branch": "AIF-007/001-shell-aware-matcher",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/001-shell-aware-matcher",
       "pr_number": 92,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/92",
-      "iterations": 1,
+      "iterations": 2,
       "blocked_reason": null
     },
     {
@@ -102,6 +102,13 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Implementing -> Done; snapshot fix 1033046, CI green"
+    },
+    {
+      "timestamp": "2026-10-03T01:10:00Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "001",
+      "details": "iteration 2; human CHANGES_REQUESTED on PR #92: inline comments"
     }
   ]
 }
