@@ -98,12 +98,15 @@ describe('unit: claude adapter', () => {
       'register_repo_root',
       'create_trigger',
       'update_trigger',
-      'delete_trigger',
+      // UNVERIFIED (not corroborated against a real tool listing): this guard
+      // cannot catch a wrong name here because the list is copied from
+      // TOOL_MAP. Confirm before any agent is granted `routines`.
+      'delete_trigger', // UNVERIFIED
       'fire_trigger',
-      'get_trigger',
-      'list_trigger',
-      'watch_url',
-      'unwatch_url',
+      'get_trigger', // UNVERIFIED
+      'list_trigger', // UNVERIFIED
+      'watch_url', // UNVERIFIED
+      'unwatch_url', // UNVERIFIED
     ].map((t) => `mcp__claude-code-remote__${t}`),
   ]);
 
