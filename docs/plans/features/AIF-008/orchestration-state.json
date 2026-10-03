@@ -40,7 +40,7 @@
     {
       "id": "004",
       "wave": 1,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-008/004-cloud-recipe-session-start",
       "worktree_path": "../worktrees/ai-foundation/AIF-008/004-cloud-recipe-session-start",
       "pr_number": 94,
@@ -495,6 +495,13 @@
       "action": "review_loop",
       "task_id": "004",
       "details": "iteration 2; 1 HIGH 1 MEDIUM 1 LOW"
+    },
+    {
+      "timestamp": "2026-10-02T16:00:00Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "004",
+      "details": "Implementing -> Reviewing; head 7801a63"
     }
   ]
 }
