@@ -2,7 +2,7 @@
 section: '02'
 title: 'Constraints'
 lifecycle: published
-last_verified: b28290a
+last_verified: 9b33d15
 tags: [constraints]
 key_files:
   - package.json
@@ -33,6 +33,7 @@ key_files:
 | Human approves plans and decisions | No agent may set a plan or ADR to `Approved`; only a human confirms (`skill/plan-lifecycle`).                                                                                                                                                                                                                                                                           |
 | Human merges to `main`             | In project repos, agents open PRs and only a human merges (`steering/engineering/git-workflow-projects.md`: "Human Reviews and Merges Every PR"). Framework repos have no PRs — see the next row.                                                                                                                                                                       |
 | CI gates `main`                    | `main` only accepts commits whose required status checks have passed; agents never bypass them and escalate a failure that has a valid reason (`steering/engineering/git-workflow-core.md`: "Required CI Checks Gate Main — Never Bypass Them"). A framework repo gets a commit its CI run on a `push-check/**` branch, then fast-forwards `main` to that exact commit. |
+| Branches age out                   | Unprotected branches are sorted by a scheduled workflow into Active (kept), Stale (PR closed and labelled `stale`) and Archive (deleted); empty branches are kept. Protected branches are listed in the workflow, not inferred from names (`steering/engineering/git-workflow-core.md`: "Branches Age Out Unless Protected").                                           |
 
 ## Conventions
 
