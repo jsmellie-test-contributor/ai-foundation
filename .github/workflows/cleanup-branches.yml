@@ -1,24 +1,18 @@
 name: Cleanup branches
 
-# Cloud sessions can't delete remote branches, so GitHub does it here.
+# Cloud sessions can't delete remote branches, so GitHub does it here, twice a
+# week. There is deliberately no push trigger: `main` is pushed many times a
+# week, and every job is billed a full minute minimum however short it runs.
 #
-# - On every push to `main`, only the `landed` job runs, and it is kept as
-#   small as possible: one API call to find the `push-check/**` branch whose
-#   tip is the commit that was just pushed, and delete it. A `push-check/**`
-#   branch exists only to give a commit its CI run before it is fast-forwarded
-#   to `main` (steering/engineering/git-workflow-framework.md).
-# - Weekly (or on manual dispatch), only the `sweep` job runs. It deletes any
-#   `push-check/**` branch `main` already contains (stragglers the push-time
-#   job missed) and stale `claude/**` cloud-session branches: no open PR and a
-#   last commit older than STALE_DAYS. `claude/**` is never touched on a push,
-#   so a session that has just landed work keeps its branch.
+# - `push-check/**` branches exist only to give a commit its CI run before it
+#   is fast-forwarded to `main` (steering/engineering/git-workflow-framework.md).
+#   Any such branch `main` already contains is deleted.
+# - `claude/**` cloud-session branches are deleted when stale: no open PR and a
+#   last commit older than STALE_DAYS.
 on:
-  push:
-    branches:
-      - main
   schedule:
-    # Mondays 06:17 UTC.
-    - cron: "17 6 * * 1"
+    # Mondays and Thursdays, 06:17 UTC.
+    - cron: "17 6 * * 1,4"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -33,33 +27,13 @@ permissions:
 env:
   GH_TOKEN: ${{ github.token }}
   REPO: ${{ github.repository }}
-  # Empty on push/schedule, so only a manual dispatch can set it.
+  # Empty on a scheduled run, so only a manual dispatch can set it.
   DRY_RUN: ${{ inputs.dry_run }}
   STALE_DAYS: 14
 
 jobs:
-  landed:
-    name: Delete the push-check branch that just landed
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    env:
-      MAIN_SHA: ${{ github.sha }}
-    steps:
-      # Branch names only ever reach the shell as quoted variables.
-      - name: Delete push-check branch at the pushed commit
-        run: |
-          gh api --paginate "repos/$REPO/git/matching-refs/heads/push-check/" \
-            --jq '.[] | select(.object.sha == env.MAIN_SHA) | .ref' |
-          while read -r ref; do
-            echo "Deleting $ref (tip is $MAIN_SHA, now on main)"
-            gh api -X DELETE "repos/$REPO/git/$ref" \
-              || echo "::warning::could not delete $ref"
-          done
-
   sweep:
     name: Delete landed and stale branches
-    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -67,6 +41,7 @@ jobs:
       # the current main (compare status "identical" or "ahead" — i.e. the
       # branch is fully merged, so no commit is lost). A branch that is ahead
       # of, or diverged from, main is still in flight and is left alone.
+      # Branch names and SHAs only ever reach the shell as quoted variables.
       - name: Delete push-check branches contained in main
         run: |
           main_sha="$(gh api "repos/$REPO/commits/main" --jq .sha)"
