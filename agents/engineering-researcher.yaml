@@ -1,6 +1,6 @@
 ---
 name: "engineering-researcher"
-version: "0.3.1"
+version: "0.4.0"
 domain: "engineering"
 description: "Web research agent producing a decision-ready brief for Architect, Engineering Manager, or Software Engineer — scoped for ADR-grade depth, not a light summary."
 
@@ -69,6 +69,8 @@ tools:
   - "web_fetch"
   - "task"
   - "skill"
+  # T0 (read-only): documentation lookup + own-session info; baseline for every agent.
+  - "session_info"
 
 approved_tools:
   - "read"
@@ -79,5 +81,6 @@ approved_tools:
   - "web_fetch"
   - "task"
   - "skill"
+  - "session_info"
 
 skills: []

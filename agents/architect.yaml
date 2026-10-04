@@ -1,6 +1,6 @@
 ---
 name: "architect"
-version: "0.5.1"
+version: "0.6.0"
 domain: "engineering"
 description: "Technical decision-making agent for rare, contested, costly-to-reverse forks — produces ADRs and may start the arc42 section an ADR's mechanism content splits into."
 
@@ -73,6 +73,8 @@ tools:
   - "ask_user"
   - "task"
   - "skill"
+  # T0 (read-only): documentation lookup + own-session info; baseline for every agent.
+  - "session_info"
 
 approved_tools:
   - "read"
@@ -82,3 +84,4 @@ approved_tools:
   - "ask_user"
   - "task"
   - "skill"
+  - "session_info"
