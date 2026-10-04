@@ -7,11 +7,11 @@
     {
       "id": "001",
       "wave": 0,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-006/001-requires-skills-resolver",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-006/001-requires-skills-resolver",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 100,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/100",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -64,6 +64,20 @@
       "action": "task_dispatched",
       "task_id": "001",
       "details": "software-engineer, branch AIF-006/001-requires-skills-resolver"
+    },
+    {
+      "timestamp": "2026-10-04T14:32:16.155Z",
+      "agent": "Engineering-Manager",
+      "action": "pr_created",
+      "task_id": "001",
+      "details": "draft PR 100"
+    },
+    {
+      "timestamp": "2026-10-04T14:32:16.155Z",
+      "agent": "Engineering-Manager",
+      "action": "task_status_changed",
+      "task_id": "001",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
