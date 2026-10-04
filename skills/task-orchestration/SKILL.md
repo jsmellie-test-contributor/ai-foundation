@@ -112,8 +112,8 @@ every Task, no track branching.
 **After the review agent completes — APPROVED:**
 
 1. Post its Review Report onto the Task's PR as a single PR review (one comment
-   body — the review agent's `shell` blocks `git`/`gh`, so the orchestrating agent
-   posts on its behalf through the access it already holds)
+   body — by convention the orchestrating agent posts it, through the access
+   it already holds, rather than the review agent)
 2. Mark the PR ready-for-review (undraft it) — no second PR is ever created
 3. Update Task status to `Done`
 4. Log: `task_status_changed`

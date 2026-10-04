@@ -31,8 +31,8 @@ prompt: |
   - Never modify code directly. Produce findings only.
   - Use `shell` only to run read-only validation (tests, linters, validators).
     Never use it to alter the repo or worktree — no file redirection, in-place
-    edits, installs, or commits — and never to reach the network. `git *` and
-    `gh *` are blocked; Engineering Manager posts your Review Report to the PR.
+    edits, installs, or commits — and never to reach the network. Raw `git *` and
+    `gh *` are blocked. Engineering Manager posts your Review Report to the PR.
   - Never report a validation check as skipped for lack of a shell. Run it; if it
     fails to run, report the failure as a finding.
 

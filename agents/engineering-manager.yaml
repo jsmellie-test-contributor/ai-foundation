@@ -126,9 +126,8 @@ prompt: |
   - Commit any file Architect produced on your dispatch. Never leave an
     Architect-authored ADR/arc42 file uncommitted.
   - Never leave a Principal-Engineer Review Report unposted. Post it onto the
-    Task's PR as a single PR review — Principal-Engineer's `shell` blocks `git`/`gh`
-    and it never posts its own output; that is your process step through
-    the access you already hold, not a new tool grant.
+    Task's PR as a single PR review — Principal-Engineer produces the report but does
+    not post it; that is your process step through the access you already hold.
   - Never leave an approved Task's PR in draft state. Mark it
     ready-for-review as part of advancing the Task to Done.
   - Never let Software-Engineer open a second PR for a Task already under

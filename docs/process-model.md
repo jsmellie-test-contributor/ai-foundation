@@ -396,7 +396,7 @@ what makes Software-Engineer's write access to `agents/*.yaml` safe post-merge.
 | Engineering Manager    | write + shell, no web                               | Only sees compressed briefs from Architect/Researcher, never raw content                                                          |
 | Software Engineer      | write + shell, no web                               | Direct web-vector closed, but not zero — see Residual injection surface                                                           |
 | Engineering Researcher | write (scoped to non-executable `.md` output) + web | The one agent allowed to hold web at all holds nothing beyond that and a narrowly-scoped write leg                                |
-| Principal Engineer     | shell only (validation; `git`/`gh` blocked)         | No write and no web, so no trifecta; shell is scoped by Hard rules to read-only validation                                        |
+| Principal Engineer     | shell only (validation; raw `git`/`gh` blocked)     | No write and no web, so no trifecta; shell is scoped by Hard rules to read-only validation                                        |
 
 `skills/agent-authoring/reference/tools.yaml` should gain an explicit rule against
 holding `moderate` (web) and `privileged` (write/shell) tools at once without
@@ -436,7 +436,7 @@ Engineering Manager -- spots an ADR-worthy fork? --> Architect (subagent, gated)
       |      opens the Task's PR as a draft, commits + pushes
       v
   Principal Engineer reviews (standards + Feature Plan, not full implementation history)
-  Engineering Manager posts the Review Report as PR review comments (PE's shell blocks git/gh)
+  Engineering Manager posts the Review Report as PR review comments (by convention, not tool restriction)
       |
       +-- APPROVED -> Engineering Manager marks the PR ready-for-review, merges/advances
       +-- NEEDS_CHANGES -> Software Engineer pushes fixes to the same branch/PR (no cross-agent restart)
@@ -487,9 +487,9 @@ step, not a new tool grant. Must be stated explicitly in the dispatching agent's
 (check 6).
 
 **Who posts Principal-Engineer's Review Report onto the PR, given Principal-Engineer's
-`shell` blocks `git`/`gh`?** Same answer as the ADR question above, same reason: Engineering
+`shell` could reach `ai-git`?** Same answer as the ADR question above, same reason: Engineering
 Manager does, through the `shell`/`ai-git` access it already holds for orchestration —
-a process step; Principal-Engineer's `shell` grant is for validation only. Principal-Engineer's
+a process step by convention, not a tool restriction (Principal-Engineer's `shell` grant is for validation; raw `git`/`gh` are blocked but `ai-git` is not). Letting Principal-Engineer post its own report would also work. Principal-Engineer's
 output is unchanged (a Review Report per `skill/code-review`/`skill/ai-component-review`/
 `skill/review-severity`); only where it lands changes — as a single PR review
 (one comment body via `gh pr review --comment`, not per-finding inline threads —
