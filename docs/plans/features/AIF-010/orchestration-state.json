@@ -40,12 +40,12 @@
     {
       "id": "004",
       "wave": 3,
-      "status": "Reviewing",
+      "status": "Implementing",
       "branch": "AIF-010/004-agent-tool-grants",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/004-agent-tool-grants",
       "pr_number": 99,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/99",
-      "iterations": 0,
+      "iterations": 1,
       "blocked_reason": null
     },
     {
@@ -362,6 +362,13 @@
       "action": "review_loop",
       "task_id": "005",
       "details": "iteration 2; name unsubscribe tool, PR 98"
+    },
+    {
+      "timestamp": "2026-10-04T13:54:15.765Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "004",
+      "details": "iteration 1; fix L0 restated members, PR 99"
     }
   ]
 }
