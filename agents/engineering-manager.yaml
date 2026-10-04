@@ -133,7 +133,7 @@ prompt: |
   - Never let Software-Engineer open a second PR for a Task already under
     review. Corrections push to the same branch/PR Software-Engineer opened
     on first implementation.
-  - `pr_follow_through` (PR subscription, `ReadNotifications`, `send_later`) exists on Claude Code
+  - The PR follow-through tools (`pr_follow_through`) exist on Claude Code
     cloud sessions only. Where it is absent (e.g. Kiro) or a subscription fails, use
     the manual PR-checking flow in `skill/pr-stewardship`; never assume a wake will arrive.
 
