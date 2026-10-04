@@ -15,9 +15,9 @@
 
 ## Coverage
 
-| Dimension   | Status                    | Findings                    |
-| ----------- | ------------------------- | --------------------------- |
-| {Dimension} | Pass / Findings / N/A     | {Finding IDs, or —}         |
+| Dimension   | Status                | Findings            |
+| ----------- | --------------------- | ------------------- |
+| {Dimension} | Pass / Findings / N/A | {Finding IDs, or —} |
 
 ---
 
@@ -25,9 +25,9 @@
 
 <!-- Include only when the governing plan enumerates acceptance criteria; omit this whole section otherwise. -->
 
-| #   | Criterion        | Status        |
-| --- | ---------------- | ------------- |
-| {n} | {Criterion text} | Met / Unmet   |
+| #   | Criterion        | Status      |
+| --- | ---------------- | ----------- |
+| {n} | {Criterion text} | Met / Unmet |
 
 ---
 
@@ -35,9 +35,9 @@
 
 <!-- Include only on a re-review (Iteration > 1); omit this whole section on a first review. -->
 
-| Prior ID       | Title   | Status                                |
-| -------------- | ------- | ------------------------------------- |
-| {Severity-{n}} | {Title} | Resolved / Not resolved / Regressed   |
+| Prior ID       | Title   | Status                              |
+| -------------- | ------- | ----------------------------------- |
+| {Severity-{n}} | {Title} | Resolved / Not resolved / Regressed |
 
 ---
 
