@@ -7,9 +7,11 @@
  * other than the default branch and the protected list is sorted into exactly
  * one category, checked in this order (first match wins):
  *
- *   Mandatory  default branch, protected branches, and empty branches (no
- *              commits of its own, so nothing to lose and a session may be
- *              about to use it).                                      -> keep
+ *   Mandatory  default branch, protected branches, branches not forked from
+ *              the default branch (unrelated history) unless their name marks
+ *              them as throwaway tests (project short code + test/valid/verif),
+ *              and empty branches (no commits of its own, so nothing to lose
+ *              and a session may be about to use it).                  -> keep
  *   Archive    merged by a PR whose head was exactly this tip; or a
  *              `push-check/` branch the default branch already contains;
  *              or last commit older than ARCHIVE_DAYS with no open PR. -> delete
@@ -30,11 +32,15 @@
  *   BRANCHES                 optional space/comma list: delete exactly these
  *                            instead of running the sweep (see runList)
  *   PROTECTED_BRANCHES       space-separated names that are never touched
+ *   PROJECT_SHORTCODE        e.g. AIF; defaults to .aiconfig.json's
+ *                            project_shortname (else project_name). Without
+ *                            one, no branch counts as a throwaway test, so
+ *                            every unrelated-history branch is kept.
  *   ACTIVE_DAYS (7), ARCHIVE_DAYS (14)
  *   GITHUB_STEP_SUMMARY      file the Markdown report is appended to
  */
 
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const DAY_MS = 86_400_000;
@@ -56,11 +62,28 @@ export const STALE_LABEL = 'stale';
  * @typedef {object} Config
  * @property {string} defaultBranch
  * @property {string[]} protectedBranches
+ * @property {string} shortcode  Project short code; '' when unknown.
  * @property {number} activeDays
  * @property {number} archiveDays
  *
  * @typedef {{category: 'Mandatory'|'Archive'|'Active'|'Stale', reason: string}} Verdict
  */
+
+/**
+ * A throwaway test branch is named with the project short code and a test,
+ * validation or verification word (`AIF-test/ping`, `AIF-010-verification`).
+ * Unrelated-history branches named like this are not exempt from cleanup;
+ * long-lived ones (`docs`, `agent-testing`) carry no short code.
+ *
+ * @param {string} name
+ * @param {string} shortcode
+ */
+export function isThrowawayTestName(name, shortcode) {
+  if (!shortcode) return false;
+  const escaped = shortcode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const hasShortcode = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i').test(name);
+  return hasShortcode && /test|valid|verif/i.test(name);
+}
 
 /** @param {Date} later @param {Date} earlier */
 const wholeDays = (later, earlier) => Math.floor((later.getTime() - earlier.getTime()) / DAY_MS);
@@ -80,6 +103,12 @@ export function classify(f, cfg, now) {
     return { category: 'Mandatory', reason: 'protected branch' };
   }
   if (f.merged) return { category: 'Archive', reason: 'merged by a PR' };
+  if (f.ahead === null && !isThrowawayTestName(f.name, cfg.shortcode)) {
+    return {
+      category: 'Mandatory',
+      reason: 'not forked from the default branch (unrelated history)',
+    };
+  }
   if (f.ahead === 0) {
     if (f.name.startsWith('push-check/')) {
       return {
@@ -477,19 +506,38 @@ export function renderSummary(rows, { mode, enforce }) {
   return `${lines.join('\n')}\n`;
 }
 
+/** The repo's own convention: project_shortname, falling back to project_name. */
+function shortcodeFrom(aiconfig) {
+  return aiconfig?.project_shortname ?? aiconfig?.project_name ?? '';
+}
+
+/** @returns {any} the parsed .aiconfig.json, or null if there isn't a readable one. */
+function readAiconfigFile() {
+  try {
+    return JSON.parse(readFileSync('.aiconfig.json', 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 /**
  * @param {Record<string, string|undefined>} env
  * @param {ReturnType<typeof createApi>} api
- * @param {{now?: Date, log?: (s: string) => void}} [opts]
+ * @param {{now?: Date, log?: (s: string) => void, readAiconfig?: () => any}} [opts]
  * @returns {Promise<{rows: Row[], summary: string, failed: boolean}>}
  */
-export async function run(env, api, { now = new Date(), log = () => {} } = {}) {
+export async function run(
+  env,
+  api,
+  { now = new Date(), log = () => {}, readAiconfig = readAiconfigFile } = {},
+) {
   const repo = env.REPO;
   if (!repo) throw new Error('REPO is required');
   const { data } = await api.request('GET', `/repos/${repo}`);
   const cfg = {
     defaultBranch: data.default_branch,
     protectedBranches: (env.PROTECTED_BRANCHES ?? '').split(/\s+/).filter(Boolean),
+    shortcode: env.PROJECT_SHORTCODE ?? shortcodeFrom(readAiconfig()),
     activeDays: Number(env.ACTIVE_DAYS ?? 7),
     archiveDays: Number(env.ARCHIVE_DAYS ?? 14),
   };

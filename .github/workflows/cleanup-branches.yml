@@ -41,7 +41,9 @@ env:
   DRY_RUN: ${{ inputs.dry_run }}
   BRANCHES: ${{ inputs.branches }}
   # Never touched, and never deleted by an explicit list. The default branch is
-  # always protected too. Edit this list as needed.
+  # always protected too. Branches with unrelated history are also kept unless
+  # their name has the project short code and a test/valid/verif word (the
+  # script reads the short code from .aiconfig.json). Edit this list as needed.
   PROTECTED_BRANCHES: "cloud-sandbox agent-testing docs"
   # A branch is Active under ACTIVE_DAYS, Stale up to ARCHIVE_DAYS, then Archive.
   ACTIVE_DAYS: 7
@@ -53,10 +55,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # The script also reads the project short code from .aiconfig.json.
       - name: Checkout the cleanup script
         uses: actions/checkout@v5
         with:
-          sparse-checkout: .github/scripts
+          sparse-checkout: |
+            /.github/scripts/
+            /.aiconfig.json
+          sparse-checkout-cone-mode: false
           persist-credentials: false
 
       - name: Run branch cleanup

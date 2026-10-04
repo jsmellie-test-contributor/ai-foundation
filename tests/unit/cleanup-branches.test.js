@@ -16,6 +16,7 @@ const {
   classify,
   createApi,
   isPlainBranchName,
+  isThrowawayTestName,
   parseBranchList,
   renderSummary,
   run,
@@ -28,6 +29,7 @@ const daysAgo = (n) => new Date(NOW.getTime() - n * 86_400_000 - 60_000);
 const CFG = {
   defaultBranch: 'main',
   protectedBranches: ['cloud-sandbox', 'agent-testing', 'docs'],
+  shortcode: 'AIF',
   activeDays: 7,
   archiveDays: 14,
 };
@@ -96,10 +98,34 @@ describe('classify', () => {
       /reopened/,
     ],
     [
-      'unrelated history ages out like any other branch',
-      { name: 'e-test/20261001-002928', ahead: null, lastCommit: daysAgo(30) },
+      'unrelated history is kept when the name does not mark a throwaway test',
+      { name: 'scratch', ahead: null, lastCommit: daysAgo(300) },
+      'Mandatory',
+      /unrelated history/,
+    ],
+    [
+      'a test name without the short code is kept (agent-testing style)',
+      { name: 'e-test/20261001-002928', ahead: null, lastCommit: daysAgo(300) },
+      'Mandatory',
+      /unrelated history/,
+    ],
+    [
+      'the short code without a test word is kept',
+      { name: 'AIF-docs', ahead: null, lastCommit: daysAgo(300) },
+      'Mandatory',
+      /unrelated history/,
+    ],
+    [
+      'unrelated history named AIF + test ages out like any other branch',
+      { name: 'AIF-test/20261001-002928', ahead: null, lastCommit: daysAgo(30) },
       'Archive',
       /30d/,
+    ],
+    [
+      'unrelated AIF + verification branch that is recent is Active',
+      { name: 'AIF-010-verification', ahead: null, lastCommit: daysAgo(2) },
+      'Active',
+      /2d/,
     ],
   ];
   for (const [title, overrides, category, reason] of cases) {
@@ -117,6 +143,33 @@ describe('classify', () => {
         assert.notEqual(v.category, 'Archive', `PR ${age}d, commit ${commit}d`);
       }
     }
+  });
+});
+
+describe('isThrowawayTestName', () => {
+  it('needs both the short code and a test, validation or verification word', () => {
+    for (const n of ['AIF-test/ping', 'AIF-010-verification', 'aif_validation', 'x/AIF/tests']) {
+      assert.equal(isThrowawayTestName(n, 'AIF'), true, n);
+    }
+    for (const n of [
+      'e-test/1',
+      'agent-testing',
+      'docs',
+      'AIF-010/work',
+      'waif-test/x',
+      'AIFtest',
+    ]) {
+      assert.equal(isThrowawayTestName(n, 'AIF'), false, n);
+    }
+  });
+  it('is never true without a short code, so unrelated branches are kept', () => {
+    assert.equal(isThrowawayTestName('AIF-test/ping', ''), false);
+    const v = classify(
+      facts({ name: 'AIF-test/ping', ahead: null, lastCommit: daysAgo(300) }),
+      { ...CFG, shortcode: '' },
+      NOW,
+    );
+    assert.equal(v.category, 'Mandatory');
   });
 });
 
@@ -237,7 +290,8 @@ const WORLD = () => ({
     branch('claude/landed', 'sha_landed', 2),
     branch('claude/empty', 'sha_empty', 60, 0),
     branch('push-check/done', 'sha_pc', 3, 0),
-    branch('e-test/20261001-002928', 'sha_etest', 30, null),
+    branch('AIF-test/20261001-002928', 'sha_etest', 30, null),
+    branch('e-test/legacy', 'sha_legacy', 90, null),
   ],
   openPrs: [
     { number: 10, ref: 'AIF-1/work', createdAt: daysAgo(1) },
@@ -274,7 +328,8 @@ describe('runSweep', () => {
       'claude/landed': 'Archive',
       'claude/empty': 'Mandatory',
       'push-check/done': 'Archive',
-      'e-test/20261001-002928': 'Archive',
+      'AIF-test/20261001-002928': 'Archive',
+      'e-test/legacy': 'Mandatory',
       main: 'Mandatory',
     });
   });
@@ -284,9 +339,9 @@ describe('runSweep', () => {
     await runSweep({ api, repo: 'o/r', cfg, enforce: true, now: NOW });
     const deleted = api.calls.filter((c) => c.method === 'DELETE').map((c) => c.path);
     assert.deepEqual(deleted.sort(), [
+      '/repos/o/r/git/refs/heads/AIF-test/20261001-002928',
       '/repos/o/r/git/refs/heads/claude/ancient',
       '/repos/o/r/git/refs/heads/claude/landed',
-      '/repos/o/r/git/refs/heads/e-test/20261001-002928',
       '/repos/o/r/git/refs/heads/push-check/done',
     ]);
     const paths = api.calls.map((c) => `${c.method} ${c.path}`);
