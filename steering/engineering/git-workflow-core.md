@@ -1,6 +1,6 @@
 ---
 name: 'git-workflow-core'
-version: '0.7.0'
+version: '0.7.1'
 description: 'Git workflow rules shared by every repo type — commit hygiene, ai-git usage, token handling, PR stewardship, the required-CI gate on main, and branch naming and lifecycle.'
 file_patterns: []
 ---
@@ -77,13 +77,13 @@ file_patterns: []
 
 ### Rule: Branches Age Out Unless Protected
 
-- Name branches by purpose: `{plan-id}/{short-description}` for governed work (see `git-workflow-projects.md`: "Branch Naming Convention"), `claude/…` for cloud-session branches, `push-check/…` for CI-gated landing (see `git-workflow-framework.md`: "Main Only Accepts Commits That Have Already Passed CI"). A throwaway or badly named branch gets no special treatment — it ages out like any other.
+- Name branches by purpose: `{plan-id}/{short-description}` for governed work (see `git-workflow-projects.md`: "Branch Naming Convention"), `claude/…` for cloud-session branches, `push-check/…` for CI-gated landing (see `git-workflow-framework.md`: "Main Only Accepts Commits That Have Already Passed CI"). A throwaway test or validation branch is `{SHORT}-test/{short-description}`: the project short code plus a test/valid/verif word is what marks it throwaway. A badly named branch gets no special treatment — it ages out like any other.
 - Don't rely on a branch surviving. A scheduled workflow (`.github/workflows/cleanup-branches.yml`) sorts every branch except the default and the protected list:
+  - **Mandatory** — the default branch, the protected list, and any branch not forked from the default branch (unrelated history, e.g. `docs`, `agent-testing`) unless it is named as a throwaway test, which then ages out like any other. Empty branches (no commits of their own) are also kept, except landed `push-check/` branches. Never deleted.
   - **Active** — last commit under 7 days ago, or an open PR under 7 days old. Kept.
   - **Stale** — last commit 7–14 days ago, or an open PR 7 days old or older. The PR is closed and labelled `stale`; the branch is kept.
   - **Archive** — merged by a PR, a `push-check/` branch already contained in the default branch, or a last commit over 14 days old with no open PR. Deleted.
-  - Empty branches (no commits of their own) are never deleted, except landed `push-check/` branches.
-- Land work, or open a PR, promptly: an unmerged branch with no activity for two weeks is deleted. Which branches are protected (`docs`, `agent-testing`, `cloud-sandbox`) is set in the workflow's `PROTECTED_BRANCHES`; ask the human to add one rather than working around the cleanup.
+- Land work, or open a PR, promptly: an unmerged branch with no activity for two weeks is deleted. Branches that must live despite the rules go in the workflow's `PROTECTED_BRANCHES` (`docs`, `agent-testing` and `cloud-sandbox` are there too); ask the human to add one rather than working around the cleanup.
 
 ---
 
