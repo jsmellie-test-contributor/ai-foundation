@@ -1,7 +1,7 @@
 ---
 name: 'git-workflow-core'
-version: '0.5.0'
-description: 'Git workflow rules shared by every repo type — commit hygiene, ai-git usage, token handling, and PR stewardship.'
+version: '0.6.0'
+description: 'Git workflow rules shared by every repo type — commit hygiene, ai-git usage, token handling, PR stewardship, and the required-CI gate on main.'
 file_patterns: []
 ---
 
@@ -68,6 +68,13 @@ file_patterns: []
 
 ---
 
+### Rule: Required CI Checks Gate Main — Never Bypass Them
+
+- `main` only accepts commits whose required status checks have passed. Never bypass that gate: no admin override, no push through a ruleset bypass list, and no disabling, weakening, renaming, or skipping a required check (including editing the workflow or ruleset to make it pass).
+- If a required check is failing for a valid reason — a pre-existing breakage, an infrastructure fault, a check that is itself wrong — do not work around it. Escalate up the chain: to the managing agent if there is one, otherwise to the human, with the failing check, the reason, and what you need.
+
+---
+
 ## Enforcement
 
 - **Non-atomic or oversized commits:** Caught during review. A commit covering multiple logical changes, or exceeding the message-length limit without being a merge commit, is a LOW finding — the agent should have split it.
@@ -75,6 +82,7 @@ file_patterns: []
 - **Raw `git`/`gh` usage instead of `ai-git`:** Mechanically blocked via `blocked_commands` on any agent holding write/shell access — see that agent's own definition. Any usage that bypasses this is a HIGH finding at review.
 - **Supplying, inferring, or asking for a git identity:** A HIGH finding at review — commits attributed to the wrong identity, or an identity requested from the human.
 - **Logging or echoing the token value:** A CRITICAL finding, not a style issue — this is credential exposure. See `steering/global/core.md`: "Security Requirements Are Never Optional".
+- **Bypassing required CI checks:** A HIGH finding — any use of a bypass, override, or change to a check or ruleset to land a commit that has not passed CI.
 - **Abandoned-PR violations:** A red or conflicted PR sitting unattended with no blocker reported is a HIGH finding — the opening agent should have followed `skill/pr-stewardship`.
 
 ---

@@ -2,7 +2,7 @@
 section: '02'
 title: 'Constraints'
 lifecycle: published
-last_verified: e7c381b
+last_verified: b28290a
 tags: [constraints]
 key_files:
   - package.json
@@ -28,10 +28,11 @@ key_files:
 
 ## Organizational constraints
 
-| Constraint                         | Detail                                                                                                                       |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Human approves plans and decisions | No agent may set a plan or ADR to `Approved`; only a human confirms (`skill/plan-lifecycle`).                                |
-| Human merges to `main`             | Agents open PRs; only a human merges (`steering/engineering/git-workflow-projects.md`: "Human Reviews and Merges Every PR"). |
+| Constraint                         | Detail                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Human approves plans and decisions | No agent may set a plan or ADR to `Approved`; only a human confirms (`skill/plan-lifecycle`).                                                                                                                                                                                                                                                                           |
+| Human merges to `main`             | In project repos, agents open PRs and only a human merges (`steering/engineering/git-workflow-projects.md`: "Human Reviews and Merges Every PR"). Framework repos have no PRs — see the next row.                                                                                                                                                                       |
+| CI gates `main`                    | `main` only accepts commits whose required status checks have passed; agents never bypass them and escalate a failure that has a valid reason (`steering/engineering/git-workflow-core.md`: "Required CI Checks Gate Main — Never Bypass Them"). A framework repo gets a commit its CI run on a `push-check/**` branch, then fast-forwards `main` to that exact commit. |
 
 ## Conventions
 
@@ -39,6 +40,6 @@ key_files:
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `node:test` over a third-party test runner | Jest/Vitest/Mocha appear nowhere in `package-lock.json` — the built-in `node:test` runner is used throughout `tests/`. A tooling choice, not an externally-imposed constraint.                                                                                                                                                                                                               |
 | Commit messages                            | Imperative mood, under 70 characters (`steering/engineering/git-workflow-core.md`: "Commits Must Be Atomic"), Plan ID included where one governs the change (`steering/engineering/git-workflow-projects.md`: "Include Plan ID in the First Commit").                                                                                                                                        |
-| Branch naming                              | `{plan-id}/{short-description}` for governed work (same source).                                                                                                                                                                                                                                                                                                                             |
+| Branch naming                              | `{plan-id}/{short-description}` for governed work (same source); `push-check/{short-description}` for a framework-repo commit that lands on `main` without a PR.                                                                                                                                                                                                                             |
 | Artifact file naming                       | Type suffix in the filename (`.plan.md`, `.test-results.md`) identifies what a file is without opening it. Two exceptions: the Feature Plan is the bare suffix `plan.md` with no FeatureID prefix, since identity comes from its parent `plans/features/{FeatureID}/` directory; ADRs are a flat, bare `NNNN-slug.md` under `docs/decisions/`, MADR's own ID scheme (`skill/adr-authoring`). |
 | Frontmatter-first docs                     | Structured, machine-readable values (status, tags, file references) live in YAML frontmatter; prose lives in the body. Applies to arc42 sections and ADRs alike (`skill/adr-authoring`).                                                                                                                                                                                                     |

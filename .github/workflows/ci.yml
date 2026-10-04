@@ -1,13 +1,18 @@
 name: CI
 
 on:
-  # PRs (any branch) get a run so contributors see results before merging;
-  # a bare push only triggers one on main. Pushing to a feature branch with
-  # no open PR does NOT trigger CI — avoids paying for runs on WIP commits
-  # nobody's reviewing yet. Open a PR (or push to main) to get one.
+  # PRs (any branch) get a run so contributors see results before merging.
+  # A bare push only triggers one on main and on `push-check/**` branches.
+  # Pushing to any other feature branch with no open PR does NOT trigger CI —
+  # avoids paying for runs on WIP commits nobody's reviewing yet. `main`'s
+  # required status checks reject a commit that hasn't passed CI, so the
+  # PR-less way to land one is: push it to a `push-check/**` branch, wait for
+  # green, then fast-forward `main` to that exact commit (see
+  # steering/engineering/git-workflow-framework.md).
   push:
     branches:
       - main
+      - "push-check/**"
   pull_request:
 
 concurrency:
@@ -39,6 +44,10 @@ jobs:
   validate:
     name: Validate
     runs-on: ubuntu-latest
+    outputs:
+      # "false" only when every changed file is under docs/ — see the
+      # "Detect docs-only change" step. The Node test jobs read this.
+      code_changed: ${{ steps.changes.outputs.code_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -69,6 +78,42 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Detect docs-only change
+        id: changes
+        # The Node test jobs only matter when something other than docs/
+        # changed (the docs index/link/citation checks all run in this job).
+        # Diff base: a PR's base commit; a push to main's previous tip; any
+        # other push, the merge-base with main. Anything unknown or failing
+        # (first push, all-zeros SHA, git error) fails safe to
+        # code_changed=true, so tests run.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          code_changed=true
+          base=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            base="$PR_BASE_SHA"
+          elif [ "$REF_NAME" = "main" ]; then
+            base="$BEFORE_SHA"
+          else
+            base="$(git merge-base origin/main HEAD || true)"
+          fi
+          if [ -n "$base" ] && [ "$base" != "0000000000000000000000000000000000000000" ] \
+            && changed="$(git diff --name-only "$base" HEAD)" && [ -n "$changed" ]; then
+            if printf '%s\n' "$changed" | grep -qv '^docs/'; then
+              code_changed=true
+            else
+              code_changed=false
+            fi
+          fi
+          echo "Changed files vs ${base:-<none>}:"
+          printf '%s\n' "${changed:-<unknown>}"
+          echo "code_changed=$code_changed"
+          echo "code_changed=$code_changed" >> "$GITHUB_OUTPUT"
+
       - name: "Check: lint"
         run: npm run lint
 
@@ -91,26 +136,40 @@ jobs:
         run: node bin/aif.js index decisions --check
 
       - name: "Check: version bump"
-        # Only main triggers a `push` event now, and it only ever moves
-        # forward one accepted state at a time, so that case diffs against
-        # its own previous tip (github.event.before — empty or all-zeros on
-        # the very first commit, which skips the check). Every PR diffs
-        # against whichever still-existing branch it was most recently
-        # forked from (see auto-parent mode in the script), found via
-        # merge-base rather than assumed to be main — this also means a
-        # branch's own follow-up pushes (e.g. a typo fix) compare against
-        # that ancestor's tip, not against each other, so they don't demand
-        # a fresh version bump every time. github.head_ref is only set for
-        # pull_request events, which is the only case reaching this branch.
+        # A push to main only ever moves forward one accepted state at a
+        # time, so that case diffs against its own previous tip
+        # (github.event.before — empty or all-zeros on the very first
+        # commit, which skips the check). Every PR, and every push to a
+        # `push-check/**` branch, diffs against whichever still-existing
+        # branch it was most recently forked from (see auto-parent mode in
+        # the script), found via merge-base rather than assumed to be main —
+        # this also means a branch's own follow-up pushes (e.g. a typo fix)
+        # compare against that ancestor's tip, not against each other, so
+        # they don't demand a fresh version bump every time. The branch name
+        # is github.head_ref on a PR and github.ref_name on a push. Both go
+        # through env vars, not inline ${{ }}, so a branch name can't inject
+        # shell.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            node .github/scripts/check-version-bumps.mjs sha "${{ github.event.before }}"
+          if [ "$EVENT_NAME" = "push" ] && [ "$REF_NAME" = "main" ]; then
+            node .github/scripts/check-version-bumps.mjs sha "$BEFORE_SHA"
           else
-            node .github/scripts/check-version-bumps.mjs auto-parent "${{ github.head_ref }}"
+            node .github/scripts/check-version-bumps.mjs auto-parent "${HEAD_REF:-$REF_NAME}"
           fi
 
+  # The two test jobs wait on Validate for its docs-only verdict and are
+  # skipped when only docs/ changed. A job skipped by an `if:` reports
+  # "Skipped", which a required status check counts as passing — unlike a
+  # workflow skipped by a `paths:` filter, which leaves the check Pending
+  # forever and blocks the merge. Don't move this filter to `on:`.
   test-node-min:
     name: Test (Node 22.x, min)
+    needs: validate
+    if: needs.validate.outputs.code_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -130,6 +189,8 @@ jobs:
 
   test-node-max:
     name: Test (Node 26.x, max)
+    needs: validate
+    if: needs.validate.outputs.code_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
