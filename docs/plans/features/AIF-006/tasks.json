@@ -1,0 +1,25 @@
+{
+  "feature_id": "AIF-006",
+  "tasks": [
+    {
+      "id": "001",
+      "title": "Resolver: requires_skills reader, transitive closure, resolveBundle integration, tests",
+      "depends_on": []
+    },
+    {
+      "id": "002",
+      "title": "Validator: requires_skills schema/existence checks and skill-mention classifier, tests",
+      "depends_on": ["001"]
+    },
+    {
+      "id": "003",
+      "title": "Declarations and ignore markers across skills/steering, Architect adr-authoring, version bumps",
+      "depends_on": ["002"]
+    },
+    {
+      "id": "004",
+      "title": "Docs: AGENTS.md, skill/steering-authoring, schema refs, arc42 sections and last_verified",
+      "depends_on": ["003"]
+    }
+  ]
+}

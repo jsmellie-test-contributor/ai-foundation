@@ -12,7 +12,7 @@
 | Created             | 2026-09-30 00:00                                                                                                                                          |
 | Last Updated        | 2026-10-02                                                                                                                                                |
 | Standards           | `javascript`, `node` (resolver, validator and tests — real runtime code); AGENTS.md component schemas (skill, steering and agent frontmatter and prompts) |
-| Total Tasks         | {filled after decomposition}                                                                                                                              |
+| Total Tasks         | 4                                                                                                                                                         |
 | Product Requirement | None                                                                                                                                                      |
 | ADRs                | None                                                                                                                                                      |
 
@@ -185,9 +185,9 @@ Design follows `steering/engineering/core.md`: "Design for Testability" — the 
 
 ## 9. Task Decomposition
 
-Dependency graph: [`tasks.json`](./tasks.json) — not yet produced; decomposition follows approval (`skill/feature-planning`: "Decompose into Tasks").
+Dependency graph: [`tasks.json`](./tasks.json).
 
-Summary: {filled after decomposition}. Expected shape, not binding: resolver and closure with unit tests; mention classifier and validator checks; declarations and the Architect change; authoring docs, AGENTS.md and arc42 bumps last.
+Summary: 4 Tasks in 4 sequential waves (001 resolver and closure → 002 validator and mention classifier → 003 declarations, ignore markers and Architect change → 004 docs and arc42 bumps). The chain is linear because each Task builds on the previous one's code or on the validator's checks; no parallelism is available.
 
 Landing order (human decision 2026-10-01): after `AIF-008` and `AIF-007` (008, then 007, then 006, then `AIF-005`), because the validator checks the skill and steering files `AIF-008` rewrites (`skill/pr-stewardship`, `git-workflow-core.md`). The zero-errors-and-warnings criterion is evaluated on the tree rebased onto those changes, with snapshots regenerated and versions bumped again where a file changed in both.
 
