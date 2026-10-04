@@ -29,11 +29,11 @@
     {
       "id": "003",
       "wave": 2,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-010/003-tool-set-tests",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/003-tool-set-tests",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 97,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/97",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -250,6 +250,20 @@
       "action": "task_dispatched",
       "task_id": "003",
       "details": "software-engineer; AIF-010/003-tool-set-tests"
+    },
+    {
+      "timestamp": "2026-10-04T01:17:20.418Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "003",
+      "details": "PR 97 draft"
+    },
+    {
+      "timestamp": "2026-10-04T01:17:20.418Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
