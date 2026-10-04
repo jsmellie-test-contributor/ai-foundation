@@ -1,7 +1,7 @@
 {
   "feature_id": "AIF-010",
   "status": "In Progress",
-  "current_wave": 2,
+  "current_wave": 3,
   "total_waves": 4,
   "tasks": [
     {
@@ -31,7 +31,7 @@
       "wave": 2,
       "status": "Done",
       "branch": "AIF-010/003-tool-set-tests",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/003-tool-set-tests",
+      "worktree_path": "",
       "pr_number": 97,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/97",
       "iterations": 1,
@@ -40,9 +40,9 @@
     {
       "id": "004",
       "wave": 3,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-010/004-agent-tool-grants",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/004-agent-tool-grants",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -51,9 +51,9 @@
     {
       "id": "005",
       "wave": 3,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-010/005-skill-degradation-docs",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/005-skill-degradation-docs",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -278,6 +278,41 @@
       "action": "task_status_changed",
       "task_id": "003",
       "details": "Implementing -> Done (iter 1); PR 97 ready"
+    },
+    {
+      "timestamp": "2026-10-04T13:41:57.639Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "003",
+      "details": "PR 97 merged"
+    },
+    {
+      "timestamp": "2026-10-04T13:41:57.640Z",
+      "agent": "engineering-manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 2"
+    },
+    {
+      "timestamp": "2026-10-04T13:41:57.640Z",
+      "agent": "engineering-manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 3: 004, 005"
+    },
+    {
+      "timestamp": "2026-10-04T13:41:57.640Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "004",
+      "details": "software-engineer; AIF-010/004-agent-tool-grants"
+    },
+    {
+      "timestamp": "2026-10-04T13:41:57.640Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "005",
+      "details": "software-engineer; AIF-010/005-skill-degradation-docs"
     }
   ]
 }
