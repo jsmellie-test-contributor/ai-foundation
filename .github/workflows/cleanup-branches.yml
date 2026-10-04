@@ -4,13 +4,14 @@ name: Cleanup branches
 # week. There is deliberately no push trigger: `main` is pushed many times a
 # week, and every job is billed a full minute minimum however short it runs.
 #
-# - `push-check/**` branches exist only to give a commit its CI run before it
-#   is fast-forwarded to `main` (steering/engineering/git-workflow-framework.md).
-#   Any such branch `main` already contains is deleted.
-# - `claude/**` cloud-session branches are deleted when stale: no open PR and a
-#   last commit older than STALE_DAYS.
-# - A manual dispatch can instead name specific branches to delete; the
-#   automatic sweep is then skipped.
+# The rules (categories, thresholds, what is kept) live in
+# .github/scripts/cleanup-branches.mjs and are summarised in
+# steering/engineering/git-workflow-core.md: "Branches Age Out Unless
+# Protected". Every run writes a report to the job summary, including the list
+# of Stale branches.
+#
+# A manual dispatch can instead name specific branches to delete; the sweep is
+# then skipped. Both modes have a dry run.
 on:
   schedule:
     # Mondays and Thursdays, 06:17 UTC.
@@ -18,136 +19,45 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Only report what would be deleted"
+        description: "Only report what would be done"
         type: boolean
         default: false
       branches:
-        description: "Branches to delete instead of the automatic sweep (space or comma separated). The default branch, protected branches and branches with an open PR are refused."
+        description: "Branches to delete instead of the sweep (space or comma separated). The default branch, protected branches and branches with an open PR are refused."
         type: string
         default: ""
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
 
 env:
   GH_TOKEN: ${{ github.token }}
   REPO: ${{ github.repository }}
-  # Empty on a scheduled run, so only a manual dispatch can set it.
+  # Report only until this is "true". Scheduled runs only ever report while it
+  # is "false"; flip it after reading the first job summary.
+  ENFORCE: "false"
+  # Empty on a scheduled run, so only a manual dispatch can set these.
   DRY_RUN: ${{ inputs.dry_run }}
   BRANCHES: ${{ inputs.branches }}
-  # Never deleted by an explicit list, whatever the reason given. The default
-  # branch is refused as well. Edit this list as needed.
-  PROTECTED_BRANCHES: "main cloud-sandbox agent-testing docs"
-  STALE_DAYS: 14
+  # Never touched, and never deleted by an explicit list. The default branch is
+  # always protected too. Edit this list as needed.
+  PROTECTED_BRANCHES: "cloud-sandbox agent-testing docs"
+  # A branch is Active under ACTIVE_DAYS, Stale up to ARCHIVE_DAYS, then Archive.
+  ACTIVE_DAYS: 7
+  ARCHIVE_DAYS: 14
 
 jobs:
-  sweep:
-    name: Delete landed and stale branches
+  cleanup:
+    name: Sort, report and clean up branches
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Manual dispatch with a branch list: delete exactly those branches and
-      # nothing else. Input reaches the shell only through env vars, is split
-      # without globbing, and each name must look like a plain branch name.
-      - name: Delete the listed branches
-        if: github.event_name == 'workflow_dispatch' && inputs.branches != ''
-        run: |
-          default_branch="$(gh api "repos/$REPO" --jq .default_branch)"
-          open_heads="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
-            --jq '.[] | select(.head.repo.full_name == env.REPO) | .head.ref')"
-          read -ra names <<< "${BRANCHES//,/ }"
-          refused=0
-          for name in "${names[@]}"; do
-            name="${name#refs/heads/}"
-            if ! [[ "$name" =~ ^[A-Za-z0-9_][A-Za-z0-9._/-]*$ ]] \
-              || [[ "$name" == *..* || "$name" == *//* || "$name" == */ || "$name" == *. || "$name" == *.lock ]]; then
-              echo "::error::refusing '$name': not a plain branch name"
-              refused=1
-              continue
-            fi
-            if [ "$name" = "$default_branch" ] || [[ " $PROTECTED_BRANCHES " == *" $name "* ]]; then
-              echo "::error::refusing $name: default or protected branch"
-              refused=1
-              continue
-            fi
-            if printf '%s\n' "$open_heads" | grep -Fxq -- "$name"; then
-              echo "::error::refusing $name: it has an open PR (deleting it would close the PR)"
-              refused=1
-              continue
-            fi
-            if ! gh api "repos/$REPO/git/ref/heads/$name" --silent 2>/dev/null; then
-              echo "::warning::$name does not exist; skipping"
-              continue
-            fi
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "[dry run] would delete $name (listed)"
-            else
-              echo "Deleting $name (listed)"
-              gh api -X DELETE "repos/$REPO/git/refs/heads/$name" \
-                || { echo "::error::could not delete $name"; refused=1; }
-            fi
-          done
-          exit "$refused"
+      - name: Checkout the cleanup script
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
 
-      # Deletes every push-check/** branch whose tip is already contained in
-      # the current main (compare status "identical" or "ahead" — i.e. the
-      # branch is fully merged, so no commit is lost). A branch that is ahead
-      # of, or diverged from, main is still in flight and is left alone.
-      # Branch names and SHAs only ever reach the shell as quoted variables.
-      - name: Delete push-check branches contained in main
-        if: github.event_name != 'workflow_dispatch' || inputs.branches == ''
-        run: |
-          main_sha="$(gh api "repos/$REPO/commits/main" --jq .sha)"
-          gh api --paginate "repos/$REPO/git/matching-refs/heads/push-check/" \
-            --jq '.[] | "\(.ref) \(.object.sha)"' |
-          while read -r ref sha; do
-            status="$(gh api "repos/$REPO/compare/$sha...$main_sha" --jq .status || true)"
-            case "$status" in
-              identical|ahead)
-                if [ "$DRY_RUN" = "true" ]; then
-                  echo "[dry run] would delete $ref (contained in main)"
-                else
-                  echo "Deleting $ref (contained in main)"
-                  gh api -X DELETE "repos/$REPO/git/$ref" \
-                    || echo "::warning::could not delete $ref"
-                fi
-                ;;
-              *)
-                echo "Keeping $ref (status: ${status:-unknown})"
-                ;;
-            esac
-          done
-
-      # Deletes a claude/** branch when it has no open PR and its last commit
-      # is older than STALE_DAYS, merged or not.
-      - name: Delete stale claude branches
-        if: github.event_name != 'workflow_dispatch' || inputs.branches == ''
-        run: |
-          open_heads="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
-            --jq '.[] | select(.head.repo.full_name == env.REPO) | .head.ref')"
-          cutoff="$(date -u -d "$STALE_DAYS days ago" +%s)"
-          gh api --paginate "repos/$REPO/git/matching-refs/heads/claude/" \
-            --jq '.[] | "\(.ref) \(.object.sha)"' |
-          while read -r ref sha; do
-            name="${ref#refs/heads/}"
-            if printf '%s\n' "$open_heads" | grep -Fxq -- "$name"; then
-              echo "Keeping $ref (open PR)"
-              continue
-            fi
-            if ! committed="$(gh api "repos/$REPO/commits/$sha" --jq .commit.committer.date)"; then
-              echo "::warning::could not read last commit of $ref; keeping it"
-              continue
-            fi
-            if [ "$(date -u -d "$committed" +%s)" -lt "$cutoff" ]; then
-              if [ "$DRY_RUN" = "true" ]; then
-                echo "[dry run] would delete $ref (last commit $committed, no open PR)"
-              else
-                echo "Deleting $ref (last commit $committed, no open PR)"
-                gh api -X DELETE "repos/$REPO/git/$ref" \
-                  || echo "::warning::could not delete $ref"
-              fi
-            else
-              echo "Keeping $ref (last commit $committed, within $STALE_DAYS days)"
-            fi
-          done
+      - name: Run branch cleanup
+        run: node .github/scripts/cleanup-branches.mjs
