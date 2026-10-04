@@ -15,6 +15,8 @@
  *
  * The expected clusters below are deliberately literal and independent of
  * `TOOL_MAP`, so a change to a cluster fails here and must be made on purpose.
+ * The cluster literals are intentionally duplicated in tests/unit/claude-adapter.test.js and
+ * tests/validation/agent-tool-sets.test.js; a deliberate cluster change must edit all three.
  * Per-agent resolution lives in tests/validation/agent-tool-sets.test.js.
  */
 
@@ -111,7 +113,7 @@ describe('resolved tool sets: platform-tool groups', () => {
     for (const group of GROUPS) {
       it(group, () => {
         const result = claudeResolve([group], [group]);
-        assert.deepEqual(result.tools, CLAUDE_GROUP_CLUSTERS[group]);
+        assert.deepEqual(result.tools.toSorted(), CLAUDE_GROUP_CLUSTERS[group].toSorted());
         assert.deepEqual(result.dropped, []);
       });
     }
@@ -128,7 +130,10 @@ describe('resolved tool sets: platform-tool groups', () => {
 
     it('resolves all groups together to the union of the clusters, nothing dropped', () => {
       const result = claudeResolve(GROUPS);
-      assert.deepEqual(result.tools, Object.values(CLAUDE_GROUP_CLUSTERS).flat());
+      assert.deepEqual(
+        result.tools.toSorted(),
+        Object.values(CLAUDE_GROUP_CLUSTERS).flat().toSorted(),
+      );
       assert.deepEqual(result.dropped, []);
     });
   });

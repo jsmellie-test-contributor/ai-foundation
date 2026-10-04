@@ -18,6 +18,8 @@
  * CLAUDE_NATIVE / KIRO_UNSUPPORTED tables, which are independent of the
  * adapters' `TOOL_MAP`. Changing an agent yaml without updating AGENT_GRANTS
  * fails the "grants match" test; adding an agent without an entry fails too.
+ * The cluster literals are intentionally duplicated in tests/unit/claude-adapter.test.js and
+ * tests/unit/resolved-tool-sets.test.js; a deliberate cluster change must edit all three.
  * Order is not a grant, so sets are compared sorted.
  */
 
