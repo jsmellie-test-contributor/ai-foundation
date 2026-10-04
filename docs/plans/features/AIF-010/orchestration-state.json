@@ -43,8 +43,8 @@
       "status": "Implementing",
       "branch": "AIF-010/004-agent-tool-grants",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/004-agent-tool-grants",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 99,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/99",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -313,6 +313,13 @@
       "action": "task_dispatched",
       "task_id": "005",
       "details": "software-engineer; AIF-010/005-skill-degradation-docs"
+    },
+    {
+      "timestamp": "2026-10-04T13:49:18.760Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "004",
+      "details": "PR 99 draft"
     }
   ]
 }
