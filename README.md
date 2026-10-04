@@ -193,7 +193,7 @@ Set these in the environment's **Environment variables**, never in the script:
 `.claude/settings.json` runs `scripts/session-start.sh` at session start. In cloud
 sessions only (`CLAUDE_CODE_REMOTE=true`) it runs, in order:
 
-1. `npm ci --ignore-scripts --omit=dev`: this repo's lockfile-pinned production dependencies, which `aif` needs (`npm link` alone does not install them). Fails on lockfile drift.
+1. `npm ci --ignore-scripts`: this repo's lockfile-pinned dependencies, dev included so a session can run the full CI locally; `aif` needs the production ones (`npm link` alone does not install them). Fails on lockfile drift. A project's own scaffolded SessionStart hook should install production dependencies only (`--omit=dev`).
 2. `npm link --ignore-scripts`: puts `ai-git` and `aif` on PATH.
 3. `aif install -B $AIF_BUNDLES -H claude`, only if `AIF_BUNDLES` is set.
 4. `ai-git doctor`: report only.
