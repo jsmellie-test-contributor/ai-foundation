@@ -1,0 +1,102 @@
+name: Cleanup branches
+
+# Cloud sessions can't delete remote branches, so GitHub does it here.
+#
+# - `push-check/**` exists only to give a commit its CI run before it is
+#   fast-forwarded to `main` (steering/engineering/git-workflow-framework.md).
+#   Once `main` contains the branch's tip it has no purpose, so it is deleted
+#   on every push to `main` and again on the weekly sweep.
+# - `claude/**` branches are cloud-session branches. They are deleted only by
+#   the weekly sweep, and only when stale: no open PR and a last commit older
+#   than STALE_DAYS. Never on a push to `main`, so a session that has just
+#   landed its work keeps its branch.
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Mondays 06:17 UTC.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what would be deleted"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+env:
+  STALE_DAYS: 14
+
+jobs:
+  cleanup:
+    name: Delete landed and stale branches
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      # Deletes every push-check/** branch whose tip is already contained in
+      # the current main (compare status "identical" or "ahead" — i.e. the
+      # branch is fully merged, so no commit is lost). A branch that is ahead
+      # of, or diverged from, main is still in flight and is left alone.
+      # Branch names and SHAs only ever reach the shell as quoted variables.
+      - name: Delete push-check branches contained in main
+        run: |
+          main_sha="$(gh api "repos/$REPO/commits/main" --jq .sha)"
+          gh api --paginate "repos/$REPO/git/matching-refs/heads/push-check/" \
+            --jq '.[] | "\(.ref) \(.object.sha)"' |
+          while read -r ref sha; do
+            status="$(gh api "repos/$REPO/compare/$sha...$main_sha" --jq .status || true)"
+            case "$status" in
+              identical|ahead)
+                if [ "$DRY_RUN" = "true" ]; then
+                  echo "[dry run] would delete $ref (contained in main)"
+                else
+                  echo "Deleting $ref (contained in main)"
+                  gh api -X DELETE "repos/$REPO/git/$ref" \
+                    || echo "::warning::could not delete $ref"
+                fi
+                ;;
+              *)
+                echo "Keeping $ref (status: ${status:-unknown})"
+                ;;
+            esac
+          done
+
+      # Weekly only. Deletes a claude/** branch when it has no open PR and its
+      # last commit is older than STALE_DAYS, merged or not.
+      - name: Delete stale claude branches
+        if: github.event_name != 'push'
+        run: |
+          open_heads="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
+            --jq '.[] | select(.head.repo.full_name == env.REPO) | .head.ref')"
+          cutoff="$(date -u -d "$STALE_DAYS days ago" +%s)"
+          gh api --paginate "repos/$REPO/git/matching-refs/heads/claude/" \
+            --jq '.[] | "\(.ref) \(.object.sha)"' |
+          while read -r ref sha; do
+            name="${ref#refs/heads/}"
+            if printf '%s\n' "$open_heads" | grep -Fxq -- "$name"; then
+              echo "Keeping $ref (open PR)"
+              continue
+            fi
+            if ! committed="$(gh api "repos/$REPO/commits/$sha" --jq .commit.committer.date)"; then
+              echo "::warning::could not read last commit of $ref; keeping it"
+              continue
+            fi
+            if [ "$(date -u -d "$committed" +%s)" -lt "$cutoff" ]; then
+              if [ "$DRY_RUN" = "true" ]; then
+                echo "[dry run] would delete $ref (last commit $committed, no open PR)"
+              else
+                echo "Deleting $ref (last commit $committed, no open PR)"
+                gh api -X DELETE "repos/$REPO/git/$ref" \
+                  || echo "::warning::could not delete $ref"
+              fi
+            else
+              echo "Keeping $ref (last commit $committed, within $STALE_DAYS days)"
+            fi
+          done
