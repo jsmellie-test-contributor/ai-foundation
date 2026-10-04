@@ -51,12 +51,12 @@
     {
       "id": "005",
       "wave": 3,
-      "status": "Reviewing",
+      "status": "Implementing",
       "branch": "AIF-010/005-skill-degradation-docs",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/005-skill-degradation-docs",
       "pr_number": 98,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/98",
-      "iterations": 1,
+      "iterations": 2,
       "blocked_reason": null
     }
   ],
@@ -355,6 +355,13 @@
       "action": "task_status_changed",
       "task_id": "004",
       "details": "Implementing -> Reviewing; PR 99"
+    },
+    {
+      "timestamp": "2026-10-04T13:53:25.489Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "005",
+      "details": "iteration 2; name unsubscribe tool, PR 98"
     }
   ]
 }
