@@ -29,12 +29,12 @@
     {
       "id": "003",
       "wave": 1,
-      "status": "Conflict",
+      "status": "Reviewing",
       "branch": "AIF-007/003-arc42-update",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-007/003-arc42-update",
       "pr_number": 96,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/96",
-      "iterations": 1,
+      "iterations": 0,
       "blocked_reason": null
     }
   ],
@@ -277,6 +277,20 @@
       "action": "conflict_detected",
       "task_id": "003",
       "details": "human report; PR #96 vs main; 3 arc42 files"
+    },
+    {
+      "timestamp": "2026-10-03T19:00:00Z",
+      "agent": "engineering-manager",
+      "action": "conflict_resolved",
+      "task_id": "003",
+      "details": "3 files resolved; head 7a26bd3"
+    },
+    {
+      "timestamp": "2026-10-03T19:00:10Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "003",
+      "details": "Conflict -> Reviewing; iterations reset to 0"
     }
   ]
 }
