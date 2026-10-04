@@ -1,6 +1,6 @@
 ---
 name: 'review-severity'
-version: '0.2.0'
+version: '0.2.1'
 description: 'Shared severity taxonomy, blocking rule, and report template used by any domain-specific review skill.'
 ---
 
@@ -24,7 +24,7 @@ never redefine the severity table or blocking rule locally.
 - **Dimensions** — the list of review dimensions the invoking skill checked, which become the Coverage rows
 - **Iteration** — the review round, 1 for a first review
 - **Acceptance criteria, if any** — the criteria the governing plan enumerates
-- **Prior Review Report, if a re-review** — the previous round's report, supplied by whoever dispatched the review
+- **Prior Review Report, if a re-review** — the reviewer's own report from the previous round (the same reviewer is reused across rounds, so it already holds it)
 
 ---
 
@@ -45,8 +45,8 @@ constraints on which bucket a finding falls into, not a different taxonomy.
 
 ### Step 2 — Determine the outcome
 
-Any CRITICAL, HIGH, or MEDIUM finding blocks approval and must be fixed. Outcome is **Approved** only when
-zero CRITICAL/HIGH/MEDIUM findings remain; otherwise **Returned**. LOW findings never block and need not be
+Any CRITICAL, HIGH, or MEDIUM finding blocks approval and must be fixed. Outcome is **APPROVED** only when
+zero CRITICAL/HIGH/MEDIUM findings remain; otherwise **NEEDS_CHANGES**. LOW findings never block and need not be
 fixed.
 
 ### Step 3 — Write each finding to be actionable
@@ -77,15 +77,15 @@ findings — that judgment belongs elsewhere (the human, or whoever owns the pla
 ## Outputs
 
 - **Review Report** — markdown following the shared template
-- **Outcome:** Approved (no CRITICAL/HIGH/MEDIUM) or Returned (has CRITICAL/HIGH/MEDIUM findings)
+- **Outcome:** APPROVED (no CRITICAL/HIGH/MEDIUM) or NEEDS_CHANGES (has CRITICAL/HIGH/MEDIUM findings)
 
 ---
 
 ## Edge Cases
 
-- **No findings at all** — still produce the report with outcome Approved and a brief summary of what was
+- **No findings at all** — still produce the report with outcome APPROVED and a brief summary of what was
   reviewed.
-- **Re-review with no prior report supplied** — report Iteration as given, omit Prior Findings, and say so in the Summary rather than guessing at the earlier findings.
+- **Re-review but the prior report is unavailable** — omit Prior Findings and say so in the Summary rather than guessing at the earlier findings.
 - **Finding interacts with another finding** — note the relationship. Fixing one may resolve or change the
   other.
 - **A rule conflicts with the plan being reviewed against** — raise it as a finding citing both references.
