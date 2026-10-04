@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T17:00:11.793Z",
+  "generated_at": "2026-10-04T01:11:55.885Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -15,7 +15,7 @@
         "AGENTS.md",
         "package.json"
       ],
-      "last_verified": "9bfa8cc",
+      "last_verified": "8e22ec0",
       "stale": false
     },
     {
@@ -88,9 +88,11 @@
         "lib/harnesses/base.js",
         "lib/harnesses/claude.js",
         "lib/harnesses/kiro.js",
-        "lib/constants.js"
+        "lib/constants.js",
+        "lib/harnesses/assets/block-command/logic.js",
+        "lib/harnesses/assets/block-command/cli.js"
       ],
-      "last_verified": "e7c381b",
+      "last_verified": "8e22ec0",
       "stale": false
     },
     {
@@ -288,6 +290,12 @@
     "lib/constants.js": [
       "05_02_harness_adapters.md",
       "05_03_core_libraries.md"
+    ],
+    "lib/harnesses/assets/block-command/logic.js": [
+      "05_02_harness_adapters.md"
+    ],
+    "lib/harnesses/assets/block-command/cli.js": [
+      "05_02_harness_adapters.md"
     ],
     "lib/manifest.js": [
       "05_03_core_libraries.md",

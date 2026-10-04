@@ -1,6 +1,6 @@
 ---
 name: 'code-review'
-version: '0.4.1'
+version: '0.5.1'
 description: 'Reviews completed source code for completeness, security, standards, and correctness; classifies findings via skill/review-severity.'
 ---
 
@@ -14,6 +14,7 @@ Produces a structured report that either approves the code or returns it with ac
 ## Inputs
 
 - **Source code** — files to review
+- **Iteration** — the review round, 1 for a first review; on a re-review the reviewer's own prior Review Report is the baseline for Prior Findings
 - **Governing plan** — what was supposed to be built (acceptance criteria, security, logging): the Feature Plan for Task work decomposed from one, a Tier 3 plan for standalone work that rose to Tier 3, or — for standalone Tier 1/2 work, which has no separate plan artifact by default — the task description and any outline produced per `skill/complexity-tiers`, if one exists
 - **Language standards** — from `standards/{stack}.md`
 - **Project standards** — from `projects/{name}/project-standards.md`
@@ -37,24 +38,27 @@ Go through security and logging requirements line by line. Each unmet requiremen
 
 ### Step 4 — Review Standards Compliance
 
-Check naming conventions, file headers, doc comments, async patterns, error handling, and any other rules in the active standards files.
+Check naming conventions, file headers (including the Plan ID reference), doc comments, async patterns, error handling, and any other rules in the active standards files.
 
 ### Step 5 — Review Logic and Correctness
 
 Does the implementation match the plan's described behaviour? Are edge cases handled?
-Are interfaces implemented as specified?
+Are interfaces implemented as specified? Does the Test Results Report cover every test case the plan's Testing Plan defines, with none skipped unflagged?
 
 ### Step 6 — Produce Review Report
 
 Hand the findings gathered in Steps 1-5 to `skill/review-severity` for severity classification, ordering, and
-the report itself — this skill defines what to check, not how findings are ranked or rendered.
+the report itself — this skill defines what to check, not how findings are ranked or rendered. Pass these as the
+report's review dimensions, one per step above, in this order: Completeness, Change scope, Security and logging,
+Standards compliance, Logic and correctness. Also pass the review's Iteration, the plan's acceptance criteria
+when it enumerates them, and the prior Review Report when this is a re-review.
 
 ---
 
 ## Outputs
 
 - **Review Report** — produced per `skill/review-severity`
-- **Outcome:** Approved or Returned, per `skill/review-severity`
+- **Outcome:** APPROVED or NEEDS_CHANGES, per `skill/review-severity`
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: 'review-severity'
-version: '0.1.1'
+version: '0.2.1'
 description: 'Shared severity taxonomy, blocking rule, and report template used by any domain-specific review skill.'
 ---
 
@@ -21,6 +21,10 @@ never redefine the severity table or blocking rule locally.
 - **Findings** — issues gathered by the invoking skill's own domain-specific steps
 - **Subject reference** — the Plan ID, ADR, or diff being reviewed
 - **Reviewer** — the agent performing the review
+- **Dimensions** — the list of review dimensions the invoking skill checked, which become the Coverage rows
+- **Iteration** — the review round, 1 for a first review
+- **Acceptance criteria, if any** — the criteria the governing plan enumerates
+- **Prior Review Report, if a re-review** — the reviewer's own report from the previous round (the same reviewer is reused across rounds, so it already holds it)
 
 ---
 
@@ -41,8 +45,8 @@ constraints on which bucket a finding falls into, not a different taxonomy.
 
 ### Step 2 — Determine the outcome
 
-Any CRITICAL, HIGH, or MEDIUM finding blocks approval and must be fixed. Outcome is **Approved** only when
-zero CRITICAL/HIGH/MEDIUM findings remain; otherwise **Returned**. LOW findings never block and need not be
+Any CRITICAL, HIGH, or MEDIUM finding blocks approval and must be fixed. Outcome is **APPROVED** only when
+zero CRITICAL/HIGH/MEDIUM findings remain; otherwise **NEEDS_CHANGES**. LOW findings never block and need not be
 fixed.
 
 ### Step 3 — Write each finding to be actionable
@@ -55,7 +59,13 @@ it. A finding missing any of the three is not yet ready to report — go back an
 Order findings CRITICAL → HIGH → MEDIUM → LOW. Number each finding with a zero-based index that runs once
 across the whole report, in that order, and prefix it with the finding's severity in the heading (e.g.
 `MEDIUM-0`, `MEDIUM-1`, `LOW-2`) so any finding can be referenced unambiguously. Render using the template at
-`skills/review-severity/reference/template.md`.
+`skills/review-severity/reference/template.md`, filling its sections as follows:
+
+- **Coverage** — one row per input dimension. Status is `Pass` (checked, no findings), `Findings` (checked, list the finding IDs), or `N/A` (does not apply to this diff). Never omit a dimension; an omitted row is indistinguishable from an unchecked one.
+- **Category** — every finding names the Coverage dimension(s) it falls under, comma-separated when it spans more than one. A finding's ID appears in the Coverage row of every dimension it names.
+- **Acceptance Criteria** — include only when criteria were supplied; one row per criterion, `Met` or `Unmet`. An `Unmet` criterion also needs a finding.
+- **Prior Findings** — include only when Iteration is above 1; one row per finding in the prior report, `Resolved`, `Not resolved`, or `Regressed`. A finding that is not `Resolved` is reported again as a current finding, so it is counted in Outcome.
+- Omit a conditional section entirely rather than leaving an empty heading — the whole report is posted as one PR review, so an empty section is noise.
 
 ### Step 5 — Never expand scope
 
@@ -67,14 +77,15 @@ findings — that judgment belongs elsewhere (the human, or whoever owns the pla
 ## Outputs
 
 - **Review Report** — markdown following the shared template
-- **Outcome:** Approved (no CRITICAL/HIGH/MEDIUM) or Returned (has CRITICAL/HIGH/MEDIUM findings)
+- **Outcome:** APPROVED (no CRITICAL/HIGH/MEDIUM) or NEEDS_CHANGES (has CRITICAL/HIGH/MEDIUM findings)
 
 ---
 
 ## Edge Cases
 
-- **No findings at all** — still produce the report with outcome Approved and a brief summary of what was
+- **No findings at all** — still produce the report with outcome APPROVED and a brief summary of what was
   reviewed.
+- **Re-review but the prior report is unavailable** — omit Prior Findings and say so in the Summary rather than guessing at the earlier findings.
 - **Finding interacts with another finding** — note the relationship. Fixing one may resolve or change the
   other.
 - **A rule conflicts with the plan being reviewed against** — raise it as a finding citing both references.

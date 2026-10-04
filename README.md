@@ -139,20 +139,93 @@ Requires Node.js 22+. Install dependencies: `npm install`.
 
 ### Claude Code Cloud
 
-The environment's **Setup script** (set by hand in the environment settings)
-runs before the repo is checked out, so it only provisions the VM. It must
-exit 0 and finish in about five minutes to be cached. Only `bws` is missing
-from the image:
+This section owns the `ai-git`, `gh`, `bws` and environment-variable
+parts of a cloud environment; agent selection is composed on top of it separately.
+The environment's **Setup script** (set by hand in the environment settings) runs
+as root before the repo is checked out, so it only provisions the VM. It must exit 0
+and finish in about five minutes to be cached.
+
+#### Setup script
+
+Pinned versions only (never `latest`), each download verified against a hardcoded
+sha256 before it is installed, and `--ignore-scripts` because the script runs as
+root. Replace `<ref>` with the tag or commit of ai-foundation to pin. Requires
+`curl`, `sha256sum`, `tar` and `unzip` in the image.
 
 ```bash
-command -v bws >/dev/null || cargo install bws --locked || true
+#!/bin/bash
+set -euo pipefail
+
+npm install -g github:starvoxel/ai-foundation#<ref> --ignore-scripts
+
+tmp="$(mktemp -d)"
+cd "$tmp"
+
+# gh 2.102.0
+curl -fsSL -o gh.tar.gz https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz
+echo "bb766f710eef8ede859c18578c72c327597cd4c8a85b06001b1f3843c6019386  gh.tar.gz" | sha256sum -c -
+tar -xzf gh.tar.gz
+install -m 0755 gh_2.102.0_linux_amd64/bin/gh /usr/local/bin/gh
+
+# bws 2.1.0
+curl -fsSL -o bws.zip https://github.com/bitwarden/sdk-sm/releases/download/bws-v2.1.0/bws-x86_64-unknown-linux-gnu-2.1.0.zip
+echo "ba8233c3a4aee5d43e3c73bbd04d99e9bc5aba13bbbfd06d89b073abe732b860  bws.zip" | sha256sum -c -
+unzip -o bws.zip bws
+install -m 0755 bws /usr/local/bin/bws
 ```
 
-Repo setup (`npm install`) runs from the SessionStart hook in
-`.claude/settings.json`. Set `AIF_BUNDLES` (comma-separated, e.g.
-`engineering,generic`) in the environment's **Environment variables** to also
-run `aif install -H claude` for those bundles; unset installs none. Put
-secrets there too, not in the script.
+`npm install -g` puts `ai-git` and `aif` on PATH. A checksum mismatch fails the script (non-zero exit, so the
+setup is not cached) before that tool is installed.
+
+#### Environment variables
+
+Set these in the environment's **Environment variables**, never in the script:
+
+| Variable            | Value                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GIT_CONFIG_GLOBAL` | `/dev/null`. The harness writes `/root/.gitconfig` with its own identity; this makes a raw `git commit` fail instead of using it.           |
+| `BWS_PROJECT_ID`    | Bitwarden Secrets Manager project holding the token named by `ai_identity.git_token_env` (`AI_GIT_TOKEN` here). Not a secret.               |
+| `BWS_ACCESS_TOKEN`  | Machine-account token for that project. The one credential in the environment; scope it to the `ai-git` credentials only.                   |
+| `AIF_BUNDLES`       | Comma-separated bundles (e.g. `engineering,generic`) that the SessionStart hook installs with `aif install -H claude`; unset installs none. |
+
+#### SessionStart hook
+
+`.claude/settings.json` runs `scripts/session-start.sh` at session start. In cloud
+sessions only (`CLAUDE_CODE_REMOTE=true`) it runs, in order:
+
+1. `npm ci --ignore-scripts --omit=dev`: this repo's lockfile-pinned production dependencies, which `aif` needs (`npm link` alone does not install them). Fails on lockfile drift.
+2. `npm link --ignore-scripts`: puts `ai-git` and `aif` on PATH.
+3. `aif install -B $AIF_BUNDLES -H claude`, only if `AIF_BUNDLES` is set.
+4. `ai-git doctor`: report only.
+
+Step 1 is the hook's only network step; `gh`, `bws` and
+the pinned package come from the Setup script, never from SessionStart. Every step
+warns on failure instead of aborting, and the hook always exits 0.
+
+#### Verification checklist
+
+Run in a fresh session of a repo that has `.aiconfig.json`:
+
+1. `command -v ai-git aif gh bws` resolves all four.
+2. `ai-git commit` (on a throwaway branch) shows the AI identity as author.
+3. A raw `git commit` fails with "Author identity unknown".
+4. `ai-git gh-api repos/{owner}/{repo}/issues --method POST -f title="a title with spaces"`
+   works (arguments with spaces arrive intact).
+5. `ai-git doctor` exits 0 and reports the token as resolved (never prints the value).
+
+#### Cloud limits
+
+- **No GraphQL.** The session proxy blocks it, so `ai-git gh-pr-*`, `gh pr ...` and
+  `gh repo view` fail with HTTP 403. Use REST through `ai-git gh-api repos/{owner}/{repo}/...`;
+  see `skill/pr-stewardship` for the endpoints.
+- **Proxy identity.** The proxy replaces the token on GitHub API calls, so PRs, comments
+  and issues are authored as the proxy identity, not the `bws` token's. Commit
+  authorship (the AI identity) is unaffected.
+- **Branch deletion is blocked.** The proxy refuses to delete a remote branch (REST and
+  `git push --delete`); delete test branches by hand.
+- **No spaces in the install path.** The `bws` re-exec puts the `ai-git` script path
+  unquoted into the wrapper's command line, so the install path of ai-foundation must
+  not contain spaces. The default global npm prefix does not.
 
 ---
 

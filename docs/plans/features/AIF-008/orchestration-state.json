@@ -1,6 +1,6 @@
 {
   "feature_id": "AIF-008",
-  "status": "In Progress",
+  "status": "Complete",
   "current_wave": 1,
   "total_waves": 2,
   "tasks": [
@@ -42,7 +42,7 @@
       "wave": 1,
       "status": "Done",
       "branch": "AIF-008/004-cloud-recipe-session-start",
-      "worktree_path": "../worktrees/ai-foundation/AIF-008/004-cloud-recipe-session-start",
+      "worktree_path": "",
       "pr_number": 94,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/94",
       "iterations": 2,
@@ -509,6 +509,27 @@
       "action": "task_status_changed",
       "task_id": "004",
       "details": "Reviewing -> Done; PR #94 ready, green"
+    },
+    {
+      "timestamp": "2026-10-03T00:00:00Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "004",
+      "details": "PR #94 merged"
+    },
+    {
+      "timestamp": "2026-10-03T00:00:00Z",
+      "agent": "engineering-manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 1"
+    },
+    {
+      "timestamp": "2026-10-03T00:00:00Z",
+      "agent": "engineering-manager",
+      "action": "orchestration_complete",
+      "task_id": null,
+      "details": "4 tasks done; PRs 88,89,91,94 merged"
     }
   ]
 }
