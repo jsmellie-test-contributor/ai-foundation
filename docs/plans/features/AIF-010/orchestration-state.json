@@ -1,7 +1,7 @@
 {
   "feature_id": "AIF-010",
   "status": "In Progress",
-  "current_wave": 1,
+  "current_wave": 2,
   "total_waves": 4,
   "tasks": [
     {
@@ -20,7 +20,7 @@
       "wave": 1,
       "status": "Done",
       "branch": "AIF-010/002-tool-groups-claude-kiro",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/002-tool-groups-claude-kiro",
+      "worktree_path": "",
       "pr_number": 93,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/93",
       "iterations": 2,
@@ -29,9 +29,9 @@
     {
       "id": "003",
       "wave": 2,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-010/003-tool-set-tests",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/003-tool-set-tests",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -222,6 +222,34 @@
       "action": "task_status_changed",
       "task_id": "002",
       "details": "Implementing -> Done (iter 2); PR 93 ready"
+    },
+    {
+      "timestamp": "2026-10-04T01:10:08.393Z",
+      "agent": "engineering-manager",
+      "action": "worktree_removed",
+      "task_id": "002",
+      "details": "PR 93 merged"
+    },
+    {
+      "timestamp": "2026-10-04T01:10:08.394Z",
+      "agent": "engineering-manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 1"
+    },
+    {
+      "timestamp": "2026-10-04T01:10:08.394Z",
+      "agent": "engineering-manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 2: 003"
+    },
+    {
+      "timestamp": "2026-10-04T01:10:08.394Z",
+      "agent": "engineering-manager",
+      "action": "task_dispatched",
+      "task_id": "003",
+      "details": "software-engineer; AIF-010/003-tool-set-tests"
     }
   ]
 }
