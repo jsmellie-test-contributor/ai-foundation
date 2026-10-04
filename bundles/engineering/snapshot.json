@@ -1,7 +1,7 @@
 {
   "bundle": "engineering",
   "version": "1.0.0",
-  "computed_at": "2026-10-04T17:45:48.324Z",
+  "computed_at": "2026-10-04T18:19:16.788Z",
   "sources": {
     "agents/architect.yaml": "sha256:32d42617b1a8f10574d0eee8783143fc4c84270f5cdd2f97312153754d2a44a4",
     "agents/engineering-manager.yaml": "sha256:8cfa130e80bb1bf6b209cbf083ce0e48ddc12bdc97a7badf80863aa4910dde5c",
