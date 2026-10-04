@@ -84,8 +84,8 @@ const AGENT_GRANTS = {
     approved: ['read', 'write', 'grep', 'glob', 'web_search', 'web_fetch', 'task', 'skill'],
   },
   'principal-engineer': {
-    tools: ['read', 'grep', 'glob', 'code', 'task', 'skill'],
-    approved: ['read', 'grep', 'glob', 'code', 'task', 'skill'],
+    tools: ['read', 'grep', 'glob', 'code', 'shell', 'task', 'skill'],
+    approved: ['read', 'grep', 'glob', 'code', 'shell', 'task', 'skill'],
   },
   'software-engineer': {
     tools: ['read', 'write', 'shell', 'grep', 'glob', 'code', 'subagent', 'task', 'skill'],
