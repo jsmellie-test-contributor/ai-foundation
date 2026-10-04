@@ -1,7 +1,7 @@
 {
   "bundle": "engineering",
   "version": "1.0.0",
-  "computed_at": "2026-10-04T01:40:16.543Z",
+  "computed_at": "2026-10-04T01:43:36.994Z",
   "sources": {
     "agents/architect.yaml": "sha256:32d42617b1a8f10574d0eee8783143fc4c84270f5cdd2f97312153754d2a44a4",
     "agents/engineering-manager.yaml": "sha256:ed48d8871c0bee18fc601782471be856b77421e4a1fd4899e0b249b906a21406",
@@ -29,10 +29,10 @@
     "skills/task-orchestration/SKILL.md": "sha256:bfcbd06f9df899184ce5e63d2814d752953e69b9780f6134dcc3a1c5ae3ad550",
     "skills/worktree-management/SKILL.md": "sha256:4b8d779059294b3e8c87acf6f782cb2eb6614482ad305e425b11578053a82f64",
     "skills/pr-stewardship/SKILL.md": "sha256:809764be494305bf32c679320ee44d7755238a78d86d6270f823ad99acb82f8e",
-    "skills/code-review/SKILL.md": "sha256:dfab1202566a9079ee1eefd255bd3f95125b5abe0f54ae185361056baeeb3393",
-    "skills/ai-component-review/SKILL.md": "sha256:e8984d18cc648331f426d9f3cc2670d2fd34c31b11a7916fd553d0721d09779e",
-    "skills/review-severity/reference/template.md": "sha256:440100a258d4821ab36797257fad476a406fd3b4e8f0145bb19d07a05912f073",
-    "skills/review-severity/SKILL.md": "sha256:0c3d2db45bfd3c0e272a01d8008f4929362d7afb66d2833a13b7ec3960345aac",
+    "skills/code-review/SKILL.md": "sha256:ff798a222a8bd46631547446c637ac981330917599d61fb8aec2ff6ae09eb80b",
+    "skills/ai-component-review/SKILL.md": "sha256:42bdd527afa570c52a9e2d7169f4b6f5ba3ba6b38f7aed6dffd9216d4da70610",
+    "skills/review-severity/reference/template.md": "sha256:f9e0d7633836d43f7b6f3a324e2f78eac5ebc5b79154f49b1511aa2b013e2d7b",
+    "skills/review-severity/SKILL.md": "sha256:78aaf003e2ed9ddb50bdb3495fdec1b6ba2dc7fa768ec622959f6af07942a6f5",
     "skills/complexity-tiers/SKILL.md": "sha256:a3f7fe9669b840f8dcb2009439891e23177adbe9561e65a3a5f130c001a2bb5a",
     "skills/test-execution/reference/template.md": "sha256:0f4427d9cc2fbaea4af78b851bf1ffaaf7a17de7d4f951e775e1d228917cb8e5",
     "skills/test-execution/SKILL.md": "sha256:3d6f4ce2dd4352bf5c6a2f91dab92d640f1946b8b96a1162891e32accf6b36d2",
