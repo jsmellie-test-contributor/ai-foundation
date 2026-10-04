@@ -1,6 +1,6 @@
 ---
 name: 'ai-component-review'
-version: '0.2.4'
+version: '0.3.0'
 description: 'Reviews an agent, skill, steering, server, or bundle definition against its AGENTS.md schema; classifies findings via skill/review-severity.'
 ---
 
@@ -18,6 +18,7 @@ by language standard.
 
 - **Component diff** — the changed file(s) under `agents/`, `skills/`, `steering/`, `servers/`, or `bundles/`
 - **Governing schema** — AGENTS.md's entry for that component type
+- **Iteration and prior Review Report** — the review round, and on a re-review the previous round's report, supplied by whoever dispatched the review
 - **Related plan, if any** — the Feature Plan (Task work decomposed from one), a Tier 3 plan (standalone work that rose to Tier 3), or an ADR the change implements — standalone Tier 1/2 work has no separate plan artifact by default
 
 ---
@@ -58,7 +59,10 @@ A citation next to a paraphrase is a finding even though the reference itself re
 ### Step 5 — Produce Review Report
 
 Hand the findings gathered in Steps 1-4 to `skill/review-severity` for severity classification, ordering, and
-the report itself.
+the report itself. Pass these as the report's review dimensions: Schema conformance, Tool and permission surface,
+Cross-references. Mark Tool and permission surface `N/A` unless the diff touches an agent definition. Also pass the
+review's Iteration, the related plan's acceptance criteria when it enumerates them, and the prior Review Report when
+this is a re-review.
 
 ---
 
