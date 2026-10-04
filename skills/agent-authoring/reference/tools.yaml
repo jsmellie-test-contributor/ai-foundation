@@ -16,21 +16,9 @@ builtin:
   task: "Agent's own session-scoped progress checklist"
   skill: "Invoke an installed skill by name"
 
-# Platform-tool groups (ADR 0007, plan AIF-010): harness-neutral names for Claude-only
-# claude-code-remote capabilities, granted as a whole group. Kiro drops them and reports it
-# at install. Every grant needs a stated reason (yaml comment or Hard rule). T3-T5 groups
-# are defined but held by no agent.
-groups:
-  session_info: "T0, read-only: documentation lookup + own-session info (every agent)"
-  pr_follow_through: "T1: PR subscription, send_later, ReadNotifications (PR follow-through owner only)"
-  repo_list: "T2, read-only: list reachable repos"
-  session_control: "T3+: start/control other sessions (no standing grant)"
-  repo_scope: "T3+: widen repo scope (no standing grant)"
-  routines: "T3+: scheduled triggers, watch_url (no standing grant)"
-
 # Risk tiers for approved_tools selection:
 approval_guidance:
-  safe: [read, grep, glob, code, task, skill, plan, ask_user, session_info, repo_list]
+  safe: [read, grep, glob, code, task, skill, plan, ask_user]
   moderate: [web_search, web_fetch]
   privileged: [write, shell, subagent]
 
