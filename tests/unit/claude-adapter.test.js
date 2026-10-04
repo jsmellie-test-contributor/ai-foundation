@@ -76,7 +76,107 @@ describe('unit: claude adapter', () => {
     'TaskList',
     'TaskStop',
     'Skill',
+    // Core (non-MCP) tool: reads queued PR-activity notifications (AIF-010 Q10).
+    'ReadNotifications',
+    // claude-code-remote platform tools (ADR 0007 groups).
+    ...[
+      'read_documentation',
+      'get_session',
+      'subscribe_pr_activity',
+      'unsubscribe_pr_activity',
+      'send_later',
+      'list_repos',
+      'list_sessions',
+      'list_events',
+      'get_event',
+      'create_session',
+      'send_message',
+      'interrupt_session',
+      'set_session_title',
+      'set_session_tags',
+      'add_repo',
+      'register_repo_root',
+      'create_trigger',
+      'update_trigger',
+      // routines names confirmed against a real cloud session tool listing
+      // (2026-10-03, human-verified).
+      'delete_trigger',
+      'fire_trigger',
+      'get_trigger',
+      'list_triggers',
+      'watch_url',
+      'unwatch_url',
+    ].map((t) => `mcp__claude-code-remote__${t}`),
   ]);
+
+  describe('platform-tool groups', () => {
+    const ccr = (...t) => t.map((n) => `mcp__claude-code-remote__${n}`);
+    const GROUPS = [
+      'session_info',
+      'pr_follow_through',
+      'repo_list',
+      'session_control',
+      'repo_scope',
+      'routines',
+    ];
+
+    it('maps each group to its claude-code-remote cluster', () => {
+      assert.deepEqual(TOOL_MAP['session_info'], ccr('read_documentation', 'get_session'));
+      assert.deepEqual(TOOL_MAP['pr_follow_through'], [
+        ...ccr('subscribe_pr_activity', 'unsubscribe_pr_activity', 'send_later'),
+        'ReadNotifications',
+      ]);
+      assert.deepEqual(TOOL_MAP['repo_list'], ccr('list_repos'));
+      assert.deepEqual(
+        TOOL_MAP['session_control'],
+        ccr(
+          'list_sessions',
+          'list_events',
+          'get_event',
+          'create_session',
+          'send_message',
+          'interrupt_session',
+          'set_session_title',
+          'set_session_tags',
+        ),
+      );
+      assert.deepEqual(TOOL_MAP['repo_scope'], ccr('add_repo', 'register_repo_root'));
+      assert.deepEqual(
+        TOOL_MAP['routines'],
+        ccr(
+          'create_trigger',
+          'update_trigger',
+          'delete_trigger',
+          'fire_trigger',
+          'get_trigger',
+          'list_triggers',
+          'watch_url',
+          'unwatch_url',
+        ),
+      );
+    });
+
+    it('puts ReadNotifications in pr_follow_through only; no other group assumes the queue', () => {
+      const holders = Object.keys(TOOL_MAP).filter(
+        (k) => TOOL_MAP[k] !== UNSUPPORTED && TOOL_MAP[k].includes('ReadNotifications'),
+      );
+      assert.deepEqual(holders, ['pr_follow_through']);
+    });
+
+    it('has no tool in more than one group today', () => {
+      const all = GROUPS.flatMap((g) => TOOL_MAP[g]);
+      assert.equal(new Set(all).size, all.length);
+    });
+
+    it('resolves the T0 group with nothing dropped, deduplicated across repeats', () => {
+      const dropped = [];
+      assert.deepEqual(mapAgentTools(['read', 'session_info', 'session_info'], dropped), [
+        'Read',
+        ...ccr('read_documentation', 'get_session'),
+      ]);
+      assert.deepEqual(dropped, []);
+    });
+  });
 
   describe('TOOL_MAP', () => {
     it('maps to Claude Code PascalCase names', () => {

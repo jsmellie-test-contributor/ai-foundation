@@ -90,6 +90,19 @@ describe('unit: base/tool resolver', () => {
     });
   });
 
+  it('resolves a reference to a foreignServers server as unsupported, not passthrough', () => {
+    const foreign = { ...config, foreignServers: ['other'] };
+    assert.deepEqual(resolveTool('@other/t', foreign), { state: 'unsupported', native: [] });
+    assert.deepEqual(resolveTool('@s/t', foreign), {
+      state: 'passthrough',
+      native: ['native:@s/t'],
+    });
+    assert.deepEqual(resolveTools(['@other/t', '@other/t'], foreign), {
+      tools: [],
+      dropped: ['@other/t'],
+    });
+  });
+
   it('rejects bare unknown names, malformed references, and prototype keys', () => {
     for (const bad of ['typo', '@dag', '@/tool', '@dag/', 'constructor', '__proto__']) {
       assert.throws(() => resolveTool(bad, config), UnknownToolError, bad);
