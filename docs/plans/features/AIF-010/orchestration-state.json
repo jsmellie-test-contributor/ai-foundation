@@ -51,11 +51,11 @@
     {
       "id": "005",
       "wave": 3,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-010/005-skill-degradation-docs",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/005-skill-degradation-docs",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 98,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/98",
       "iterations": 0,
       "blocked_reason": null
     }
@@ -320,6 +320,20 @@
       "action": "pr_created",
       "task_id": "004",
       "details": "PR 99 draft"
+    },
+    {
+      "timestamp": "2026-10-04T13:49:48.756Z",
+      "agent": "engineering-manager",
+      "action": "pr_created",
+      "task_id": "005",
+      "details": "PR 98 draft"
+    },
+    {
+      "timestamp": "2026-10-04T13:49:48.756Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "005",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
