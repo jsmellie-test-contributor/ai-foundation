@@ -7,6 +7,10 @@
 // Copyright (c) StarVoxel. All rights reserved.
 // ------------------------------
 
+// The claude-code-remote cluster literals here are deliberately duplicated (independent of
+// TOOL_MAP) in tests/unit/resolved-tool-sets.test.js and tests/validation/agent-tool-sets.test.js;
+// a deliberate cluster change must edit all three.
+
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { homedir } from 'node:os';
