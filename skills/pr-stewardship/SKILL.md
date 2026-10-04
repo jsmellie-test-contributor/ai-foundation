@@ -1,6 +1,6 @@
 ---
 name: 'pr-stewardship'
-version: '0.2.0'
+version: '0.3.0'
 description: 'Drives an open pull request to a green, mergeable state — checking CI, merge conflicts, and review feedback, and fixing or reporting what blocks it.'
 ---
 
@@ -58,14 +58,25 @@ Read open review threads and comments.
 2. For larger or ambiguous asks (a design change, a multi-file refactor), reply with your assessment rather than guessing at an implementation.
 3. Resolve the threads you addressed.
 
-### Step 4 — Report status
+### Step 4 — Land a green push-check branch
+
+Applies only to a `push-check/**` branch in a `repo_type: framework` repo (`steering/engineering/git-workflow-framework.md`: "Main Only Accepts Commits That Have Already Passed CI"), where the agent that owns the branch lands it. A PR in a project repo is merged by a human (`steering/engineering/git-workflow-projects.md`: "Human Reviews and Merges Every PR") — skip this step there.
+
+1. Confirm every required check is green on the branch's current head commit and nothing has been pushed since.
+2. Fast-forward `main` to that exact commit: `ai-git push origin push-check/{short-description}:main`. Never amend or rebase first — a new SHA has not passed CI.
+3. If the push is rejected as not a fast-forward, `main` has moved: merge `main` into the branch and push it so CI runs again, then return here once it is green.
+4. If it is rejected because a required check has not passed on that commit, do not bypass it — escalate per `steering/engineering/git-workflow-core.md`: "Required CI Checks Gate Main — Never Bypass Them".
+5. Delete the `push-check/` branch once `main` has it.
+
+### Step 5 — Report status
 
 If nothing needed fixing and the PR is green and mergeable, there is nothing further to do or report. Otherwise, summarize what changed (a pushed fix) or what is blocking (a comment already posted per Steps 2–3) so the caller knows whether the PR is done or needs another pass.
 
 ## Outputs
 
 - **A pushed fix**, if Steps 1–3 found something to fix
-- **A PR comment**, if something is blocking that this skill cannot resolve on its own
+- **A landed `main`**, if Step 4 fast-forwarded a green `push-check/` branch
+- **A PR comment**, if something is blocking that this skill cannot resolve on its own (or, for a `push-check/` branch with no PR, an escalation to the managing agent or human)
 - **A status** (done / needs another pass / blocked) returned to whoever invoked this skill
 
 ## Edge Cases
