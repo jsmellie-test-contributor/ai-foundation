@@ -2,14 +2,16 @@ name: Cleanup branches
 
 # Cloud sessions can't delete remote branches, so GitHub does it here.
 #
-# - `push-check/**` exists only to give a commit its CI run before it is
-#   fast-forwarded to `main` (steering/engineering/git-workflow-framework.md).
-#   Once `main` contains the branch's tip it has no purpose, so it is deleted
-#   on every push to `main` and again on the weekly sweep.
-# - `claude/**` branches are cloud-session branches. They are deleted only by
-#   the weekly sweep, and only when stale: no open PR and a last commit older
-#   than STALE_DAYS. Never on a push to `main`, so a session that has just
-#   landed its work keeps its branch.
+# - On every push to `main`, only the `landed` job runs, and it is kept as
+#   small as possible: one API call to find the `push-check/**` branch whose
+#   tip is the commit that was just pushed, and delete it. A `push-check/**`
+#   branch exists only to give a commit its CI run before it is fast-forwarded
+#   to `main` (steering/engineering/git-workflow-framework.md).
+# - Weekly (or on manual dispatch), only the `sweep` job runs. It deletes any
+#   `push-check/**` branch `main` already contains (stragglers the push-time
+#   job missed) and stale `claude/**` cloud-session branches: no open PR and a
+#   last commit older than STALE_DAYS. `claude/**` is never touched on a push,
+#   so a session that has just landed work keeps its branch.
 on:
   push:
     branches:
@@ -29,22 +31,42 @@ permissions:
   pull-requests: read
 
 env:
+  GH_TOKEN: ${{ github.token }}
+  REPO: ${{ github.repository }}
+  # Empty on push/schedule, so only a manual dispatch can set it.
+  DRY_RUN: ${{ inputs.dry_run }}
   STALE_DAYS: 14
 
 jobs:
-  cleanup:
-    name: Delete landed and stale branches
+  landed:
+    name: Delete the push-check branch that just landed
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     env:
-      GH_TOKEN: ${{ github.token }}
-      REPO: ${{ github.repository }}
-      DRY_RUN: ${{ inputs.dry_run }}
+      MAIN_SHA: ${{ github.sha }}
+    steps:
+      # Branch names only ever reach the shell as quoted variables.
+      - name: Delete push-check branch at the pushed commit
+        run: |
+          gh api --paginate "repos/$REPO/git/matching-refs/heads/push-check/" \
+            --jq '.[] | select(.object.sha == env.MAIN_SHA) | .ref' |
+          while read -r ref; do
+            echo "Deleting $ref (tip is $MAIN_SHA, now on main)"
+            gh api -X DELETE "repos/$REPO/git/$ref" \
+              || echo "::warning::could not delete $ref"
+          done
+
+  sweep:
+    name: Delete landed and stale branches
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       # Deletes every push-check/** branch whose tip is already contained in
       # the current main (compare status "identical" or "ahead" — i.e. the
       # branch is fully merged, so no commit is lost). A branch that is ahead
       # of, or diverged from, main is still in flight and is left alone.
-      # Branch names and SHAs only ever reach the shell as quoted variables.
       - name: Delete push-check branches contained in main
         run: |
           main_sha="$(gh api "repos/$REPO/commits/main" --jq .sha)"
@@ -68,10 +90,9 @@ jobs:
             esac
           done
 
-      # Weekly only. Deletes a claude/** branch when it has no open PR and its
-      # last commit is older than STALE_DAYS, merged or not.
+      # Deletes a claude/** branch when it has no open PR and its last commit
+      # is older than STALE_DAYS, merged or not.
       - name: Delete stale claude branches
-        if: github.event_name != 'push'
         run: |
           open_heads="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
             --jq '.[] | select(.head.repo.full_name == env.REPO) | .head.ref')"
