@@ -24,7 +24,7 @@ Proportionate ceremony. Current-state docs instead of accreting records. Coarser
 units. One agent owns a task end-to-end — design, implementation, testing, and
 documentation — instead of a role-pipeline that loses context at every handoff. A
 tracker that surfaces state. Git holds history; agent context holds only what's
-binding and current.
+binding and current. - TEST
 
 ---
 
