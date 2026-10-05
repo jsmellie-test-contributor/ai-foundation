@@ -10,7 +10,7 @@
 | Author (Agent)      | Engineering Manager                                            |
 | Reviewed By         | Jeremy S (chat approval 2026-10-02)                            |
 | Created             | 2026-10-01                                                     |
-| Last Updated        | 2026-10-02                                                     |
+| Last Updated        | 2026-10-05                                                     |
 | Standards           | `javascript`, `node` (per `.aiconfig.json`)                    |
 | Total Tasks         | 5 (see `tasks.json`)                                           |
 | Product Requirement | None. Source: `docs/research/tool-tiers-and-harness-parity.md` |
@@ -41,6 +41,7 @@ Make agent tool grants consistent and explainable across harnesses whose tools d
 - Claude adapter resolves groups to `mcp__claude-code-remote__*` names; Kiro (and a future Copilot adapter) resolve them to unsupported.
 - Agent yaml updates: a T0 baseline for every agent, T1/T2 for `engineering-manager`, per the decisions in Section 8.
 - Graceful degradation in skills that assume these tools (`skill/pr-stewardship`, and `skill/task-orchestration` if it assumes them).
+- A shared `pr-watch` helper script for `skill/pr-stewardship` (human decision 2026-10-05, added to Task 005): the deterministic parts of the PR pass (check evaluation for the head commit, diff against the watch record, permitted-actor classification from API author metadata, stop conditions, cadence) live in one set of validation functions used by every wake mechanism. Cloud sessions keep using the claude-code-remote subscription tools as the instant wake; the wake mechanism is the only difference, validation is identical. The skill is rewritten to run the script and act on its digest.
 - Tests that assert the resolved tool set per agent and harness, not only file validity.
 - Doc-Update step for `docs/architecture/05_02_harness_adapters.md`.
 - Verification of the brief's open/UNVERIFIED items before anything relies on them.
@@ -49,6 +50,7 @@ Make agent tool grants consistent and explainable across harnesses whose tools d
 
 - Building the Copilot adapter (only the contract it will reuse is defined here).
 - Specifying the Copilot or Kiro "follow-through" equivalents (`@copilot`, automations, Kiro autonomous agent). Separate future Feature.
+- Building or verifying a desktop wake mechanism (background wait, monitor, channel, daemon). `pr-watch` ships one-shot and poll modes; which wake path works on a desktop session stays UNVERIFIED pending the spike in `docs/research/desktop-pr-tracking.md`.
 - Changing GitHub MCP exposure to agents.
 - The youtrack network-policy change (`environment.network`) or dropping the youtrack tools from the EM.
 - Granting any T3+ group to an agent. The T3, T4 and T5 groups are defined (Q3) but held by no agent; T4/T5 never have a standing grant.
@@ -140,6 +142,7 @@ Agent yaml `tools`/`approved_tools` (generic names, groups, `@server/tool`) → 
 | 9   | **PR 83 re-run** needs a fresh Claude Code cloud session as EM and cannot run in CI.                                                                                                                                                                                                                                      | Risk     | M      | Brief §8     | EM        | No. Decision: human runs it using `verification-guide.md` Part C.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 | 10 | **`ReadNotifications` is required for PR wakes, and may sit in several groups.** Verification (`verification-guide.md` A3) showed PR events after `subscription.created` arrive as queued notifications read with `ReadNotifications`; a restricted agent that held it woke live and from a disconnected state. The tool description says it reads three kinds of queued notification: PR activity (`subscribe_pr_activity`), scheduled triggers (`send_later`, `create_trigger`, `update_trigger`, `fire_trigger`), and messages from other sessions (`send_message`). Observed: `send_later` wakes and `send_message` cross-session messages both reached a restricted agent without the tool, as ordinary user turns (`send_message` even to a disconnected session); the same `send_message` reached an agent that held the tool through the queue. PR events were the only source that did not reach an agent without it. Any group that delivers wakes (`pr_follow_through`, scheduling or routines, `session-control`) may need it, so the group maps must dedupe a shared member. `CronCreate`, `ScheduleWakeup` and `watch_url` are not named in the description and are not assumed to use the queue. Also: only the most recent subscriber to a PR receives events, which bears on Q2 and Q5. | Question | H | A3 findings | Human | No. Decision: `ReadNotifications` is added to the PR follow-through group and to any other wake-delivering group once its need is verified. Task 1 resolver dedupes shared members; Task 5 tests a tool shared by two groups is granted once and stays granted while either group is held. |
+| 11 | **Scope addition: `pr-watch` helper script in Task 005.** Prose-only PR watching in `skill/pr-stewardship` is likely to be forgotten or ignored by agents; the human asked for the deterministic parts to be scripted, with the cloud subscription tools kept as the instant wake and one shared set of validation functions for every wake path. | Question | M | Human (PR 98 review) | Human | Yes. Decision: build it now in Task 005 (human, 2026-10-05). Core is pure modules (diff, actor classification, check evaluation, stop and cadence) with a thin CLI wrapper that reaches GitHub only through `ai-git gh-api`; an MCP wrapper stays possible later. Wake paths other than the cloud tools remain unverified (Section 4 Out of Scope). |
 
 > **Not decided here:** Q1 is a genuine fork and belongs to Architect's ADR, not to this plan.
 
@@ -153,7 +156,7 @@ Decomposed into `tasks.json` (5 Tasks, 4 waves, validated). Verification (former
 2. 002 Group names T0-T5, Claude clusters and T0 baseline, Kiro unsupported (depends on 001).
 3. 003 Resolved-tool-set tests, `KNOWN_NATIVE_TOOLS` (depends on 002).
 4. 004 Agent yaml updates (depends on 003).
-5. 005 Skill graceful degradation and `05_02_harness_adapters.md` Doc-Update (depends on 003).
+5. 005 Skill graceful degradation and `05_02_harness_adapters.md` Doc-Update (depends on 003). Scope extended 2026-10-05 (Section 8, Q11): also the shared `pr-watch` helper script and its tests, the skill rewritten to run it, the Step 6 watching procedure, and the "Keep Watching an Open PR Until It Is Done" steering rule, as directed by the human.
 
 Parallelization: 004 and 005 run in parallel in the last wave; the rest are sequential because they share adapter files and tests.
 

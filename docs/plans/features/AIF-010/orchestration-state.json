@@ -42,7 +42,7 @@
       "wave": 3,
       "status": "Done",
       "branch": "AIF-010/004-agent-tool-grants",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/004-agent-tool-grants",
+      "worktree_path": "",
       "pr_number": 99,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/99",
       "iterations": 1,
@@ -56,7 +56,7 @@
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-010/005-skill-degradation-docs",
       "pr_number": 98,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/98",
-      "iterations": 3,
+      "iterations": 5,
       "blocked_reason": null
     }
   ],
@@ -397,6 +397,20 @@
       "action": "review_loop",
       "task_id": "005",
       "details": "iteration 3; NEEDS_CHANGES 1H 4M 2L on PR 98"
+    },
+    {
+      "timestamp": "2026-10-05T01:51:01.440Z",
+      "agent": "engineering-manager",
+      "action": "task_status_changed",
+      "task_id": "004",
+      "details": "PR 99 merged"
+    },
+    {
+      "timestamp": "2026-10-05T01:51:01.440Z",
+      "agent": "engineering-manager",
+      "action": "review_loop",
+      "task_id": "005",
+      "details": "iteration 5; human: add pr-watch script to PR 98"
     }
   ]
 }

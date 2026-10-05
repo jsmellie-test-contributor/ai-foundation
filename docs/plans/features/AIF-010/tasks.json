@@ -5,6 +5,6 @@
     { "id": "002", "title": "Tool group names T0-T5 in lib/constants.js; Claude adapter group clusters and T0 baseline; Kiro groups mapped to unsupported", "depends_on": ["001"] },
     { "id": "003", "title": "Resolved-tool-set tests per agent and harness (incl. shared-member dedupe such as ReadNotifications); extend KNOWN_NATIVE_TOOLS", "depends_on": ["002"] },
     { "id": "004", "title": "Agent yaml updates: T0 baseline for every agent, T1/T2 for engineering-manager, with stated grant reasons", "depends_on": ["003"] },
-    { "id": "005", "title": "Graceful-degradation edits to skill/pr-stewardship (and task-orchestration if needed) plus 05_02_harness_adapters.md doc update", "depends_on": ["003"] }
+    { "id": "005", "title": "Graceful-degradation edits to skill/pr-stewardship, shared pr-watch helper script for every wake path, watching steering rule, plus 05_02_harness_adapters.md doc update", "depends_on": ["003"] }
   ]
 }
