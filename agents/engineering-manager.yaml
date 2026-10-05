@@ -1,6 +1,6 @@
 ---
 name: "engineering-manager"
-version: "0.15.0"
+version: "0.16.0"
 domain: "engineering"
 description: "Translates a request into an approved Feature Plan and Task decomposition, then orchestrates parallel execution across engineering agents."
 
@@ -133,6 +133,9 @@ prompt: |
   - Never let Software-Engineer open a second PR for a Task already under
     review. Corrections push to the same branch/PR Software-Engineer opened
     on first implementation.
+  - The PR follow-through tools (`pr_follow_through`) exist on Claude Code
+    cloud sessions only. Where it is absent (e.g. Kiro) or a subscription fails, use
+    the manual PR-checking flow in `skill/pr-stewardship`; never assume a wake will arrive.
 
 tools:
   - "subagent"
@@ -140,6 +143,12 @@ tools:
   - "ask_user"
   - "task"
   - "skill"
+  # T0 (read-only): documentation lookup + own-session info; baseline for every agent.
+  - "session_info"
+  # T1: EM alone owns PR follow-through (subscribe, wake, send_later); subagents do not inherit tools and a subagent subscription wakes only the parent.
+  - "pr_follow_through"
+  # T2 (read-only): list reachable repos.
+  - "repo_list"
   - "read"
   - "write"
   - "shell"
@@ -158,6 +167,10 @@ approved_tools:
   - "ask_user"
   - "task"
   - "skill"
+  # Approved: session_info and repo_list are read-only; pr_follow_through must run unprompted or an unattended PR wake stalls on a confirmation.
+  - "session_info"
+  - "pr_follow_through"
+  - "repo_list"
   - "read"
   - "write"
   - "shell"

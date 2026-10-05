@@ -1,6 +1,6 @@
 ---
 name: "software-engineer"
-version: "0.10.0"
+version: "0.11.0"
 domain: "engineering"
 description: "Owns a Task end-to-end — design, implement, test, and document product code and AI-component work alike, in one continuous session."
 
@@ -118,6 +118,8 @@ tools:
   - "subagent"
   - "task"
   - "skill"
+  # T0 (read-only): documentation lookup + own-session info; baseline for every agent.
+  - "session_info"
 
 approved_tools:
   - "read"
@@ -128,6 +130,7 @@ approved_tools:
   - "code"
   - "task"
   - "skill"
+  - "session_info"
 
 skills:
   - "skill/complexity-tiers"
