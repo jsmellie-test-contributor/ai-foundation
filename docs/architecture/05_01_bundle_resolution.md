@@ -2,7 +2,7 @@
 section: '05.01'
 title: 'Bundle resolution'
 lifecycle: published
-last_verified: faffb74
+last_verified: 677f1fb
 tags: [building-blocks, resolver]
 key_files:
   - lib/resolver.js
@@ -26,7 +26,8 @@ flowchart TD
   D3 --> D4["resolveServersFromAgents: @server/tool refs in matched agents' tools[]"]
   D4 --> Explicit["Append bundle.yaml's own explicit agents/skills/steering/servers arrays"]
   Explicit --> Dedupe["dedupe() each of the four lists"]
-  Dedupe --> Out["ResolvedBundle { name, version, description, agents, skills, steering, servers }"]
+  Dedupe --> Closure["Seed skills + steering-required skills -> computeSkillClosure"]
+  Closure --> Out["ResolvedBundle { name, version, description, agents, skills, steering, servers }"]
 ```
 
 ## Motivation
@@ -36,7 +37,7 @@ directory (`agents/`, `steering/`, `servers/`), triggered by one specific
 condition. Keeping them as separate functions — rather than one function doing
 all four reads — is what makes each independently testable and lets
 `resolveBundle` itself stay a thin, linear pipeline: load → validate → discover
-→ append → dedupe.
+→ append → dedupe → expand skills.
 
 ## Contained Building Blocks
 
@@ -54,7 +55,27 @@ all four reads — is what makes each independently testable and lets
    discovered (both, not either/or, when a bundle sets both `domain` and explicit
    entries).
 5. **Dedupe** — each of the four resulting lists is passed through `dedupe()`
-   independently before being returned as the `ResolvedBundle`.
+   independently.
+6. **Skill closure** — the deduped `skills` list, followed by every skill named in the
+   `requires_skills` frontmatter of the resolved steering files, seeds
+   `computeSkillClosure`. Its result (each seed followed by its transitive
+   dependencies, in visit order) replaces `skills` in the returned `ResolvedBundle`.
+   The closure only adds skills; it never alters an agent's own `skills`/`preload_skills`.
+
+### Skill closure — building blocks
+
+Exported (for tests and later callers) but not part of the bundle-listing surface.
+
+| Function                     | Kind | Responsibility                                                                                                                                                                                                |
+| ---------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `parseRequiresSkills`        | Pure | Reads `requires_skills` from a markdown file's frontmatter. Entries are bare kebab-case names (a `skill/` prefix is normalised via `parseSkillRef`); non-list, non-string, or path-like entries throw.        |
+| `computeSkillClosure`        | Pure | Depth-first transitive closure over an injected `getDeps(name)`. A visited set dedupes and stops at repeats, so cycles are legal and silent. A skill whose `getDeps` is `undefined` throws, naming the chain. |
+| `createSkillDepsReader`      | I/O  | Returns a cached `getDeps` that reads `skills/{name}/SKILL.md` frontmatter; `undefined` when the file is absent. Rejects non-kebab-case names before building a path.                                         |
+| `readSteeringRequiredSkills` | I/O  | Collects `requires_skills` across the resolved steering paths, skipping paths that do not exist.                                                                                                              |
+
+`resolveBundle` now also throws on a skill missing from the dependency chain (error text
+`Missing skill in dependency chain: a → b → (missing)`), including a seed skill that has no
+`skills/{name}/SKILL.md`.
 
 ### Domain auto-discovery — internal building blocks
 
@@ -74,6 +95,10 @@ what actually crosses the file's boundary).
 | Export                                                  | Purpose                                                                                        |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `resolveBundle(bundleName, repoRoot)`                   | The entry point above — returns a `ResolvedBundle`.                                            |
+| `parseRequiresSkills(content, label)`                   | Validated `requires_skills` list from markdown frontmatter.                                    |
+| `computeSkillClosure(seeds, getDeps)`                   | Transitive skill closure with injected lookup.                                                 |
+| `createSkillDepsReader(repoRoot)`                       | Filesystem-backed `getDeps` over `skills/*/SKILL.md`.                                          |
+| `readSteeringRequiredSkills(steeringPaths, repoRoot)`   | `requires_skills` across steering files.                                                       |
 | `parseSkillRef(ref)`                                    | `"skill/plan-lifecycle"` → `"plan-lifecycle"`; bare names pass through; empty string → `null`. |
 | `parseServerToolRef(tool)`                              | Parses an agent's `@server/tool`-format tool entry into its server name.                       |
 | `listStandards/Bundles/Servers/HookResources(repoRoot)` | Directory listings used by `aif list` — independent of bundle resolution itself.               |
@@ -81,12 +106,12 @@ what actually crosses the file's boundary).
 
 ## Consumers
 
-| Export                                  | Callers                                       | Why                                                                                                                                                               |
-| --------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resolveBundle()`                       | `install.js`, `validate.js`, `snapshot/io.js` | The actual install; `validate.js`'s bundle-resolution integrity checks; knowing what a bundle's own snapshot should cover.                                        |
-| `listBundles()`                         | The same three, plus `list.js`                | Directory listing shared by every command that enumerates bundles.                                                                                                |
-| `listStandards()`                       | `install.js`                                  | Only the install path needs the full standards directory listing.                                                                                                 |
-| `listServers()` / `listHookResources()` | `snapshot/io.js`                              | Both listings feed snapshot building; `list.js`'s own `servers` output is a separate, local implementation with the same name, not this module's `listServers()`. |
+| Export                                  | Callers                                       | Why                                                                                                                                                                                    |
+| --------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resolveBundle()`                       | `install.js`, `validate.js`, `snapshot/io.js` | The actual install; `validate.js`'s bundle-resolution integrity checks; knowing what a bundle's own snapshot should cover (the closure-expanded `skills` list feeds snapshot hashing). |
+| `listBundles()`                         | The same three, plus `list.js`                | Directory listing shared by every command that enumerates bundles.                                                                                                                     |
+| `listStandards()`                       | `install.js`                                  | Only the install path needs the full standards directory listing.                                                                                                                      |
+| `listServers()` / `listHookResources()` | `snapshot/io.js`                              | Both listings feed snapshot building; `list.js`'s own `servers` output is a separate, local implementation with the same name, not this module's `listServers()`.                      |
 
 Neither harness adapter (`claude.js`/`kiro.js`) calls into `resolver.js` directly —
 they receive an already-resolved component list from `install.js` and only handle

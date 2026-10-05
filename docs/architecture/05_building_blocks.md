@@ -2,7 +2,7 @@
 section: '05'
 title: 'Building Block View'
 lifecycle: published
-last_verified: e7c381b
+last_verified: 677f1fb
 tags: [building-blocks, c4]
 key_files:
   - bin/aif.js
@@ -97,7 +97,7 @@ cut across that boundary and hide it.
 
 | Block                                                | Responsibility                                                                                                                                                                                                        | Interface                                                                             |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `resolver.js`                                        | Resolves a bundle's full component set: domain auto-discovery + explicit lists + dedupe. See §5.01.                                                                                                                   | `resolveBundle()`, `listStandards/Bundles/Servers/HookResources()`, `parseSkillRef()` |
+| `resolver.js`                                        | Resolves a bundle's full component set: domain auto-discovery + explicit lists + dedupe + `requires_skills` skill closure. See §5.01.                                                                                 | `resolveBundle()`, `listStandards/Bundles/Servers/HookResources()`, `parseSkillRef()` |
 | `decisions.js` / `architecture.js` / `index-diff.js` | Parse, index, and diff ADRs and arc42 sections respectively, sharing one generic diffing primitive. See §5.04.                                                                                                        | See §5.04.                                                                            |
 | Everything else                                      | `manifest.js`, `snapshot/io.js`+`pure.js`, `project-init.js`, `ai-git.js`, `secrets.js`, `constants.js`/`component-defs.js`, `aiconfig.js`+`aiconfig-resolve.js`+`aiconfig-defaults.js`, `file-utils.js` — see §5.03. | See §5.03.                                                                            |
 
