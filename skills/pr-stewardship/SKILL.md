@@ -1,6 +1,6 @@
 ---
 name: 'pr-stewardship'
-version: '0.3.0'
+version: '0.3.2'
 description: 'Drives an open pull request to a green, mergeable state — checking CI, merge conflicts, and review feedback, and fixing or reporting what blocks it.'
 ---
 
@@ -66,7 +66,7 @@ Applies only to a `push-check/**` branch in a `repo_type: framework` repo (`stee
 2. Fast-forward `main` to that exact commit: `ai-git push origin push-check/{short-description}:main`. Never amend or rebase first — a new SHA has not passed CI.
 3. If the push is rejected as not a fast-forward, `main` has moved: merge `main` into the branch and push it so CI runs again, then return here once it is green.
 4. If it is rejected because a required check has not passed on that commit, do not bypass it — escalate per `steering/engineering/git-workflow-core.md`: "Required CI Checks Gate Main — Never Bypass Them".
-5. Delete the `push-check/` branch once `main` has it.
+5. Leave the `push-check/` branch in place — the twice-weekly `Cleanup branches` workflow deletes it once `main` contains its tip (cloud sessions can't delete remote branches), so it may linger for a few days.
 
 ### Step 5 — Report status
 

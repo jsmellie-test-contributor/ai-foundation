@@ -1,6 +1,6 @@
 ---
 name: 'git-workflow-framework'
-version: '0.8.0'
+version: '0.8.2'
 description: 'Git workflow for framework-style repositories (no PRs required; every commit passes CI on a push-check branch before landing on main).'
 file_patterns: []
 ---
@@ -22,7 +22,7 @@ No PR is required, but a commit cannot land on `main` untested — the repo's re
 1. Commit to a branch named `push-check/{short-description}` and push it. CI runs on every push to `push-check/**` (and to `main`).
 2. Wait for the required checks to go green on that commit.
 3. Fast-forward `main` to that same commit: `ai-git push origin push-check/{short-description}:main`.
-4. Delete the `push-check/` branch.
+4. Leave the `push-check/` branch alone. The twice-weekly `Cleanup branches` workflow deletes it once `main` contains its tip, since cloud sessions can't delete remote branches — so it may linger for a few days. Delete it yourself only if you can and it is still there.
 
 Opening a PR from the branch is equally valid and follows the same CI gate.
 

@@ -1,7 +1,7 @@
 ---
 name: 'git-workflow-core'
-version: '0.6.0'
-description: 'Git workflow rules shared by every repo type — commit hygiene, ai-git usage, token handling, PR stewardship, and the required-CI gate on main.'
+version: '0.7.1'
+description: 'Git workflow rules shared by every repo type — commit hygiene, ai-git usage, token handling, PR stewardship, the required-CI gate on main, and branch naming and lifecycle.'
 file_patterns: []
 ---
 
@@ -75,6 +75,18 @@ file_patterns: []
 
 ---
 
+### Rule: Branches Age Out Unless Protected
+
+- Name branches by purpose: `{plan-id}/{short-description}` for governed work (see `git-workflow-projects.md`: "Branch Naming Convention"), `claude/…` for cloud-session branches, `push-check/…` for CI-gated landing (see `git-workflow-framework.md`: "Main Only Accepts Commits That Have Already Passed CI"). A throwaway test or validation branch is `{SHORT}-test/{short-description}`: the project short code plus a test/valid/verif word is what marks it throwaway. A badly named branch gets no special treatment — it ages out like any other.
+- Don't rely on a branch surviving. A scheduled workflow (`.github/workflows/cleanup-branches.yml`) sorts every branch except the default and the protected list:
+  - **Mandatory** — the default branch, the protected list, and any branch not forked from the default branch (unrelated history, e.g. `docs`, `agent-testing`) unless it is named as a throwaway test, which then ages out like any other. Empty branches (no commits of their own) are also kept, except landed `push-check/` branches. Never deleted.
+  - **Active** — last commit under 7 days ago, or an open PR under 7 days old. Kept.
+  - **Stale** — last commit 7–14 days ago, or an open PR 7 days old or older. The PR is closed and labelled `stale`; the branch is kept.
+  - **Archive** — merged by a PR, a `push-check/` branch already contained in the default branch, or a last commit over 14 days old with no open PR. Deleted.
+- Land work, or open a PR, promptly: an unmerged branch with no activity for two weeks is deleted. Branches that must live despite the rules go in the workflow's `PROTECTED_BRANCHES` (`docs`, `agent-testing` and `cloud-sandbox` are there too); ask the human to add one rather than working around the cleanup.
+
+---
+
 ## Enforcement
 
 - **Non-atomic or oversized commits:** Caught during review. A commit covering multiple logical changes, or exceeding the message-length limit without being a merge commit, is a LOW finding — the agent should have split it.
@@ -83,6 +95,7 @@ file_patterns: []
 - **Supplying, inferring, or asking for a git identity:** A HIGH finding at review — commits attributed to the wrong identity, or an identity requested from the human.
 - **Logging or echoing the token value:** A CRITICAL finding, not a style issue — this is credential exposure. See `steering/global/core.md`: "Security Requirements Are Never Optional".
 - **Bypassing required CI checks:** A HIGH finding — any use of a bypass, override, or change to a check or ruleset to land a commit that has not passed CI.
+- **Hand-deleting branches or editing the cleanup thresholds or protected list to dodge it:** A HIGH finding — branch lifecycle is the workflow's job; a branch that must live belongs on the protected list, added by the human.
 - **Abandoned-PR violations:** A red or conflicted PR sitting unattended with no blocker reported is a HIGH finding — the opening agent should have followed `skill/pr-stewardship`.
 
 ---

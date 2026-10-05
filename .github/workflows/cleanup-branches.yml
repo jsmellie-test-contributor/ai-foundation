@@ -1,0 +1,69 @@
+name: Cleanup branches
+
+# Cloud sessions can't delete remote branches, so GitHub does it here, twice a
+# week. There is deliberately no push trigger: `main` is pushed many times a
+# week, and every job is billed a full minute minimum however short it runs.
+#
+# The rules (categories, thresholds, what is kept) live in
+# .github/scripts/cleanup-branches.mjs and are summarised in
+# steering/engineering/git-workflow-core.md: "Branches Age Out Unless
+# Protected". Every run writes a report to the job summary, including the list
+# of Stale branches.
+#
+# A manual dispatch can instead name specific branches to delete; the sweep is
+# then skipped. Both modes have a dry run.
+on:
+  schedule:
+    # Mondays and Thursdays, 06:17 UTC.
+    - cron: "17 6 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what would be done"
+        type: boolean
+        default: false
+      branches:
+        description: "Branches to delete instead of the sweep (space or comma separated). The default branch, protected branches and branches with an open PR are refused."
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  REPO: ${{ github.repository }}
+  # Report only until this is "true". Scheduled runs only ever report while it
+  # is "false"; flip it after reading the first job summary.
+  ENFORCE: "false"
+  # Empty on a scheduled run, so only a manual dispatch can set these.
+  DRY_RUN: ${{ inputs.dry_run }}
+  BRANCHES: ${{ inputs.branches }}
+  # Never touched, and never deleted by an explicit list. The default branch is
+  # always protected too. Branches with unrelated history are also kept unless
+  # their name has the project short code and a test/valid/verif word (the
+  # script reads the short code from .aiconfig.json). Edit this list as needed.
+  PROTECTED_BRANCHES: "cloud-sandbox agent-testing docs"
+  # A branch is Active under ACTIVE_DAYS, Stale up to ARCHIVE_DAYS, then Archive.
+  ACTIVE_DAYS: 7
+  ARCHIVE_DAYS: 14
+
+jobs:
+  cleanup:
+    name: Sort, report and clean up branches
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The script also reads the project short code from .aiconfig.json.
+      - name: Checkout the cleanup script
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            /.github/scripts/
+            /.aiconfig.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Run branch cleanup
+        run: node .github/scripts/cleanup-branches.mjs

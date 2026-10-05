@@ -65,7 +65,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     const result = run({ CLAUDE_CODE_REMOTE: 'true' });
     assert.equal(result.status, 0);
     assert.deepEqual(calls(), [
-      'npm ci --ignore-scripts --omit=dev --no-audit --no-fund',
+      'npm ci --ignore-scripts --no-audit --no-fund',
       'npm link --ignore-scripts',
       'ai-git doctor',
     ]);
@@ -75,7 +75,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     const result = run({ CLAUDE_CODE_REMOTE: 'true', AIF_BUNDLES: 'engineering,generic' });
     assert.equal(result.status, 0);
     assert.deepEqual(calls(), [
-      'npm ci --ignore-scripts --omit=dev --no-audit --no-fund',
+      'npm ci --ignore-scripts --no-audit --no-fund',
       'npm link --ignore-scripts',
       'node bin/aif.js install -B engineering,generic -H claude',
       'ai-git doctor',
@@ -104,7 +104,7 @@ describe('scripts/session-start.sh', { skip: !HAS_BASH && 'bash not available' }
     assert.equal(result.status, 0);
     assert.match(result.stderr, /npm link failed/);
     assert.deepEqual(calls(), [
-      'npm ci --ignore-scripts --omit=dev --no-audit --no-fund',
+      'npm ci --ignore-scripts --no-audit --no-fund',
       'npm link --ignore-scripts',
       'node bin/aif.js install -B engineering -H claude',
       'ai-git doctor',

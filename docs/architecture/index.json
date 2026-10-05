@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T18:24:13.431Z",
+  "generated_at": "2026-10-04T23:56:31.052Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -15,7 +15,7 @@
         "AGENTS.md",
         "package.json"
       ],
-      "last_verified": "8e22ec0",
+      "last_verified": "044e4bf",
       "stale": false
     },
     {
@@ -36,7 +36,7 @@
         "steering/engineering/git-workflow-core.md",
         "steering/engineering/git-workflow-projects.md"
       ],
-      "last_verified": "b28290a",
+      "last_verified": "454ff9d",
       "stale": false
     },
     {
