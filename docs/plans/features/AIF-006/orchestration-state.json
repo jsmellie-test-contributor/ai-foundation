@@ -18,11 +18,11 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Implementing",
+      "status": "Reviewing",
       "branch": "AIF-006/002-validator-requires-skills",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-006/002-validator-requires-skills",
-      "pr_number": null,
-      "pr_url": null,
+      "pr_number": 101,
+      "pr_url": "https://github.com/starvoxel/ai-foundation/pull/101",
       "iterations": 0,
       "blocked_reason": null
     },
@@ -134,6 +134,20 @@
       "action": "task_dispatched",
       "task_id": "002",
       "details": "software-engineer, branch AIF-006/002-validator-requires-skills"
+    },
+    {
+      "timestamp": "2026-10-05T15:02:38.044Z",
+      "agent": "Engineering-Manager",
+      "action": "pr_created",
+      "task_id": "002",
+      "details": "draft PR 101"
+    },
+    {
+      "timestamp": "2026-10-05T15:02:38.044Z",
+      "agent": "Engineering-Manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Implementing -> Reviewing"
     }
   ]
 }
