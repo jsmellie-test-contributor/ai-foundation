@@ -18,7 +18,7 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Implementing",
+      "status": "Done",
       "branch": "AIF-006/002-validator-requires-skills",
       "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-006/002-validator-requires-skills",
       "pr_number": 101,
@@ -155,6 +155,13 @@
       "action": "review_loop",
       "task_id": "002",
       "details": "iteration 1: MEDIUM-0 transitive missing crash"
+    },
+    {
+      "timestamp": "2026-10-05T15:11:01.917Z",
+      "agent": "Engineering-Manager",
+      "action": "task_status_changed",
+      "task_id": "002",
+      "details": "Reviewing -> Done, PR 101 ready, iteration 1"
     }
   ]
 }
