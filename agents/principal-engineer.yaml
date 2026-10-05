@@ -1,6 +1,6 @@
 ---
 name: "principal-engineer"
-version: "0.9.0"
+version: "0.10.0"
 domain: "engineering"
 description: "Review agent that enforces quality, security, and standards compliance across product code and AI-component definitions alike."
 
@@ -44,6 +44,8 @@ tools:
   - "shell"
   - "task"
   - "skill"
+  # T0 (read-only): documentation lookup + own-session info; baseline for every agent.
+  - "session_info"
 
 approved_tools:
   - "read"
@@ -53,6 +55,7 @@ approved_tools:
   - "shell"
   - "task"
   - "skill"
+  - "session_info"
 
 skills:
   - "skill/code-review"
