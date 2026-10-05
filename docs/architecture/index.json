@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T23:56:31.052Z",
+  "generated_at": "2026-10-05T01:10:38.695Z",
   "entries": [
     {
       "path": "01_introduction_and_goals.md",
@@ -36,7 +36,7 @@
         "steering/engineering/git-workflow-core.md",
         "steering/engineering/git-workflow-projects.md"
       ],
-      "last_verified": "454ff9d",
+      "last_verified": "677f1fb",
       "stale": false
     },
     {
@@ -71,7 +71,7 @@
       "key_files": [
         "lib/resolver.js"
       ],
-      "last_verified": "faffb74",
+      "last_verified": "677f1fb",
       "stale": false
     },
     {
@@ -120,7 +120,7 @@
         "lib/aiconfig-defaults.js",
         "lib/file-utils.js"
       ],
-      "last_verified": "e7c381b",
+      "last_verified": "677f1fb",
       "stale": false
     },
     {
@@ -192,7 +192,7 @@
         "servers/gmail/auth.js",
         "servers/youtrack/youtrack.yaml"
       ],
-      "last_verified": "e7c381b",
+      "last_verified": "677f1fb",
       "stale": false
     },
     {
