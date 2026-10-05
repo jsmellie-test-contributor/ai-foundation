@@ -1,7 +1,7 @@
 {
   "feature_id": "AIF-006",
   "status": "In Progress",
-  "current_wave": 0,
+  "current_wave": 1,
   "total_waves": 4,
   "tasks": [
     {
@@ -9,7 +9,7 @@
       "wave": 0,
       "status": "Done",
       "branch": "AIF-006/001-requires-skills-resolver",
-      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-006/001-requires-skills-resolver",
+      "worktree_path": "",
       "pr_number": 100,
       "pr_url": "https://github.com/starvoxel/ai-foundation/pull/100",
       "iterations": 1,
@@ -18,9 +18,9 @@
     {
       "id": "002",
       "wave": 1,
-      "status": "Ready",
-      "branch": "",
-      "worktree_path": "",
+      "status": "Implementing",
+      "branch": "AIF-006/002-validator-requires-skills",
+      "worktree_path": "D:/Programming/StarVoxel/worktrees/ai-foundation/AIF-006/002-validator-requires-skills",
       "pr_number": null,
       "pr_url": null,
       "iterations": 0,
@@ -106,6 +106,34 @@
       "action": "task_status_changed",
       "task_id": "001",
       "details": "Reviewing -> Done, PR 100 ready, iteration 1"
+    },
+    {
+      "timestamp": "2026-10-05T14:48:26.914Z",
+      "agent": "Engineering-Manager",
+      "action": "worktree_removed",
+      "task_id": "001",
+      "details": "PR 100 merged"
+    },
+    {
+      "timestamp": "2026-10-05T14:48:26.915Z",
+      "agent": "Engineering-Manager",
+      "action": "wave_completed",
+      "task_id": null,
+      "details": "wave 0"
+    },
+    {
+      "timestamp": "2026-10-05T14:48:26.915Z",
+      "agent": "Engineering-Manager",
+      "action": "wave_started",
+      "task_id": null,
+      "details": "wave 1 of 4"
+    },
+    {
+      "timestamp": "2026-10-05T14:48:26.915Z",
+      "agent": "Engineering-Manager",
+      "action": "task_dispatched",
+      "task_id": "002",
+      "details": "software-engineer, branch AIF-006/002-validator-requires-skills"
     }
   ]
 }
